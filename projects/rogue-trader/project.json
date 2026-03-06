@@ -1,0 +1,30 @@
+{
+  "name": "rogue-trader",
+  "translation": {
+    "source": "./source/enGB_original.json",
+    "current": "./source/enGB_new.json",
+    "ids_file": "./source/ids_selected.txt",
+    "checkpoint_db": "./output/translation_checkpoint.db",
+    "context_files": [
+      "../../workflow/context/agent_context.md"
+    ],
+    "rules_file": "",
+    "server_url": "http://127.0.0.1:11434",
+    "model": "TranslateGemma:latest",
+    "llm_backend": "ollama"
+  },
+  "evaluation": {
+    "pack_in": "./output/eval_pack.json",
+    "db": "./output/evaluation_unified.db",
+    "run_name": "rogue-trader-default",
+    "context_files": [
+      "../../workflow/context/agent_context.md"
+    ],
+    "rules_file": "",
+    "eval_rules_file": "",
+    "server_url": "http://127.0.0.1:11434",
+    "trans_model": "TranslateGemma:latest",
+    "eval_model": "TranslateGemma:latest",
+    "llm_backend": "ollama"
+  }
+}

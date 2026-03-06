@@ -1,0 +1,30 @@
+{
+  "name": "esoteric-ebb",
+  "translation": {
+    "source": "./output/batches/translation_assetripper_textasset_unique/source_esoteric.json",
+    "current": "./output/batches/translation_assetripper_textasset_unique/current_esoteric.json",
+    "ids_file": "./output/batches/translation_assetripper_textasset_unique/ids_esoteric.txt",
+    "checkpoint_db": "./output/batches/translation_assetripper_textasset_unique/translation_checkpoint.db",
+    "context_files": [
+      "./context/esoteric_ebb_context.md"
+    ],
+    "rules_file": "./context/esoteric_ebb_rules.md",
+    "server_url": "http://127.0.0.1:11434",
+    "model": "TranslateGemma:latest",
+    "llm_backend": "ollama"
+  },
+  "evaluation": {
+    "pack_in": "./output/eval_pack.json",
+    "db": "./output/evaluation_unified.db",
+    "run_name": "esoteric-ebb-default",
+    "context_files": [
+      "./context/esoteric_ebb_context.md"
+    ],
+    "rules_file": "./context/esoteric_ebb_rules.md",
+    "eval_rules_file": "./context/esoteric_ebb_rules.md",
+    "server_url": "http://127.0.0.1:11434",
+    "trans_model": "TranslateGemma:latest",
+    "eval_model": "TranslateGemma:latest",
+    "llm_backend": "ollama"
+  }
+}
