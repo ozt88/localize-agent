@@ -1,0 +1,976 @@
+{
+  "version": "1.0",
+  "source": {
+    "keybert_report": "workflow/output/global_term_mining_report.json",
+    "yake_report": "workflow/output/yake_term_mining_report.json",
+    "tag_skill_candidates": "workflow/output/glossary_candidates_from_mining.json",
+    "snapshot": "workflow/output/term_source_snapshot.json"
+  },
+  "System_Stats": {
+    "WarhammerWeaponSkill": "근접 기술",
+    "WarhammerBallisticSkill": "사격 기술",
+    "WarhammerStrength": "근력",
+    "WarhammerToughness": "강인함",
+    "WarhammerAgility": "민첩성",
+    "WarhammerPerception": "지각력",
+    "WarhammerIntelligence": "지능",
+    "WarhammerWillpower": "의지력",
+    "WarhammerFellowship": "친화력",
+    "Willpower": "의지력",
+    "Toughness": "강인함",
+    "Perception": "지각력",
+    "Fellowship": "친화력",
+    "Intelligence": "지능",
+    "Strength": "근력",
+    "Agility": "민첩성",
+    "Wounds": "부상",
+    "Armour": "방어",
+    "Deflection": "굴절",
+    "MovementPoints": "이동력",
+    "ActionPoints": "행동력",
+    "PsyRating": "사이 등급",
+    "INTBdiv2": "지능 보너스의 절반"
+  },
+  "Combat_Mechanics": {
+    "Damage": "피해",
+    "BonusDamage": "추가 피해",
+    "DamageBonus": "피해 보정",
+    "DamageReduction": "피해 경감",
+    "Penetration": "관통",
+    "ArmourPenetration": "방어도 관통",
+    "Critical Hit Chance": "치명타 확률",
+    "CritChance": "치명타 확률",
+    "Dodge": "회피",
+    "Parry": "쳐내기",
+    "Resolve": "결의",
+    "Momentum": "기세",
+    "Lethality": "살상력",
+    "Exploits": "약점",
+    "TemporaryWounds": "일시적 부상",
+    "Veil": "장막",
+    "Overpenetration": "추가 관통"
+  },
+  "Lore_Proper_Nouns": {
+    "Rogue Trader": "로그 트레이더",
+    "Lord Captain": "로드 캡틴",
+    "High Factotum": "수석 집사",
+    "Von Valancius Dynasty": "폰 발란시우스 가문",
+    "House von Valancius": "폰 발란시우스 가문",
+    "Koronus Expanse": "코로나스 성계",
+    "Lord Inquisitor Calcazar": "로드 인퀴지터 칼카자르",
+    "Adeptus Arbites": "아뎁투스 아르비테스",
+    "Adeptus Mechanicus": "아뎁투스 메카니쿠스",
+    "Cult of the Final Dawn": "최후의 여명 교단",
+    "Reaving Tempest": "리빙 템페스트",
+    "The Warp": "워프",
+    "Death World": "데스 월드",
+    "Voidborn": "보이드본",
+    "Hive World": "하이브 월드",
+    "Forge World": "포지 월드",
+    "Imperial World": "임페리얼 월드",
+    "Fortress World": "포트리스 월드",
+    "Catachan": "카타찬",
+    "Cadia": "카디아",
+    "Void Shadows": "보이드 섀도우즈",
+    "Lex Imperialis": "렉스 임페리알리스",
+    "Sword Class Frigate": "소드급 프리깃함",
+    "Falchion Class Escort": "팔시온급 호위함",
+    "Firestorm Class Frigate": "파이어스톰급 프리깃함",
+    "Theodora von Valancius": "테오도라 폰 발란시우스",
+    "Abelard Werserian": "아벨라드 버세리안",
+    "Idira Tlass": "이디라 틀라스",
+    "Sister Argenta": "시스터 아르젠타",
+    "Cassia Orsellio": "카시아 오셀리오",
+    "Pasqal Haneumann": "파스칼 하뉴만",
+    "Heinrix van Calox": "헤인릭스 반 칼록스",
+    "Jae Heydari": "자이 헤이다리",
+    "Dargonus": "다고누스",
+    "Cognisance": "코그니산스",
+    "Bloodspun": "피로 엮은",
+    "Bloodspun Web": "피로 엮은 거미줄",
+    "Bloodspun Curse": "피로 엮은 저주",
+    "The Bloodspun": "피를 엮는 자들",
+    "Cassia": "카시아",
+    "Heinrix": "하인릭스",
+    "Jae": "자이",
+    "Yrliet": "이를리엣",
+    "Marazhai": "마라즈하이",
+    "Calligos Winterscale": "칼리고스 윈터스케일",
+    "Overseer": "오버시어",
+    "Servo-Skull": "서보스컬"
+  },
+  "Logic_Triggers": {
+    "wearer deals damage": "착용자가 피해를 입힐 때",
+    "wearer kills enemy": "착용자가 적을 처치할 때",
+    "wearer uses": "착용자가 사용 시",
+    "wearer gains": "착용자가 획득할 때",
+    "enemy wearer gains": "적이 획득할 때",
+    "fails toughness resistance test": "강인함 저항 판정 실패 시",
+    "deals additional damage": "추가 피해를 입힐 때"
+  },
+  "Normalization_Aliases": {
+    "치명타 확률": [
+      "CritChance",
+      "Critical Hit Chance",
+      "CritHit",
+      "Critchance",
+      "CriticalChance"
+    ],
+    "방어도 관통": [
+      "ArmourPenetration",
+      "Armor Penetration",
+      "PenetrationBonus",
+      "BonusPenetetration"
+    ],
+    "회피": [
+      "Dodge",
+      "DodgeBonus",
+      "DodgePenalty",
+      "AdditionalDodge"
+    ]
+  },
+  "Immutable_Rules": {
+    "tag_integrity": {
+      "policy": "byte_identical",
+      "patterns": [
+        "\\{[^}]+\\}",
+        "\\[T\\d+\\]"
+      ],
+      "description": "태그/플레이스홀더는 번역 대상에서 제외하고 기계적으로 복원한다."
+    },
+    "skill_identifier_policy": {
+      "source": "Skill_Identifiers + glossary mappings",
+      "policy": "translate_via_glossary",
+      "description": "스킬/재능 식별자는 용어집 매핑이 있으면 한국어로 번역하고, 미매핑 항목만 review 대상으로 남긴다."
+    },
+    "honorific_policy": {
+      "Your {mf|Lordship|Ladyship}": "각하",
+      "{mf|Lord|Lady}ship": "각하",
+      "{mf|master|mistress}": "{mf|주인|주인}"
+    },
+    "grimdark_tone": {
+      "Service": "복무",
+      "Sacrifice": "공양"
+    }
+  },
+  "Lore_Termbank": {
+    "The Warp": {
+      "ko": "워프",
+      "aliases": [
+        "warp",
+        "Immaterium"
+      ],
+      "status": "approved",
+      "category": "cosmology",
+      "notes": "공식/팬덤 관용 표기. 임의 의역 금지."
+    },
+    "Chaos": {
+      "ko": "카오스",
+      "aliases": [
+        "Powers of Chaos",
+        "Ruinous Powers"
+      ],
+      "status": "approved",
+      "category": "faction",
+      "notes": "문맥에 따라 카오스 세력/혼돈으로 분기 가능하나 기본은 카오스."
+    },
+    "Omnissiah": {
+      "ko": "옴니시아",
+      "aliases": [
+        "servants of the Omnissiah",
+        "Machine God"
+      ],
+      "status": "approved",
+      "category": "religion",
+      "notes": "아뎁투스 메카니쿠스 관련 종교 용어."
+    },
+    "Adeptus Mechanicus": {
+      "ko": "아뎁투스 메카니쿠스",
+      "aliases": [
+        "Mechanicus"
+      ],
+      "status": "approved",
+      "category": "faction"
+    },
+    "Adeptus Arbites": {
+      "ko": "아뎁투스 아르비테스",
+      "aliases": [
+        "Arbites"
+      ],
+      "status": "approved",
+      "category": "faction"
+    },
+    "Astra Militarum": {
+      "ko": "아스트라 밀리타룸",
+      "aliases": [
+        "Imperial Guard"
+      ],
+      "status": "approved",
+      "category": "faction"
+    },
+    "God-Emperor": {
+      "ko": "신-황제 폐하",
+      "aliases": [
+        "God Emperor",
+        "Emperor of Mankind"
+      ],
+      "status": "approved",
+      "category": "religion",
+      "notes": "기도/경칭 문맥에서 '가호가 함께하시길' 관용 사용 허용."
+    },
+    "Koronus Expanse": {
+      "ko": "코로나스 성계",
+      "aliases": [
+        "the Expanse"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "High Factotum": {
+      "ko": "수석 집사",
+      "aliases": [
+        "Factotum"
+      ],
+      "status": "approved",
+      "category": "title"
+    },
+    "Death World": {
+      "ko": "데스 월드",
+      "aliases": [
+        "Death World"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Voidborn": {
+      "ko": "보이드본",
+      "aliases": [
+        "Void Born"
+      ],
+      "status": "approved",
+      "category": "origin"
+    },
+    "Hive World": {
+      "ko": "하이브 월드",
+      "aliases": [
+        "Hiveworld"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Forge World": {
+      "ko": "포지 월드",
+      "aliases": [
+        "Forgeworld"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Imperial World": {
+      "ko": "임페리얼 월드",
+      "aliases": [
+        "Imperium World"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Fortress World": {
+      "ko": "포트리스 월드",
+      "aliases": [
+        "Fortressworld"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Catachan": {
+      "ko": "카타찬",
+      "aliases": [
+        "Catachan Jungle Fighters"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Cadia": {
+      "ko": "카디아",
+      "aliases": [
+        "Cadian"
+      ],
+      "status": "approved",
+      "category": "location"
+    },
+    "Void Shadows": {
+      "ko": "보이드 섀도우즈",
+      "aliases": [
+        "Void Shadows"
+      ],
+      "status": "approved",
+      "category": "dlc"
+    },
+    "Lex Imperialis": {
+      "ko": "렉스 임페리알리스",
+      "aliases": [
+        "Lex Imperialis"
+      ],
+      "status": "approved",
+      "category": "dlc"
+    },
+    "Sword Class Frigate": {
+      "ko": "소드급 프리깃함",
+      "aliases": [
+        "Sword-class Frigate"
+      ],
+      "status": "approved",
+      "category": "ship_class"
+    },
+    "Falchion Class Escort": {
+      "ko": "팔시온급 호위함",
+      "aliases": [
+        "Falchion-class Escort"
+      ],
+      "status": "approved",
+      "category": "ship_class"
+    },
+    "Firestorm Class Frigate": {
+      "ko": "파이어스톰급 프리깃함",
+      "aliases": [
+        "Firestorm-class Frigate"
+      ],
+      "status": "approved",
+      "category": "ship_class"
+    },
+    "Theodora von Valancius": {
+      "ko": "테오도라",
+      "aliases": [
+        "Theodora"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Abelard Werserian": {
+      "ko": "아벨라드 버세리안",
+      "aliases": [
+        "Abelard"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Idira Tlass": {
+      "ko": "이디라 틀라스",
+      "aliases": [
+        "Idira"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Sister Argenta": {
+      "ko": "시스터 아르젠타",
+      "aliases": [
+        "Argenta"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Cassia Orsellio": {
+      "ko": "카시아 오셀리오",
+      "aliases": [
+        "Cassia"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Pasqal Haneumann": {
+      "ko": "파스칼 하뉴만",
+      "aliases": [
+        "Pasqal"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Heinrix van Calox": {
+      "ko": "헤인릭스 반 칼록스",
+      "aliases": [
+        "Heinrix"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Jae Heydari": {
+      "ko": "자이 헤이다리",
+      "aliases": [
+        "Jae"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Dargonus": {
+      "ko": "다고누스",
+      "aliases": [],
+      "status": "approved",
+      "category": "location"
+    },
+    "Cognisance": {
+      "ko": "코그니산스",
+      "aliases": [],
+      "status": "approved",
+      "category": "ship"
+    },
+    "Von Valancius Dynasty": {
+      "ko": "폰 발란시우스 가문",
+      "aliases": [
+        "House von Valancius",
+        "von Valancius"
+      ],
+      "status": "approved",
+      "category": "house"
+    },
+    "Lord Inquisitor Calcazar": {
+      "ko": "로드 인퀴지터 칼카자르",
+      "aliases": [
+        "Inquisitor Calcazar"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Jae": {
+      "ko": "자이",
+      "aliases": [
+        "Jae Heydari"
+      ],
+      "status": "approved",
+      "category": "character"
+    },
+    "Exploits": {
+      "ko": "약점",
+      "aliases": [
+        "Exploit"
+      ],
+      "status": "approved",
+      "category": "mechanic"
+    },
+    "Bloodspun": {
+      "ko": "피로 엮은",
+      "aliases": [
+        "Bloodspun"
+      ],
+      "status": "approved",
+      "category": "descriptor",
+      "notes": "'Spun'의 제작 공정을 직관적으로 반영한 표기."
+    },
+    "Bloodspun Web": {
+      "ko": "피로 엮은 거미줄",
+      "aliases": [],
+      "status": "approved",
+      "category": "construct",
+      "notes": "적이 쳐 놓은 덫/기믹 실체를 명시하는 표기."
+    },
+    "Bloodspun Curse": {
+      "ko": "피로 엮은 저주",
+      "aliases": [],
+      "status": "approved",
+      "category": "curse",
+      "notes": "주술 문맥에서도 Bloodspun 계열과 일관성 유지."
+    },
+    "The Bloodspun": {
+      "ko": "피를 엮는 자들",
+      "aliases": [],
+      "status": "approved",
+      "category": "faction_or_cult",
+      "notes": "세력 명칭으로 쓰일 때 능동적 주체성을 부여."
+    },
+    "Service": {
+      "ko": "복무",
+      "aliases": [
+        "holy mission of service"
+      ],
+      "status": "approved",
+      "category": "grimdark_style"
+    },
+    "Sacrifice": {
+      "ko": "공양",
+      "aliases": [
+        "solemn sacrifice"
+      ],
+      "status": "approved",
+      "category": "grimdark_style",
+      "notes": "문맥에 따라 '희생'과 병용 가능하나 교리/의례 문맥은 공양 우선."
+    },
+    "Extrapolation": {
+      "ko": "외삽",
+      "aliases": [
+        "extrapolate",
+        "extrapolated"
+      ],
+      "status": "approved",
+      "category": "technical_concept",
+      "notes": "기술/분석 문맥에서 '추정'으로 약화하지 말고 용어를 유지."
+    },
+    "Rogue Trader": {
+      "ko": "로그 트레이더",
+      "aliases": [
+        "Rogue Trader"
+      ],
+      "status": "approved",
+      "category": "title"
+    },
+    "Overseer": {
+      "ko": "오버시어",
+      "aliases": [
+        "Overseer"
+      ],
+      "status": "approved",
+      "category": "title"
+    },
+    "Servo-Skull": {
+      "ko": "서보스컬",
+      "aliases": [
+        "Servo-Skull",
+        "Servo Skull"
+      ],
+      "status": "approved",
+      "category": "title"
+    }
+  },
+  "Ability_Skill_Display_Names": {
+    "Pasqal's Machine Spirit": "파스칼의 기계령",
+    "Bring It Down!": "쳐부숴라!",
+    "Voice of Command": "지휘의 목소리",
+    "Critical Hit Chance": "치명타 확률",
+    "TemporaryWounds": "일시적 부상",
+    "DamageBonus": "피해 보정",
+    "Persuasion": "설득",
+    "Coercion": "강압",
+    "Commerce": "거래",
+    "Carouse": "주량",
+    "Awareness": "지각",
+    "Logic": "추론",
+    "Medicae": "의료",
+    "Tech-Use": "기계",
+    "Demolition": "폭파",
+    "Athletics": "운동"
+  },
+  "Decision_Log": {
+    "revision": "2026-02-18",
+    "entries": [
+      {
+        "term": "Your {mf|Lordship|Ladyship}",
+        "decision": "각하",
+        "reason": "한국어 경칭 자연성 및 일관성"
+      },
+      {
+        "term": "{mf|Lord|Lady}ship",
+        "decision": "각하",
+        "reason": "영문 접사형 호칭의 자연스러운 한국어 표준화"
+      },
+      {
+        "term": "Service / Sacrifice",
+        "decision": "복무 / 공양",
+        "reason": "그림다크 종교-의례 톤 유지"
+      },
+      {
+        "term": "10TOUBonus / TOUBonus / PERBonus 계열",
+        "decision": "능력 보너스 계수형으로 해석(예: 10TOUBonus=강인함 보너스 10배)",
+        "reason": "uip 태그가 퍼센트/중첩/피해 계산식에 직접 적용되는 문맥 확인"
+      }
+    ]
+  },
+  "Skill_Identifiers": {
+    "policy": "translate_via_glossary",
+    "description": "스킬/재능/시스템 식별자는 용어집 표준 한국어로 변환한다.",
+    "entries": {
+      "10TOUBonus": "강인함 보너스 10배",
+      "2PERBonus": "인지력 보너스 2배",
+      "ActionPoints": "행동력",
+      "AdditionalDamage": "추가 피해",
+      "AdditionalDamageTarget": "대상 추가 피해",
+      "AdditionalDodge": "추가 회피",
+      "AdditionalMomentum": "추가 기세",
+      "AdditionalOverpenetration": "추가 과관통",
+      "AGI": "민첩성",
+      "AGI Bonus": "민첩성 보너스",
+      "AGIBonus": "민첩성 보너스",
+      "AgilityBonus": "민첩성 보너스",
+      "AGISave": "민첩성 판정",
+      "AllyDamage": "아군 피해",
+      "AllyDodge": "아군 회피",
+      "AllyMP": "아군 이동력",
+      "AOODamageReduction": "기회공격 피해 감소",
+      "AP": "행동력",
+      "ArmorBonus": "방어도 보너스",
+      "Armour": "방어도",
+      "ArmourAgainstFire": "화염 저항 장갑",
+      "ArmourBonus": "방어도 보너스",
+      "ArmourPen": "방어도 관통",
+      "ArmourPenalty": "방어도 페널티",
+      "ArmourPenetration": "방어도 관통",
+      "ArmourPenetrationBonus": "방어도 관통 보너스",
+      "ArmourReduction": "방어도 감소",
+      "Attack Number": "공격 횟수",
+      "Attacks": "공격",
+      "Awareness": "지각",
+      "Athletics": "운동",
+      "BallisticSkillBonus": "사격 기술 보너스",
+      "BaseDamage": "기본 피해",
+      "BasePenetration": "기본 관통",
+      "Bleed": "출혈",
+      "Bonus": "보너스",
+      "BonusArmour": "보너스 방어도",
+      "BonusBonus": "보너스",
+      "BonusChance": "보너스 확률",
+      "BonusCritChance": "보너스 치명타 확률",
+      "BonusCritDamage": "보너스 치명타 피해",
+      "BonusDamage": "추가 피해",
+      "BonusDeflection": "보너스 굴절",
+      "BonusFEL": "보너스 친화력",
+      "BonusParryDodge": "보너스 쳐내기 회피",
+      "BonusPenetetration": "관통 보너스",
+      "BonusPenetration": "BonusPenetetration",
+      "BonusStatCoercion": "보너스 능력치 강압",
+      "BonusStats": "보너스 능력치",
+      "BSBonus2": "사격 보너스 2",
+      "BurnDamage": "화상 피해",
+      "Burning": "화염",
+      "Burst": "연사",
+      "Carouse": "주량",
+      "Cells": "탄약",
+      "Chance": "확률",
+      "ChanceBonus": "확률 보너스",
+      "Check": "판정",
+      "Commerce": "거래",
+      "Coercion": "강압",
+      "Count": "수치",
+      "CoverBonus": "엄폐 보너스",
+      "CoverDodgeBonus": "엄폐 회피 보너스",
+      "Crit": "치명타",
+      "Crit Damage": "치명타 피해",
+      "Crit Hit Chance": "치명타 명중 확률",
+      "CritChance": "치명타 확률",
+      "Critchance": "치명타 확률",
+      "CritChanceBonus": "치명타 확률 보너스",
+      "CritChanceIncrease": "치명타 확률 증가",
+      "CritChanceReduction": "치명타 확률 감소",
+      "CritDamage": "치명타 피해",
+      "CritDamageReduction": "치명타 피해 감소",
+      "Critical Hit Chance": "치명타 확률",
+      "CriticalChance": "치명타 확률",
+      "CriticalDamage": "치명타 피해",
+      "CriticalHitChance": "치명타 확률",
+      "CritRed": "치명타 감소",
+      "Damage": "피해",
+      "Damage1": "피해 1",
+      "Damage2": "피해 2",
+      "DamageBonus": "피해 보정",
+      "DamageBonusInjury": "부상 피해 보정",
+      "DamageBonusWounds": "피해 보너스 부상",
+      "DamageMax": "피해 최대",
+      "DamageMin": "피해 최소",
+      "DamagePenalty": "피해 페널티",
+      "DamagePercent": "피해 비율",
+      "DamageReduced": "감소된 피해",
+      "DamageReduction": "피해 경감",
+      "DamageResist": "피해 저항",
+      "DamageTick": "지속 피해 수치",
+      "DC": "판정 난이도(DC)",
+      "Debuff": "약화 효과",
+      "Deflection": "굴절",
+      "DeflectionBonus": "굴절 보너스",
+      "DeflectionPenetration": "굴절 관통",
+      "DeflectionReduction": "굴절 감소",
+      "Demolition": "폭파",
+      "DirectDamage": "직접 피해",
+      "Dist": "거리",
+      "Dmae": "피해",
+      "DMG": "피해량",
+      "DmgDeflection": "피해 데플렉션",
+      "Dodge": "회피",
+      "dodge bonus": "회피 보너스",
+      "DodgeBonus": "회피 보너스",
+      "DodgeMinimum": "회피 최소",
+      "DodgeParryPenalty": "회피 쳐내기 페널티",
+      "DodgeParryReduction": "회피 쳐내기 감소",
+      "DodgePen": "Dodgepen",
+      "Dodgepen": "회피 관통",
+      "DodgePenalty": "회피 페널티",
+      "DodgePenaltyMore": "회피 페널티 추가",
+      "DodgePenetration": "회피 관통",
+      "DodgePenetrationBonus": "회피 관통 보너스",
+      "DodgeRed": "회피 감소",
+      "DodgeReduction": "회피 감소",
+      "DodgeReductionBonus": "회피 감소 보너스",
+      "DualAttack": "이중 공격",
+      "EagleArmor": "이글 아머",
+      "EagleDeflection": "이글 데플렉션",
+      "Exploit Number": "약점 수치",
+      "ExploitNumber": "약점 수치",
+      "Exploits": "약점",
+      "FELBonus2": "친화력 보너스 2",
+      "Fellowship": "친화력",
+      "Fellowship Bonus": "친화력 보너스",
+      "FireDamage": "화염 피해",
+      "Gain": "획득",
+      "Heal": "회복",
+      "Healing": "회복",
+      "HealingBonus": "회복 보너스",
+      "HealMax": "회복 최대",
+      "HealMin": "회복 최소",
+      "Hit": "명중",
+      "HitChance": "명중 확률",
+      "HitChanceBonus": "명중 확률 보너스",
+      "HP": "부상",
+      "Ignore": "무시",
+      "IncreasedDamage": "증가된 피해",
+      "INTBdiv2": "지능 보너스의 절반",
+      "Lethality": "살상력",
+      "Logic": "추론",
+      "LoreImperium": "제국",
+      "LoreWarp": "워프",
+      "LoreWarpWounds": "학식: 워프 상처",
+      "LoreXenos": "외계",
+      "Lose": "상실",
+      "LVLKey": "레벨 키",
+      "LVLOther": "기타 레벨",
+      "Mastiff STR Bonus": "마스티프 근력 보너스",
+      "Mastiff tHP": "마스티프 일시적 상처",
+      "MaxDamage": "최대 피해",
+      "Medicae": "의료",
+      "MimimumDamage": "최소 피해",
+      "MinDamage": "최소 피해",
+      "MinimumArmour": "최소 방어도",
+      "MinimumDamage": "MimimumDamage",
+      "MinimumStacks": "최소 중첩",
+      "MinimumWounds": "최소 부상",
+      "Momentum": "기세",
+      "MoreDamae": "추가 피해(More)",
+      "MoreDamage": "MoreDamae",
+      "MovementPoints": "이동력",
+      "MP": "이동력",
+      "Persuasion": "설득",
+      "multiplier": "multipliyer",
+      "multipliyer": "배율",
+      "NewDamage": "신규 피해",
+      "OldDamage": "기존 피해",
+      "Overpenetration": "추가 관통",
+      "Overseer INT Bonus": "오버시어 지능 보너스",
+      "Overseer PER Bonus": "오버시어 인지력 보너스",
+      "Parry": "쳐내기",
+      "ParryArmourBonus": "쳐내기 방어도 보너스",
+      "ParryBonus": "쳐내기 보너스",
+      "ParryPenetration": "쳐내기 관통",
+      "PEN": "관통",
+      "Pen": "관통",
+      "Penalty": "페널티",
+      "Penetration": "관통",
+      "PenetrationBonus": "관통 보너스",
+      "PER Bonus": "지각력 보너스",
+      "PERBonus": "지각력 보너스",
+      "PERBonusDamage": "인지력 보너스 기반 피해",
+      "Percent": "비율",
+      "PerceptionBonus": "인지력 보너스",
+      "Pers": "설득",
+      "Pet WS Bonus": "소환수 근접 기술 보너스",
+      "PetsAGI": "소환수 민첩",
+      "PetsMP": "소환수 이동력",
+      "PetsPER": "소환수 인지력",
+      "Pistol": "권총",
+      "PistolMP": "권총 이동력",
+      "Power": "위력",
+      "PowerLevel": "파워 레벨",
+      "Prone Chance": "넘어짐 확률",
+      "PsyRating": "사이 등급",
+      "Push": "밀치기",
+      "Range": "사거리",
+      "RavenArmor": "레이븐 아머",
+      "RavenDeflection": "레이븐 데플렉션",
+      "Recoil": "반동",
+      "Reduce": "감소",
+      "Reflec": "반사",
+      "Reflect": "반사",
+      "Regen": "재생",
+      "Repeats": "반복",
+      "Resist": "저항",
+      "ResistanceBonus": "저항 보너스",
+      "ResistancePenalty": "저항 페널티",
+      "Resolve": "결의",
+      "ResolveBonus": "결의 보너스",
+      "RestoredWounds": "회복 부상",
+      "RoF": "발사 속도(RoF)",
+      "Round": "라운드",
+      "Rounds": "라운드",
+      "Save": "판정",
+      "SelfMP": "자신 이동력",
+      "ShieldDamageBonus": "방패 피해 보정",
+      "Skills": "기술",
+      "Slices": "조각",
+      "Stacks": "중첩",
+      "StaggerParry": "쳐내기 경직",
+      "StatBonus": "능력치 보너스",
+      "StatPenalty": "능력치 페널티",
+      "StatReduction": "능력치 감소",
+      "StopChance": "정지 확률",
+      "STR": "근력",
+      "Tech-Use": "기계",
+      "TechUse": "기술 사용",
+      "Temp Wounds": "일시적 부상",
+      "TemporaryWounds": "일시적 부상",
+      "Test": "판정",
+      "TGH": "강인함",
+      "THP": "일시적 상처(tHP)",
+      "tHPNumber": "일시적 상처 수치",
+      "Warrior": "워리어",
+      "Officer": "오피서",
+      "Operative": "오퍼러티브",
+      "Soldier": "솔저",
+      "Bladedancer": "블레이드댄서",
+      "Assassin": "어새신",
+      "Vanguard": "뱅가드",
+      "Bounty Hunter": "바운티 헌터",
+      "Master Tactician": "마스터 택티션",
+      "Grand Strategist": "그랜드 스트래티지스트",
+      "Arch-Militant": "아치-밀리턴트",
+      "Executioner": "엑서큐셔너",
+      "Exemplar": "귀감",
+      "Unsanctioned Psyker": "비인가 사이커",
+      "Sanctic Psyker": "생크틱 사이커",
+      "Biomancer": "바이오맨서",
+      "Pyromancer": "파이로맨서",
+      "Telepathy": "텔레파시",
+      "Divination": "디비네이션",
+      "Death Whisper": "죽음의 속삭임",
+      "killing edge": "킬링 엣지",
+      "Tactical Knowledge": "전술 지식",
+      "Savour the Kill": "사냥의 환희",
+      "Follow My Lead": "내 뒤를 따르라",
+      "Perils of the Warp": "워프의 재앙",
+      "Psy Rating": "사이 레이팅",
+      "Cyber Eagle": "사이버 이글",
+      "Psyber Raven": "사이버 레이븐",
+      "Cyber Mastiff": "사이버 마스티프",
+      "Servoskull Swarm": "서보스컬 스웜",
+      "TOU": "강인함",
+      "TOUBonus": "강인함 보너스",
+      "Value_1": "값_1",
+      "Value_2": "값_2",
+      "Veil Tear": "장막 균열",
+      "WarhammerAgility": "민첩성",
+      "WarhammerBallisticSkill": "사격 기술",
+      "WarhammerFellowship": "친화력",
+      "WarhammerIntelligence": "지능",
+      "WarhammerPerception": "지각력",
+      "WarhammerStrength": "근력",
+      "WarhammerToughness": "강인함",
+      "WarhammerWeaponSkill": "근접 기술",
+      "WarhammerWillpower": "의지력",
+      "WarpDamage": "워프 피해",
+      "WarpDamageBonus": "워프 피해 보너스",
+      "WeaponDamagePercent": "무기 피해 비율",
+      "WeaponSkillBonus": "무기 기술 보너스",
+      "WillpowerPenalty": "의지력 페널티",
+      "WillpowerReduction": "의지력 감소",
+      "WILSave": "의지력 판정",
+      "WoundCost": "상처 비용",
+      "Wounds": "부상",
+      "WoundsBonus": "부상 보너스",
+      "WSBonusLessHP": "상처 비례 근접 보너스(낮음)",
+      "WSBonusMoreHP": "근접 보너스 추가 부상"
+    },
+    "unresolved_count": 0,
+    "unresolved_preview": []
+  },
+  "MF_Tag_Resolution": {
+    "policy": {
+      "enabled": true,
+      "apply_stage": "postprocess",
+      "fallback": "left_token",
+      "preserve_non_mf_tags": true,
+      "notes": "번역기 단계에서는 태그 보존, 후처리에서 mf만 해석한다."
+    },
+    "domains": {
+      "honorific_title": {
+        "description": "호칭/작위 계열 mf 태그 표준화",
+        "entries": {
+          "lordship|ladyship": "각하",
+          "lord|lady": "각하",
+          "his lordship|her ladyship": "각하",
+          "your lordship|your ladyship": "각하",
+          "your lord|your lady": "각하",
+          "his lord|her lady": "각하",
+          "duke|duchess": "공작",
+          "sir|ma'am": "각하",
+          "lordliness|ladyness": "각하",
+          "l-lord|l-lady": "각하",
+          "m'lord|m'lady": "각하",
+          "his celestial highness|her celestial highness": "전하",
+          "patron|patroness": "후원자",
+          "is lord|er lady": "각하",
+          "lordiness|ladyness": "각하",
+          "sir|lady": "sir",
+          "sir|my lady": "각하",
+          "man|lady": "사람",
+          "lords|ladies": "각하 여러분",
+          "his lordliness|her ladyness": "his lordliness",
+          "m'lud|m'lady": "각하"
+        }
+      },
+      "pronoun": {
+        "description": "대명사/지시 계열 mf 태그 표준화",
+        "entries": {
+          "his|her": "그",
+          "him|her": "그",
+          "he|she": "그",
+          "himself|herself": "스스로",
+          "is|er": "그",
+          "im|er": "그",
+          "his|hers": "그",
+          "h|sh": "그",
+          "her|the other": "her"
+        }
+      },
+      "kinship": {
+        "description": "친족 호칭 계열 mf 태그 표준화",
+        "entries": {
+          "brother|sister": "형제자매",
+          "son|daughter": "자식",
+          "father|mother": "부모"
+        }
+      },
+      "role_title": {
+        "description": "역할/직함 계열 mf 태그 표준화",
+        "entries": {
+          "master|mistress": "주인",
+          "prince|queen": "군주",
+          "king|queen": "군주",
+          "god|goddess": "신",
+          "prince|princess": "군주",
+          "hero|heroine": "영웅",
+          "lawman|lawwoman": "집행관"
+        }
+      },
+      "social_label": {
+        "description": "구어/비하/일반 지칭 계열 mf 태그 표준화",
+        "entries": {
+          "man|woman": "사람",
+          "boy|girl": "아이",
+          "layman|laywoman": "평신도",
+          "sick bastard|twisted bitch": "사악한 자",
+          "male|female": "사람",
+          "blind boy|lost girl": "길 잃은 자",
+          "bastard|bitch": "개자식",
+          "ugly bastard|vile wench": "추악한 자",
+          "bloke|lass": "사람"
+        }
+      },
+      "other": {
+        "description": "기타/특수 케이스 mf 태그 표준화",
+        "entries": {
+          "ster|stress": "담당자",
+          "ashmag|kaskha": "애쉬막",
+          "o|a": "그",
+          "broth|sist": "형제자매",
+          "'im|'er": "그",
+          "'andsome|pretty": "매력적인",
+          "brave|furious": "brave",
+          "cried out|a sign gave": "외쳤다"
+        }
+      }
+    }
+  }
+}

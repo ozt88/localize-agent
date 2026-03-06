@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "description": "Warhammer 40,000 Rogue Trader Korean glossary tiers for quality-pass.",
+  "hard_fixed": {
+    "Willpower": "의지력",
+    "Toughness": "강인함",
+    "Perception": "지각력",
+    "Fellowship": "친화력",
+    "Intelligence": "지능",
+    "Strength": "근력",
+    "Agility": "민첩성",
+    "Your {mf|Lordship|Ladyship}": "각하",
+    "{mf|Lord|Lady}ship": "각하"
+  },
+  "preferred": {
+    "Lord Captain": "로드 캡틴",
+    "Heartless Man": "냉혹한 자",
+    "Undying One": "불멸자",
+    "warp manifestations": "워프 현현",
+    "holy mission of service": "신성한 봉사의 성무",
+    "solemn sacrifice": "엄숙한 희생",
+    "brazen": "뻔뻔한",
+    "repulsive": "역겨운"
+  },
+  "style_lexicon": {
+    "imperial_tone": [
+      "엄숙한",
+      "의례",
+      "신성한",
+      "속죄",
+      "이단",
+      "심문",
+      "복무",
+      "성무"
+    ],
+    "reporting_tone": [
+      "보고",
+      "진술",
+      "체포",
+      "범행",
+      "피해자",
+      "용의자"
+    ],
+    "avoid_over_modern": [
+      "개쩐다",
+      "완전",
+      "진짜",
+      "레알",
+      "쩔어"
+    ]
+  },
+  "keybert_candidates_review": {
+    "source": "workflow/output/global_term_mining_report.json",
+    "model": "all-MiniLM-L6-v2",
+    "notes": [
+      "KeyBERT 자동 추출 후보입니다. 하드 강제 전에 사람이 검토해야 합니다.",
+      "고유명사/조직명 중심으로 우선 반영하고, 문장형 후보는 제외하세요."
+    ],
+    "top_proper_nouns": [
+      "Rogue Trader von Valancius",
+      "Von Valancius Dynasty",
+      "Koronus Expanse",
+      "Lord Inquisitor Calcazar",
+      "Adeptus Arbites",
+      "House von Valancius",
+      "Calligos Winterscale",
+      "Marazhai",
+      "Cassia",
+      "Cult of the Final Dawn"
+    ]
+  }
+}
