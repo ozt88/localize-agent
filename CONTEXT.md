@@ -1,107 +1,66 @@
-# Warhammer 40K Rogue Trader - Korean Translation Context
+# Localize Agent
 
-## 프로젝트 상태
+`localize-agent` is a reusable translation workspace for multiple game or app localization projects.
 
-### 현재 진행 상황
-- **총 항목**: 69,795개
-- **번역 완료**: 69,102개 (99%)
-- **미번역**: 693개 (대부분 고유명사)
+It is not a single-project repository. Shared pipeline code lives once in `workflow/`, and each localization target is isolated under `projects/<project-name>/`.
 
-### 완료된 수정 사항
-1. **태그 오류**: 9개 수정 완료
-2. **조사 중복**: 545개 수정 완료
-3. **문장 부호 띄어쓰기**: 3,157개 수정 완료 (`.`, `!`, `?` 뒤 공백 추가)
+## Workspace Model
 
-## 릴리즈 및 배포 워크플로우
+- `workflow/`
+  Shared engine, CLI entrypoints, pipeline logic, validators, checkpoint handling, and shared context.
+- `projects/<project-name>/`
+  Project-local profile, context, source files, output artifacts, and helper commands.
 
-### 전체 프로세스
-```
-1. 번역 수정 → 2. Git Commit → 3. Git Tag Push → 4. GitHub 릴리즈 → 5. 로컬 배포
-```
+This separation is the main rule of the repository:
+- shared logic belongs in `workflow/`
+- project-specific data and convenience scripts belong in `projects/<project-name>/`
 
-### 1. 번역 수정
-- `enGB_new.json` 파일 직접 수정
-- 또는 Python 스크립트로 일괄 수정
+## Project Layout
 
-### 2. Git Commit & Push
-```bash
-git add enGB_new.json
-git commit -m "fix: 수정 내용 설명"
-git push origin master
-```
+Each project directory should contain:
 
-### 3. GitHub 릴리즈 자동 생성
-```bash
-# 다음 버전 태그 생성 (예: v1.0.9)
-git tag v1.0.9
-git push origin v1.0.9
-```
-- GitHub Actions가 자동으로 Release 생성
-- `enGB.json` 파일 자동 첨부
-- 릴리즈 URL: https://github.com/ozt88/rogue-trader-korean-translation/releases
+- `project.json`
+  Project profile used by commands such as `go-translate --project <name>`
+- `context/`
+  Project-specific lore, style, schema, and rules
+- `source/`
+  Original or canonical input files for that project
+- `output/`
+  Derived files such as adapted source, ids, checkpoints, evaluation DBs, and translated output
+- `cmd/`
+  Project-local helper scripts for repeatable tasks
 
-### 4. 로컬 배포
-```powershell
-# PowerShell에서 실행
-.\update_translation.ps1
-```
+## How To Work In This Repo
 
-**스크립트 기능:**
-- 자동으로 게임 설치 경로 탐색 (Steam 라이브러리 4개 경로)
-- GitHub에서 최신 `enGB.json` 다운로드
-- 기존 파일 자동 백업 (`enGB_backup_YYYYMMDD.json`)
-- 게임 폼더에 자동 적용
+1. Identify the active project under `projects/`.
+2. Use shared workflow commands from `workflow/`.
+3. Load shared guidance from `workflow/context/`.
+4. Load project-specific context from `projects/<project-name>/context/`.
+5. Keep any new project-specific automation inside that project directory instead of the repository root.
 
-### 5. 게임 실행
-배포 완료 후 게임을 실행하면 수정된 번역이 적용됩니다.
+## Shared Documents
 
----
+- Root overview: `context.md`
+- Shared agent guidance: `workflow/context/agent_context.md`
+- Shared ops guidance: `workflow/context/ops.md`
+- Shared project-agnostic code/style references: `workflow/context/*`
+- Project layout reference: `projects/README.md`
 
-## 작업 방법
+## Current Projects
 
-### 1. 배치별 검토
-```python
-# 10,000개씩分区画하여 검토
-uuids = list(orig_strings.keys())
-batch1 = uuids[0:10000]      # 1~10,000
-batch2 = uuids[10000:20000] # 10,001~20,000
-# ...반복
-```
+- `projects/esoteric-ebb`
+- `projects/rogue-trader`
 
-### 2. 태그 검증
-```python
-# {g|...} 태그 쌍이 일치하는지 확인
-orig_open = orig_text.count('{g|')
-orig_close = orig_text.count('{/g}')
-trans_open = trans_text.count('{g|')
-trans_close = trans_text.count('{/g}')
+These are examples of projects hosted by the same workspace. Their source files, terminology, output names, and install targets should not be treated as global defaults unless a document explicitly says so.
 
-if orig_open != orig_close or trans_open != trans_close:
-    print(f"Tag error in {uuid}")
-```
+## Current Active Example
 
-### 3. 직역 확인
-- "그들은", "그것은", "우리는" 등으로 시작하는 번역이 문맥상 자연스러운지 확인
-- 실제 문제 있는 경우만 수정 (대부분 양호)
+At the moment, the most recently aligned active example is `projects/esoteric-ebb`.
 
-## 주요 발견 사항
+Example source:
+- `projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json`
 
-### 용어 통일
-- Willpower → 의지력
-- Toughness → 강인함
-- Perception → 지각력
-- Fellowship → 친화력
+Example batch output directory:
+- `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique`
 
-### 문제 패턴
-1. **태그 누락**: `{g|...}번역` → `{g|...}번역{/g}`
-2. **태그 중복**: `{g|...}{g|...}` → 중복 닫기
-3. **조사 중복**: "은은", "는는" → "은", "는"
-
-## 다음 작업자에게
-
-이 프로젝트는 99% 완료되었습니다. 남은 작업은 대부분 수동 검토가 필요하며, 자동화하기 어려운 영역입니다.
-
-태그 오류가 모두 수정되었으므로, 다음 작업자는 다음과 같은 작업을 진행할 수 있습니다:
-1. 문체 불일치 검토
-2. 경어 불일치 수정
-3. 미번역 항목 처리
+This is an example of current usage, not the definition of the repository itself.
