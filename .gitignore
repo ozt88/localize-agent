@@ -1,1 +1,10 @@
 .claude/
+.opencode/
+workflow/output/
+workflow/output/_tmp_batches/
+projects/*/output/
+*.db
+*.db-shm
+*.db-wal
+*.jsonl
+*.log
