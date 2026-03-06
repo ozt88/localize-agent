@@ -1,0 +1,19 @@
+{
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
+  "files.eol": "\n",
+  "[bat]": {
+    "files.eol": "\r\n"
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": [
+        "-NoExit",
+        "-Command",
+        "[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false); [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); $OutputEncoding = [System.Text.UTF8Encoding]::new($false); chcp 65001 > $null"
+      ]
+    }
+  }
+}

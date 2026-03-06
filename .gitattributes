@@ -1,0 +1,10 @@
+* text=auto
+
+*.md text working-tree-encoding=UTF-8 eol=lf
+*.txt text working-tree-encoding=UTF-8 eol=lf
+*.json text working-tree-encoding=UTF-8 eol=lf
+*.go text working-tree-encoding=UTF-8 eol=lf
+*.ps1 text working-tree-encoding=UTF-8 eol=lf
+*.yml text working-tree-encoding=UTF-8 eol=lf
+*.yaml text working-tree-encoding=UTF-8 eol=lf
+*.bat text working-tree-encoding=UTF-8 eol=crlf
