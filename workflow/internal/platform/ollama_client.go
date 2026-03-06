@@ -69,6 +69,12 @@ func (c *OllamaLLMClient) SendPrompt(key string, profile LLMProfile, prompt stri
 
 	c.mu.Lock()
 	history := append([]ollamaMessage(nil), c.histories[key]...)
+	if profile.ResetHistory {
+		history = history[:0]
+		if strings.TrimSpace(profile.Warmup) != "" {
+			history = append(history, ollamaMessage{Role: "system", Content: profile.Warmup})
+		}
+	}
 	history = append(history, ollamaMessage{Role: "user", Content: prompt})
 	c.mu.Unlock()
 
@@ -76,6 +82,15 @@ func (c *OllamaLLMClient) SendPrompt(key string, profile LLMProfile, prompt stri
 		"model":    profile.ModelID,
 		"messages": history,
 		"stream":   false,
+	}
+	if strings.TrimSpace(profile.KeepAlive) != "" {
+		body["keep_alive"] = profile.KeepAlive
+	}
+	if profile.ResponseFormat != nil {
+		body["format"] = profile.ResponseFormat
+	}
+	if len(profile.Options) > 0 {
+		body["options"] = profile.Options
 	}
 	var out struct {
 		Message struct {
@@ -124,11 +139,13 @@ func (c *OllamaLLMClient) SendPrompt(key string, profile LLMProfile, prompt stri
 		return "", err
 	}
 
-	c.mu.Lock()
-	next := append([]ollamaMessage(nil), history...)
-	next = append(next, ollamaMessage{Role: "assistant", Content: respText})
-	c.histories[key] = next
-	c.mu.Unlock()
+	if !profile.ResetHistory {
+		c.mu.Lock()
+		next := append([]ollamaMessage(nil), history...)
+		next = append(next, ollamaMessage{Role: "assistant", Content: respText})
+		c.histories[key] = next
+		c.mu.Unlock()
+	}
 
 	c.writeTrace(LLMTraceEvent{
 		Kind:       "prompt",

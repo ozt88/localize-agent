@@ -65,7 +65,7 @@ func Run(c Config) int {
 		defer traceSink.Close()
 	}
 
-	client, err := newServerClient(c.LLMBackend, c.ServerURL, c.Model, c.Agent, skill, c.TimeoutSec, metrics, traceSink)
+	client, err := newServerClientWithConfig(c.LLMBackend, c.ServerURL, c.Model, c.Agent, c, skill, c.TimeoutSec, metrics, traceSink)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error creating client: %v\n", err)
 		return 1

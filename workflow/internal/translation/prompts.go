@@ -11,14 +11,14 @@ import (
 func buildBatchPrompt(items []map[string]string, shapeHint string) string {
 	b, _ := json.Marshal(items)
 	return fmt.Sprintf(
-		"Return JSON Lines only, one line per item: %s. Input items: %s",
+		"Return a JSON array only. Each array item must match this shape: %s. Input items: %s",
 		shapeHint, string(b),
 	)
 }
 
 func buildSinglePrompt(id, en, cur, shapeHint string) string {
 	b, _ := json.Marshal(map[string]string{"id": id, "en": en, "current_ko": cur})
-	return fmt.Sprintf("Return ONE JSON line only: %s. Input: %s", shapeHint, string(b))
+	return fmt.Sprintf("Return a JSON array with exactly one object. Object shape: %s. Input: %s", shapeHint, string(b))
 }
 
 func buildRecoveryPrompt(id, en, cur, failed string, placeholders []string, shapeHint string) string {
@@ -31,13 +31,23 @@ func buildRecoveryPrompt(id, en, cur, failed string, placeholders []string, shap
 	}
 	b, _ := json.Marshal(p)
 	return fmt.Sprintf(
-		"Return ONE JSON line only: %s. This is a placeholder recovery task. Preserve expected_placeholders exactly once and in order. Input: %s",
+		"Return a JSON array with exactly one object. Object shape: %s. This is a placeholder recovery task. Preserve expected_placeholders exactly once and in order. Input: %s",
 		shapeHint, string(b),
 	)
 }
 
 func extractObjects(raw string) []proposal {
 	out := []proposal{}
+	var arr []proposal
+	if err := json.Unmarshal([]byte(raw), &arr); err == nil && len(arr) > 0 {
+		return arr
+	}
+	var wrapped struct {
+		Items []proposal `json:"items"`
+	}
+	if err := json.Unmarshal([]byte(raw), &wrapped); err == nil && len(wrapped.Items) > 0 {
+		return wrapped.Items
+	}
 	for _, ln := range strings.Split(raw, "\n") {
 		t := strings.TrimSpace(ln)
 		if t == "" || !strings.HasPrefix(t, "{") || !strings.HasSuffix(t, "}") {
@@ -58,4 +68,30 @@ func extractObjects(raw string) []proposal {
 		}
 	}
 	return out
+}
+
+func proposalArraySchema() map[string]any {
+	return map[string]any{
+		"type": "array",
+		"items": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"id": map[string]any{
+					"type": "string",
+				},
+				"proposed_ko": map[string]any{
+					"type": "string",
+				},
+				"risk": map[string]any{
+					"type": "string",
+					"enum": []string{"low", "med", "high"},
+				},
+				"notes": map[string]any{
+					"type": "string",
+				},
+			},
+			"required":             []string{"id", "proposed_ko", "risk", "notes"},
+			"additionalProperties": false,
+		},
+	}
 }

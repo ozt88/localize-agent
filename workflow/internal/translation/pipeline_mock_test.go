@@ -94,7 +94,7 @@ func newServerClientForTest(t *testing.T, responder llmPromptResponder) *serverC
 
 func TestCollectProposals_SingleFallbackID(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
-		if strings.Contains(prompt, "Return ONE JSON line only") {
+		if strings.Contains(prompt, "JSON array") {
 			return http.StatusOK, `{"id":"wrong","proposed_ko":"ko one [T0]","risk":"med","notes":"n"}`
 		}
 		return http.StatusInternalServerError, "unexpected prompt"

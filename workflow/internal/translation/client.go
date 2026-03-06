@@ -18,6 +18,10 @@ type llmClient interface {
 }
 
 func newServerClient(backend, serverURL, model, agent string, skill *translateSkill, timeoutSec int, metrics *shared.MetricCollector, traceSink platform.LLMTraceSink) (*serverClient, error) {
+	return newServerClientWithConfig(backend, serverURL, model, agent, Config{}, skill, timeoutSec, metrics, traceSink)
+}
+
+func newServerClientWithConfig(backend, serverURL, model, agent string, cfg Config, skill *translateSkill, timeoutSec int, metrics *shared.MetricCollector, traceSink platform.LLMTraceSink) (*serverClient, error) {
 	normalizedBackend, err := platform.NormalizeLLMBackend(backend)
 	if err != nil {
 		return nil, err
@@ -39,6 +43,20 @@ func newServerClient(backend, serverURL, model, agent string, skill *translateSk
 		profile.ModelID = modelID
 		client = platform.NewSessionLLMClient(serverURL, timeoutSec, metrics, traceSink)
 	case platform.LLMBackendOllama:
+		profile.KeepAlive = cfg.OllamaKeepAlive
+		profile.ResetHistory = cfg.OllamaResetHistory
+		if cfg.OllamaStructuredOutput {
+			profile.ResponseFormat = proposalArraySchema()
+		}
+		if cfg.OllamaNumCtx > 0 || cfg.OllamaTemperature >= 0 {
+			profile.Options = map[string]any{}
+			if cfg.OllamaNumCtx > 0 {
+				profile.Options["num_ctx"] = cfg.OllamaNumCtx
+			}
+			if cfg.OllamaTemperature >= 0 {
+				profile.Options["temperature"] = cfg.OllamaTemperature
+			}
+		}
 		client = platform.NewOllamaLLMClient(serverURL, timeoutSec, metrics, traceSink)
 	default:
 		return nil, fmt.Errorf("unsupported llm backend: %s", normalizedBackend)

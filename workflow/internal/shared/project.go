@@ -15,15 +15,20 @@ type ProjectConfig struct {
 }
 
 type ProjectTranslation struct {
-	Source       string   `json:"source"`
-	Current      string   `json:"current"`
-	IDsFile      string   `json:"ids_file"`
-	CheckpointDB string   `json:"checkpoint_db"`
-	ContextFiles []string `json:"context_files"`
-	RulesFile    string   `json:"rules_file"`
-	ServerURL    string   `json:"server_url"`
-	Model        string   `json:"model"`
-	LLMBackend   string   `json:"llm_backend"`
+	Source                 string   `json:"source"`
+	Current                string   `json:"current"`
+	IDsFile                string   `json:"ids_file"`
+	CheckpointDB           string   `json:"checkpoint_db"`
+	ContextFiles           []string `json:"context_files"`
+	RulesFile              string   `json:"rules_file"`
+	ServerURL              string   `json:"server_url"`
+	Model                  string   `json:"model"`
+	LLMBackend             string   `json:"llm_backend"`
+	OllamaStructuredOutput bool     `json:"ollama_structured_output"`
+	OllamaResetHistory     bool     `json:"ollama_reset_history"`
+	OllamaKeepAlive        string   `json:"ollama_keep_alive"`
+	OllamaNumCtx           int      `json:"ollama_num_ctx"`
+	OllamaTemperature      float64  `json:"ollama_temperature"`
 }
 
 type ProjectEvaluation struct {

@@ -41,6 +41,11 @@ func main() {
 	fs.StringVar(&cfg.ReviewExportOut, "review-export-out", "", "export translated results from checkpoint DB as JSONL")
 	fs.StringVar(&cfg.ReviewStatuses, "review-statuses", cfg.ReviewStatuses, "statuses to include in review export (comma-separated)")
 	fs.BoolVar(&cfg.Resume, "resume", false, "")
+	fs.BoolVar(&cfg.OllamaStructuredOutput, "ollama-structured-output", cfg.OllamaStructuredOutput, "use Ollama JSON schema responses for translation prompts")
+	fs.BoolVar(&cfg.OllamaResetHistory, "ollama-reset-history", cfg.OllamaResetHistory, "reset Ollama chat history after each prompt while keeping warmup rules")
+	fs.StringVar(&cfg.OllamaKeepAlive, "ollama-keep-alive", cfg.OllamaKeepAlive, "optional Ollama keep_alive value, e.g. 12h")
+	fs.IntVar(&cfg.OllamaNumCtx, "ollama-num-ctx", cfg.OllamaNumCtx, "optional Ollama num_ctx override")
+	fs.Float64Var(&cfg.OllamaTemperature, "ollama-temperature", cfg.OllamaTemperature, "optional Ollama temperature override (-1 keeps model default)")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -80,6 +85,21 @@ func main() {
 			}
 			if cfg.LLMBackend == def.LLMBackend && t.LLMBackend != "" {
 				cfg.LLMBackend = t.LLMBackend
+			}
+			if !cfg.OllamaStructuredOutput && t.OllamaStructuredOutput {
+				cfg.OllamaStructuredOutput = true
+			}
+			if !cfg.OllamaResetHistory && t.OllamaResetHistory {
+				cfg.OllamaResetHistory = true
+			}
+			if cfg.OllamaKeepAlive == def.OllamaKeepAlive && t.OllamaKeepAlive != "" {
+				cfg.OllamaKeepAlive = t.OllamaKeepAlive
+			}
+			if cfg.OllamaNumCtx == def.OllamaNumCtx && t.OllamaNumCtx > 0 {
+				cfg.OllamaNumCtx = t.OllamaNumCtx
+			}
+			if cfg.OllamaTemperature == def.OllamaTemperature && t.OllamaTemperature >= 0 {
+				cfg.OllamaTemperature = t.OllamaTemperature
 			}
 			fmt.Printf("Project loaded: %s\n", baseDir)
 		}

@@ -27,6 +27,11 @@ type Config struct {
 	ReviewExportOut             string
 	ReviewStatuses              string
 	Resume                      bool
+	OllamaStructuredOutput      bool
+	OllamaResetHistory          bool
+	OllamaKeepAlive             string
+	OllamaNumCtx                int
+	OllamaTemperature           float64
 }
 
 type mapping struct {
@@ -69,5 +74,10 @@ func DefaultConfig() Config {
 		PlaceholderRecoveryAttempts: 1,
 		CheckpointDB:                "workflow/output/translation_checkpoint.db",
 		ReviewStatuses:              "done",
+		OllamaStructuredOutput:      false,
+		OllamaResetHistory:          false,
+		OllamaKeepAlive:             "",
+		OllamaNumCtx:                0,
+		OllamaTemperature:           -1,
 	}
 }

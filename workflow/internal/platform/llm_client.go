@@ -14,10 +14,14 @@ import (
 )
 
 type LLMProfile struct {
-	ProviderID string
-	ModelID    string
-	Agent      string
-	Warmup     string
+	ProviderID     string
+	ModelID        string
+	Agent          string
+	Warmup         string
+	KeepAlive      string
+	ResponseFormat any
+	Options        map[string]any
+	ResetHistory   bool
 }
 
 type SessionLLMClient struct {
