@@ -1,0 +1,10 @@
+.git
+.opencode
+.vscode
+temp-wmt
+UsersDELLAppDataLocalTempmqm-issues
+projects/**/output
+projects/**/.bin
+*.db
+*.jsonl
+*.log

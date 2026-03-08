@@ -24,7 +24,8 @@ This repository is not:
 
 ```text
 workflow/                 shared engine, CLI commands, pipeline logic
-workflow/context/         shared agent, ops, and style guidance
+workflow/context/         shared agent, ops, and style guidance only
+projects/<name>/context/  project-specific prompts, rules, and system contracts
 projects/<project>/       project-specific profiles, context, source, output, commands
 context.md                root workspace index
 README.md                 repository overview
@@ -79,6 +80,7 @@ Project-local wrapper scripts may exist under `projects/<project>/cmd/` for repe
 - Root workspace index: `context.md`
 - Shared agent guidance: `workflow/context/agent_context.md`
 - Shared ops guidance: `workflow/context/ops.md`
+- Project-specific guidance lives under `projects/<project>/context/`
 - Project layout reference: `projects/README.md`
 
 ## Encoding Policy

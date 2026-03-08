@@ -21,9 +21,8 @@ This file is shared agent guidance for the current workspace.
 ## Context Loading
 
 - Shared workflow behavior: `workflow/context/ops.md`
-- Shared Esoteric Ebb guidance: `workflow/context/esoteric_ebb_context.md`
-- Project runtime context: `projects/esoteric-ebb/context/esoteric_ebb_context.md`
-- Project rules: `projects/esoteric-ebb/context/esoteric_ebb_rules.md`
+- Project runtime context: `projects/<project>/context/*.md`
+- Project rules/system contracts: `projects/<project>/context/*.md`
 
 ## Active File References
 

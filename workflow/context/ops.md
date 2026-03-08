@@ -3,7 +3,7 @@
 ## Active Project
 
 - Project: `esoteric-ebb`
-- Canonical source: `projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json`
+- Canonical source: `projects/esoteric-ebb/source/translator_package.json`
 - Active batch dir: `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique`
 
 ## Command Flow
@@ -11,7 +11,7 @@
 1. Adapt the unified source into workflow input files.
 2. Run translation with `--project esoteric-ebb`.
 3. Run evaluation with `--project esoteric-ebb`.
-4. Apply translated rows back into the unified source schema.
+4. Apply translated rows back into the target export schema when needed.
 
 ## Commands
 
@@ -37,7 +37,7 @@ powershell -ExecutionPolicy Bypass -File .\projects\esoteric-ebb\cmd\apply_outpu
 
 ## Expected Files
 
-- Source JSON: `projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json`
+- Source JSON: `projects/esoteric-ebb/source/translator_package.json`
 - Adapted source JSON: `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique/source_esoteric.json`
 - Adapted current JSON: `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique/current_esoteric.json`
 - ID list: `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique/ids_esoteric.txt`

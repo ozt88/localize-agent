@@ -35,6 +35,7 @@ Each project directory should contain:
 1. Identify the active project under `projects/`.
 2. Use shared workflow commands from `workflow/`.
 3. Load shared guidance from `workflow/context/`.
+4. Load project-specific guidance only from `projects/<project>/context/`.
 4. Load project-specific context from `projects/<project-name>/context/`.
 5. Keep any new project-specific automation inside that project directory instead of the repository root.
 
@@ -44,6 +45,7 @@ Each project directory should contain:
 - Shared agent guidance: `workflow/context/agent_context.md`
 - Shared ops guidance: `workflow/context/ops.md`
 - Shared project-agnostic code/style references: `workflow/context/*`
+- Project-specific context/rules/system prompts: `projects/<project>/context/*`
 - Project layout reference: `projects/README.md`
 
 ## Current Projects
