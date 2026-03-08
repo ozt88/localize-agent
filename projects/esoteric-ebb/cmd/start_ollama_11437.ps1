@@ -1,0 +1,5 @@
+$env:OLLAMA_HOST = "127.0.0.1:11437"
+$env:OLLAMA_NUM_PARALLEL = "8"
+$env:OLLAMA_MAX_LOADED_MODELS = "1"
+$env:OLLAMA_KEEP_ALIVE = "30m"
+ollama serve

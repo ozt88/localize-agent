@@ -1,18 +1,21 @@
 {
   "name": "esoteric-ebb",
   "translation": {
-    "source": "./output/batches/translation_assetripper_textasset_unique/source_esoteric.json",
-    "current": "./output/batches/translation_assetripper_textasset_unique/current_esoteric.json",
-    "ids_file": "./output/batches/translation_assetripper_textasset_unique/ids_esoteric.txt",
+    "source": "./source/prepared/source_esoteric.json",
+    "current": "./source/prepared/current_esoteric.json",
+    "ids_file": "./source/prepared/ids_esoteric.txt",
+    "translator_package_chunks": "./source/translator_package_chunks.json",
     "checkpoint_db": "./output/batches/translation_assetripper_textasset_unique/translation_checkpoint.db",
     "context_files": [
-      "./context/esoteric_ebb_context.md"
+      "./context/esoteric_ebb_modelfile_system.md"
     ],
-    "rules_file": "./context/esoteric_ebb_rules.md",
-    "server_url": "http://127.0.0.1:11434",
-    "model": "TranslateGemma:latest",
+    "rules_file": "",
+    "server_url": "http://127.0.0.1:11438",
+    "model": "TranslateGemma-fast:latest",
     "llm_backend": "ollama",
-    "ollama_structured_output": true,
+    "translator_response_mode": "plain",
+    "ollama_structured_output": false,
+    "ollama_baked_system": true,
     "ollama_reset_history": true,
     "ollama_keep_alive": "12h",
     "ollama_num_ctx": 8192,
@@ -23,7 +26,7 @@
     "db": "./output/evaluation_unified.db",
     "run_name": "esoteric-ebb-default",
     "context_files": [
-      "./context/esoteric_ebb_context.md"
+      "./context/esoteric_ebb_modelfile_system.md"
     ],
     "rules_file": "./context/esoteric_ebb_rules.md",
     "eval_rules_file": "./context/esoteric_ebb_rules.md",
@@ -31,5 +34,40 @@
     "trans_model": "TranslateGemma:latest",
     "eval_model": "TranslateGemma:latest",
     "llm_backend": "ollama"
+  },
+  "pipeline": {
+    "stage_batch_size": 100,
+    "threshold": 0.7,
+    "max_retries": 3,
+    "low_llm": {
+      "llm_backend": "ollama",
+      "server_url": "http://127.0.0.1:11438",
+      "model": "TranslateGemma-fast:latest",
+      "translator_response_mode": "plain",
+      "ollama_baked_system": true,
+      "ollama_reset_history": true,
+      "ollama_keep_alive": "12h",
+      "ollama_num_ctx": 8192,
+      "ollama_temperature": 0,
+      "concurrency": 8,
+      "batch_size": 10,
+      "timeout_sec": 120
+    },
+    "high_llm": {
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.4",
+      "concurrency": 2,
+      "batch_size": 10,
+      "timeout_sec": 120
+    },
+    "score_llm": {
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.4",
+      "concurrency": 4,
+      "batch_size": 20,
+      "timeout_sec": 120
+    }
   }
 }
