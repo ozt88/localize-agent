@@ -99,6 +99,14 @@ func (c *OllamaLLMClient) SendPrompt(key string, profile LLMProfile, prompt stri
 		} `json:"message"`
 		Error string `json:"error"`
 	}
+	c.writeTrace(LLMTraceEvent{
+		Kind:       "prompt_start",
+		SessionKey: key,
+		ProviderID: profile.ProviderID,
+		ModelID:    profile.ModelID,
+		Agent:      profile.Agent,
+		Prompt:     prompt,
+	})
 	if err := c.postJSON("/api/chat", body, &out); err != nil {
 		c.writeTrace(LLMTraceEvent{
 			Kind:       "prompt_error",

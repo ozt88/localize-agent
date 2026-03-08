@@ -13,7 +13,7 @@ type TranslationCheckpointItem struct {
 
 type TranslationCheckpointStore interface {
 	IsEnabled() bool
-	LoadDoneIDs() (map[string]bool, error)
+	LoadDoneIDs(pipelineVersion string) (map[string]bool, error)
 	UpsertItem(entryID, status, sourceHash string, attempts int, lastError string, latencyMs float64, koObj, packObj map[string]any) error
 	UpsertItems(items []TranslationCheckpointItem) error
 	Close() error

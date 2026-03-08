@@ -8,8 +8,10 @@ import (
 )
 
 type serverClient struct {
-	llm     llmClient
-	profile platform.LLMProfile
+	llm           llmClient
+	profile       platform.LLMProfile
+	sessionPrefix string
+	responseMode  string
 }
 
 type llmClient interface {
@@ -26,6 +28,7 @@ func newServerClientWithConfig(backend, serverURL, model, agent string, cfg Conf
 	if err != nil {
 		return nil, err
 	}
+	responseMode := normalizeTranslatorResponseMode(cfg.TranslatorResponseMode)
 	profile := platform.LLMProfile{
 		ProviderID: normalizedBackend,
 		ModelID:    model,
@@ -43,9 +46,12 @@ func newServerClientWithConfig(backend, serverURL, model, agent string, cfg Conf
 		profile.ModelID = modelID
 		client = platform.NewSessionLLMClient(serverURL, timeoutSec, metrics, traceSink)
 	case platform.LLMBackendOllama:
+		if cfg.OllamaBakedSystem {
+			profile.Warmup = ""
+		}
 		profile.KeepAlive = cfg.OllamaKeepAlive
 		profile.ResetHistory = cfg.OllamaResetHistory
-		if cfg.OllamaStructuredOutput {
+		if cfg.OllamaStructuredOutput && responseMode == responseModeJSON {
 			profile.ResponseFormat = proposalArraySchema()
 		}
 		if cfg.OllamaNumCtx > 0 || cfg.OllamaTemperature >= 0 {
@@ -62,8 +68,10 @@ func newServerClientWithConfig(backend, serverURL, model, agent string, cfg Conf
 		return nil, fmt.Errorf("unsupported llm backend: %s", normalizedBackend)
 	}
 	return &serverClient{
-		llm:     client,
-		profile: profile,
+		llm:           client,
+		profile:       profile,
+		sessionPrefix: serverURL,
+		responseMode:  responseMode,
 	}, nil
 }
 
@@ -73,4 +81,23 @@ func (c *serverClient) ensureContext(key string) error {
 
 func (c *serverClient) sendPrompt(key, prompt string) (string, error) {
 	return c.llm.SendPrompt(key, c.profile, prompt)
+}
+
+func (c *serverClient) usesPlainTranslatorOutput() bool {
+	return c.responseMode == responseModePlain
+}
+
+func (c *serverClient) sessionKey(slotKey string) string {
+	return c.sessionPrefix + "#" + slotKey
+}
+
+func normalizeTranslatorResponseMode(mode string) string {
+	switch mode {
+	case responseModeJSON:
+		return responseModeJSON
+	case responseModePlain:
+		return responseModePlain
+	default:
+		return responseModePlain
+	}
 }

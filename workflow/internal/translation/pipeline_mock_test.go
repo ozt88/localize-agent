@@ -19,8 +19,10 @@ type fakeCheckpointStore struct {
 	upserts []string
 }
 
-func (f *fakeCheckpointStore) IsEnabled() bool                       { return f.enabled }
-func (f *fakeCheckpointStore) LoadDoneIDs() (map[string]bool, error) { return map[string]bool{}, nil }
+func (f *fakeCheckpointStore) IsEnabled() bool { return f.enabled }
+func (f *fakeCheckpointStore) LoadDoneIDs(pipelineVersion string) (map[string]bool, error) {
+	return map[string]bool{}, nil
+}
 func (f *fakeCheckpointStore) UpsertItem(entryID, status, sourceHash string, attempts int, lastError string, latencyMs float64, koObj, packObj map[string]any) error {
 	f.upserts = append(f.upserts, entryID+":"+status)
 	return nil
@@ -86,49 +88,33 @@ func newServerClientForTest(t *testing.T, responder llmPromptResponder) *serverC
 		profile: platform.LLMProfile{
 			ProviderID: "test",
 			ModelID:    "mock",
-			Agent:      "",
-			Warmup:     "",
 		},
 	}
 }
 
 func TestCollectProposals_SingleFallbackID(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
-		if strings.Contains(prompt, "JSON array") {
-			return http.StatusOK, `{"id":"wrong","proposed_ko":"ko one [T0]","risk":"med","notes":"n"}`
+		if strings.Contains(prompt, `"id":"id-1"`) {
+			return http.StatusOK, `{"id":"wrong","proposed_ko":"ko one [T0]"}`
 		}
 		return http.StatusInternalServerError, "unexpected prompt"
 	})
 
-	rt := translationRuntime{
-		cfg:    Config{MaxAttempts: 1, BackoffSec: 0},
-		client: client,
-		skill:  newTranslateSkill("", ""),
-	}
-	items := []map[string]string{{"id": "id-1", "en": "A [T0]", "current_ko": "B [T0]"}}
+	rt := translationRuntime{cfg: Config{MaxAttempts: 1, BackoffSec: 0}, client: client, skill: newTranslateSkill("", "")}
+	items := []translationTask{{ID: "id-1", BodyEN: "A [T0]", GroupKey: textKindDialogue, Lane: laneDefault}}
 
 	props, skippedInvalid, skippedErr := collectProposals(rt, "slot-1", items)
-	if skippedInvalid != 0 {
-		t.Fatalf("skippedInvalid = %d, want 0", skippedInvalid)
+	if skippedInvalid != 0 || skippedErr != 0 {
+		t.Fatalf("skippedInvalid=%d skippedErr=%d", skippedInvalid, skippedErr)
 	}
-	if skippedErr != 0 {
-		t.Fatalf("skippedErr = %d, want 0", skippedErr)
-	}
-	p, ok := props["id-1"]
-	if !ok {
-		t.Fatalf("missing proposal for id-1")
-	}
-	if p.ID != "id-1" {
-		t.Fatalf("proposal id=%q, want id-1", p.ID)
-	}
-	if p.ProposedKO != "ko one [T0]" {
-		t.Fatalf("proposal text=%q", p.ProposedKO)
+	if props["id-1"].ID != "id-1" || props["id-1"].ProposedKO != "ko one [T0]" {
+		t.Fatalf("proposal=%+v", props["id-1"])
 	}
 }
 
 func TestCollectProposals_BatchErrorFallsBackToSingles(t *testing.T) {
 	responses := map[string]string{
-		"id-1": `{"id":"id-1","proposed_ko":"ko1 [T0]","risk":"low","notes":""}`,
+		"id-1": `{"id":"id-1","proposed_ko":"ko1 [T0]"}`,
 	}
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, "Input items") {
@@ -142,49 +128,58 @@ func TestCollectProposals_BatchErrorFallsBackToSingles(t *testing.T) {
 		return http.StatusInternalServerError, "single failed"
 	})
 
-	rt := translationRuntime{
-		cfg:    Config{MaxAttempts: 1, BackoffSec: 0},
-		client: client,
-		skill:  newTranslateSkill("", ""),
-	}
-	items := []map[string]string{
-		{"id": "id-1", "en": "A [T0]", "current_ko": "B [T0]"},
-		{"id": "id-2", "en": "C [T0]", "current_ko": "D [T0]"},
+	rt := translationRuntime{cfg: Config{MaxAttempts: 1, BackoffSec: 0}, client: client, skill: newTranslateSkill("", "")}
+	items := []translationTask{
+		{ID: "id-1", BodyEN: "A [T0]", GroupKey: textKindDialogue, Lane: laneDefault},
+		{ID: "id-2", BodyEN: "C [T0]", GroupKey: textKindDialogue, Lane: laneDefault},
 	}
 
 	props, skippedInvalid, skippedErr := collectProposals(rt, "slot-1", items)
-	if skippedInvalid != 0 {
-		t.Fatalf("skippedInvalid=%d, want 0", skippedInvalid)
-	}
-	if skippedErr != 1 {
-		t.Fatalf("skippedTranslatorErr=%d, want 1", skippedErr)
+	if skippedInvalid != 0 || skippedErr != 1 {
+		t.Fatalf("skippedInvalid=%d skippedErr=%d", skippedInvalid, skippedErr)
 	}
 	if len(props) != 1 || props["id-1"].ProposedKO == "" {
-		t.Fatalf("proposals=%v, want only id-1", props)
+		t.Fatalf("proposals=%v", props)
 	}
 }
 
 func TestCollectProposals_RejectsDegenerateEllipsis(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
-		return http.StatusOK, `{"id":"id-1","proposed_ko":"...","risk":"low","notes":""}`
+		return http.StatusOK, `{"id":"id-1","proposed_ko":"..."}`
 	})
 
-	rt := translationRuntime{
-		cfg:    Config{MaxAttempts: 1, BackoffSec: 0},
-		client: client,
-		skill:  newTranslateSkill("", ""),
-	}
-	items := []map[string]string{{"id": "id-1", "en": "A meaningful sentence", "current_ko": ""}}
+	rt := translationRuntime{cfg: Config{MaxAttempts: 1, BackoffSec: 0}, client: client, skill: newTranslateSkill("", "")}
+	items := []translationTask{{ID: "id-1", BodyEN: "A meaningful sentence", GroupKey: textKindDialogue, Lane: laneDefault}}
 
 	props, skippedInvalid, skippedErr := collectProposals(rt, "slot-1", items)
-	if skippedErr != 0 {
-		t.Fatalf("skippedErr=%d, want 0", skippedErr)
+	if skippedErr != 0 || skippedInvalid != 1 || len(props) != 0 {
+		t.Fatalf("props=%v skippedInvalid=%d skippedErr=%d", props, skippedInvalid, skippedErr)
 	}
-	if skippedInvalid != 1 {
-		t.Fatalf("skippedInvalid=%d, want 1", skippedInvalid)
+}
+
+func TestCollectProposals_SplitsMixedKinds(t *testing.T) {
+	var prompts []string
+	client := newServerClientForTest(t, func(prompt string) (int, string) {
+		prompts = append(prompts, prompt)
+		switch {
+		case strings.Contains(prompt, `"id":"id-choice"`):
+			return http.StatusOK, `[{"id":"id-choice","proposed_ko":"ko choice"}]`
+		case strings.Contains(prompt, `"id":"id-rich"`):
+			return http.StatusOK, `[{"id":"id-rich","proposed_ko":"ko rich [T0]text[T1]"}]`
+		default:
+			return http.StatusInternalServerError, "unexpected"
+		}
+	})
+
+	rt := translationRuntime{cfg: Config{MaxAttempts: 1, BackoffSec: 0}, client: client, skill: newTranslateSkill("", "")}
+	items := []translationTask{
+		{ID: "id-choice", BodyEN: "Do it.", GroupKey: textKindChoice, Lane: laneDefault},
+		{ID: "id-rich", BodyEN: "Do [T0]you[T1] care?", GroupKey: textKindDialogue + "+rich", Lane: laneDefault},
 	}
-	if len(props) != 0 {
-		t.Fatalf("proposals=%v, want empty", props)
+
+	props, skippedInvalid, skippedErr := collectProposals(rt, "slot-1", items)
+	if skippedInvalid != 0 || skippedErr != 0 || len(props) != 2 || len(prompts) != 2 {
+		t.Fatalf("props=%v skippedInvalid=%d skippedErr=%d prompts=%d", props, skippedInvalid, skippedErr, len(prompts))
 	}
 }
 
@@ -197,36 +192,28 @@ func TestPersistResults_RestoreAndCheckpoint(t *testing.T) {
 	}
 
 	proposals := map[string]proposal{
-		"id-1": {ID: "id-1", ProposedKO: "localized [T0]", Risk: "", Notes: "ok"},
+		"id-1": {ID: "id-1", ProposedKO: "localized [T0]"},
 	}
 	metas := map[string]itemMeta{
 		"id-1": {
-			id:      "id-1",
-			enText:  "EN [T0]",
-			curText: "CUR [T0]",
-			curObj:  map[string]any{"Text": "before"},
-			mapTags: []mapping{{placeholder: "[T0]", original: "{name}"}},
+			id:        "id-1",
+			sourceRaw: "EN {name}",
+			enText:    "EN [T0]",
+			curText:   "CUR [T0]",
+			curObj:    map[string]any{"Text": "before"},
+			mapTags:   []mapping{{placeholder: "[T0]", original: "{name}"}},
+			profile:   textProfile{Kind: textKindDialogue},
 		},
 	}
 	done := map[string]map[string]any{}
-	pack := []map[string]any{}
 	var mu sync.Mutex
 
-	out := persistResults(rt, "slot", proposals, metas, done, pack, &mu, nil)
-	if out.abortWorker {
-		t.Fatalf("abortWorker=true, want false")
-	}
-	if out.skippedInvalid != 0 {
-		t.Fatalf("skippedInvalid=%d, want 0", out.skippedInvalid)
+	out := persistResults(rt, "slot", proposals, metas, done, nil, &mu, nil)
+	if out.abortWorker || out.skippedInvalid != 0 {
+		t.Fatalf("persist=%+v", out)
 	}
 	if got := done["id-1"]["Text"]; got != "localized {name}" {
-		t.Fatalf("restored text=%v, want localized {name}", got)
-	}
-	if len(out.pack) != 1 {
-		t.Fatalf("pack len=%d, want 1", len(out.pack))
-	}
-	if out.pack[0]["risk"] != "low" {
-		t.Fatalf("risk=%v, want low default", out.pack[0]["risk"])
+		t.Fatalf("restored text=%v", got)
 	}
 	if len(cp.upserts) != 1 || cp.upserts[0] != "id-1:done" {
 		t.Fatalf("checkpoint upserts=%v", cp.upserts)
@@ -236,49 +223,78 @@ func TestPersistResults_RestoreAndCheckpoint(t *testing.T) {
 func TestPersistResults_RecoveryPromptFixesPlaceholder(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, "placeholder recovery task") {
-			return http.StatusOK, `{"id":"id-1","proposed_ko":"fixed [T0]","risk":"low","notes":""}`
+			return http.StatusOK, `{"id":"id-1","proposed_ko":"fixed [T0]"}`
 		}
 		return http.StatusInternalServerError, "unexpected"
 	})
-	cp := &fakeCheckpointStore{enabled: false}
 	rt := translationRuntime{
 		cfg:        Config{SkipInvalid: true, PlaceholderRecoveryAttempts: 1, MaxAttempts: 1, BackoffSec: 0},
 		client:     client,
 		skill:      newTranslateSkill("", ""),
-		checkpoint: cp,
+		checkpoint: &fakeCheckpointStore{enabled: false},
 	}
 
 	proposals := map[string]proposal{
-		"id-1": {ID: "id-1", ProposedKO: "broken no-tag", Risk: "med", Notes: ""},
+		"id-1": {ID: "id-1", ProposedKO: "broken no-tag"},
 	}
 	metas := map[string]itemMeta{
 		"id-1": {
-			id:      "id-1",
-			enText:  "EN [T0]",
-			curText: "CUR [T0]",
-			curObj:  map[string]any{"Text": "before"},
-			mapTags: []mapping{{placeholder: "[T0]", original: "{x}"}},
+			id:        "id-1",
+			sourceRaw: "EN {x}",
+			enText:    "EN [T0]",
+			curText:   "CUR [T0]",
+			curObj:    map[string]any{"Text": "before"},
+			mapTags:   []mapping{{placeholder: "[T0]", original: "{x}"}},
+			profile:   textProfile{Kind: textKindDialogue},
 		},
 	}
 	done := map[string]map[string]any{}
 	var mu sync.Mutex
 
 	out := persistResults(rt, "slot", proposals, metas, done, nil, &mu, nil)
-	if out.skippedInvalid != 0 {
-		t.Fatalf("skippedInvalid = %d, want 0", out.skippedInvalid)
-	}
-	if out.abortWorker {
-		t.Fatalf("abortWorker = true, want false")
+	if out.skippedInvalid != 0 || out.abortWorker {
+		t.Fatalf("persist=%+v", out)
 	}
 	if got := done["id-1"]["Text"]; got != "fixed {x}" {
-		t.Fatalf("recovered text=%v, want fixed {x}", got)
+		t.Fatalf("recovered text=%v", got)
+	}
+}
+
+func TestPersistResults_PassthroughControlToken(t *testing.T) {
+	cp := &fakeCheckpointStore{enabled: true}
+	rt := translationRuntime{
+		cfg:        Config{SkipInvalid: true},
+		skill:      newTranslateSkill("", ""),
+		checkpoint: cp,
+	}
+
+	done := map[string]map[string]any{}
+	var mu sync.Mutex
+	metas := map[string]itemMeta{
+		"id-1": {
+			id:          "id-1",
+			sourceRaw:   ".CB_RuinBOT==1-",
+			enText:      ".CB_RuinBOT==1-",
+			curText:     "",
+			curObj:      map[string]any{"Text": ""},
+			profile:     textProfile{Kind: textKindDialogue},
+			passthrough: true,
+		},
+	}
+
+	out := persistResults(rt, "slot", map[string]proposal{}, metas, done, nil, &mu, nil)
+	if out.abortWorker || out.skippedInvalid != 0 {
+		t.Fatalf("persist=%+v", out)
+	}
+	if got := done["id-1"]["Text"]; got != ".CB_RuinBOT==1-" {
+		t.Fatalf("restored text=%v", got)
 	}
 }
 
 func TestRunPipeline_AggregatesCounts(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, `"id":"id-ok"`) {
-			return http.StatusOK, `{"id":"id-ok","proposed_ko":"ok [T0]","risk":"low","notes":""}`
+			return http.StatusOK, `{"id":"id-ok","proposed_ko":"ok [T0]"}`
 		}
 		return http.StatusInternalServerError, fmt.Sprintf("unexpected prompt: %s", prompt)
 	})
@@ -305,6 +321,7 @@ func TestRunPipeline_AggregatesCounts(t *testing.T) {
 			"id-long": {"Text": "cur long"},
 		},
 		ids:                []string{"id-ok", "id-long", "id-miss", "id-done"},
+		idIndex:            map[string]int{"id-ok": 0, "id-long": 1, "id-miss": 2, "id-done": 3},
 		doneFromCheckpoint: map[string]bool{"id-done": true},
 		client:             client,
 		skill:              newTranslateSkill("", ""),
@@ -312,19 +329,10 @@ func TestRunPipeline_AggregatesCounts(t *testing.T) {
 	}
 
 	result := runPipeline(rt)
-	if result.completedCount != 1 {
-		t.Fatalf("completed=%d, want 1", result.completedCount)
-	}
-	if result.skippedInvalid != 1 {
-		t.Fatalf("skippedInvalid=%d, want 1", result.skippedInvalid)
-	}
-	if result.skippedLong != 1 {
-		t.Fatalf("skippedLong=%d, want 1", result.skippedLong)
+	if result.completedCount != 1 || result.skippedInvalid != 1 || result.skippedLong != 1 || result.skippedTranslatorErr != 0 {
+		t.Fatalf("result=%+v", result)
 	}
 	if len(result.skippedLongIDs) != 1 || result.skippedLongIDs[0] != "id-long" {
 		t.Fatalf("skippedLongIDs=%v", result.skippedLongIDs)
-	}
-	if result.skippedTranslatorErr != 0 {
-		t.Fatalf("skippedTranslatorErr=%d, want 0", result.skippedTranslatorErr)
 	}
 }

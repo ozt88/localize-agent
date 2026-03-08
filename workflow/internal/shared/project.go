@@ -12,12 +12,41 @@ type ProjectConfig struct {
 	Name        string             `json:"name"`
 	Translation ProjectTranslation `json:"translation"`
 	Evaluation  ProjectEvaluation  `json:"evaluation"`
+	Pipeline    ProjectPipeline    `json:"pipeline"`
+}
+
+type ProjectLLMProfile struct {
+	LLMBackend             string   `json:"llm_backend"`
+	ServerURL              string   `json:"server_url"`
+	Model                  string   `json:"model"`
+	Agent                  string   `json:"agent"`
+	ContextFiles           []string `json:"context_files"`
+	TranslatorResponseMode string   `json:"translator_response_mode"`
+	OllamaStructuredOutput bool     `json:"ollama_structured_output"`
+	OllamaBakedSystem      bool     `json:"ollama_baked_system"`
+	OllamaResetHistory     bool     `json:"ollama_reset_history"`
+	OllamaKeepAlive        string   `json:"ollama_keep_alive"`
+	OllamaNumCtx           int      `json:"ollama_num_ctx"`
+	OllamaTemperature      float64  `json:"ollama_temperature"`
+	Concurrency            int      `json:"concurrency"`
+	BatchSize              int      `json:"batch_size"`
+	TimeoutSec             int      `json:"timeout_sec"`
+}
+
+type ProjectPipeline struct {
+	StageBatchSize int               `json:"stage_batch_size"`
+	Threshold      float64           `json:"threshold"`
+	MaxRetries     int               `json:"max_retries"`
+	LowLLM         ProjectLLMProfile `json:"low_llm"`
+	HighLLM        ProjectLLMProfile `json:"high_llm"`
+	ScoreLLM       ProjectLLMProfile `json:"score_llm"`
 }
 
 type ProjectTranslation struct {
 	Source                 string   `json:"source"`
 	Current                string   `json:"current"`
 	IDsFile                string   `json:"ids_file"`
+	TranslatorPackageChunks string   `json:"translator_package_chunks"`
 	CheckpointDB           string   `json:"checkpoint_db"`
 	ContextFiles           []string `json:"context_files"`
 	RulesFile              string   `json:"rules_file"`
@@ -25,10 +54,12 @@ type ProjectTranslation struct {
 	Model                  string   `json:"model"`
 	LLMBackend             string   `json:"llm_backend"`
 	OllamaStructuredOutput bool     `json:"ollama_structured_output"`
+	OllamaBakedSystem      bool     `json:"ollama_baked_system"`
 	OllamaResetHistory     bool     `json:"ollama_reset_history"`
 	OllamaKeepAlive        string   `json:"ollama_keep_alive"`
 	OllamaNumCtx           int      `json:"ollama_num_ctx"`
 	OllamaTemperature      float64  `json:"ollama_temperature"`
+	TranslatorResponseMode string   `json:"translator_response_mode"`
 }
 
 type ProjectEvaluation struct {
@@ -85,6 +116,7 @@ func resolveProjectPaths(cfg *ProjectConfig, base string) {
 	cfg.Translation.Source = resolvePath(base, cfg.Translation.Source)
 	cfg.Translation.Current = resolvePath(base, cfg.Translation.Current)
 	cfg.Translation.IDsFile = resolvePath(base, cfg.Translation.IDsFile)
+	cfg.Translation.TranslatorPackageChunks = resolvePath(base, cfg.Translation.TranslatorPackageChunks)
 	cfg.Translation.CheckpointDB = resolvePath(base, cfg.Translation.CheckpointDB)
 	cfg.Translation.RulesFile = resolvePath(base, cfg.Translation.RulesFile)
 	for i := range cfg.Translation.ContextFiles {
@@ -97,6 +129,15 @@ func resolveProjectPaths(cfg *ProjectConfig, base string) {
 	cfg.Evaluation.EvalRulesFile = resolvePath(base, cfg.Evaluation.EvalRulesFile)
 	for i := range cfg.Evaluation.ContextFiles {
 		cfg.Evaluation.ContextFiles[i] = resolvePath(base, cfg.Evaluation.ContextFiles[i])
+	}
+	for i := range cfg.Pipeline.LowLLM.ContextFiles {
+		cfg.Pipeline.LowLLM.ContextFiles[i] = resolvePath(base, cfg.Pipeline.LowLLM.ContextFiles[i])
+	}
+	for i := range cfg.Pipeline.HighLLM.ContextFiles {
+		cfg.Pipeline.HighLLM.ContextFiles[i] = resolvePath(base, cfg.Pipeline.HighLLM.ContextFiles[i])
+	}
+	for i := range cfg.Pipeline.ScoreLLM.ContextFiles {
+		cfg.Pipeline.ScoreLLM.ContextFiles[i] = resolvePath(base, cfg.Pipeline.ScoreLLM.ContextFiles[i])
 	}
 }
 

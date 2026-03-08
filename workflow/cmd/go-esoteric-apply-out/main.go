@@ -22,6 +22,7 @@ func main() {
 	var appliedStatus string
 	var inPlace bool
 	var allowTokenDrift bool
+	var pipelineVersion string
 
 	flag.StringVar(&inPath, "in", "projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json", "input esoteric translation json")
 	flag.StringVar(&outPath, "out", "projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique/translation_assetripper_textasset_unique.translated.json", "output json path")
@@ -29,9 +30,10 @@ func main() {
 	flag.StringVar(&appliedStatus, "applied-status", "translated", "status value for applied rows")
 	flag.BoolVar(&inPlace, "in-place", false, "write output in-place to --in")
 	flag.BoolVar(&allowTokenDrift, "allow-token-drift", false, "allow placeholder/tag drift")
+	flag.StringVar(&pipelineVersion, "pipeline-version", "chunkctx-v1", "apply only rows written by this pipeline version")
 	flag.Parse()
 
-	items, err := platform.LoadDonePackItems(checkpointDB)
+	items, err := platform.LoadDonePackItems(checkpointDB, pipelineVersion)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -129,12 +131,15 @@ func extractEntries(root any) ([]map[string]any, error) {
 	case []any:
 		return castEntryArray(v)
 	case map[string]any:
+		if stringsMap, ok := v["strings"].(map[string]any); ok {
+			return castStringMap(stringsMap)
+		}
 		for _, key := range []string{"items", "entries", "translations"} {
 			if arr, ok := v[key].([]any); ok {
 				return castEntryArray(arr)
 			}
 		}
-		return nil, fmt.Errorf("unsupported object schema: expected one of keys [items, entries, translations]")
+		return nil, fmt.Errorf("unsupported object schema: expected one of keys [strings, items, entries, translations]")
 	default:
 		return nil, fmt.Errorf("unsupported json root type")
 	}
@@ -148,6 +153,24 @@ func castEntryArray(arr []any) ([]map[string]any, error) {
 			return nil, fmt.Errorf("entry is not object")
 		}
 		out = append(out, m)
+	}
+	return out, nil
+}
+
+func castStringMap(m map[string]any) ([]map[string]any, error) {
+	out := make([]map[string]any, 0, len(m))
+	for id, raw := range m {
+		entry, ok := raw.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("strings entry is not object")
+		}
+		source, _ := entry["Text"].(string)
+		out = append(out, map[string]any{
+			"id":     id,
+			"source": source,
+			"target": source,
+			"status": "",
+		})
 	}
 	return out, nil
 }

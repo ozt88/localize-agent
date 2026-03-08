@@ -15,7 +15,7 @@ func main() {
 	var project string
 	var projectDir string
 	fs := flag.NewFlagSet("go-evaluate", flag.ContinueOnError)
-	fs.StringVar(&project, "project", "", "project name under workflow/projects/<name>")
+	fs.StringVar(&project, "project", "", "project name under projects/<name>")
 	fs.StringVar(&projectDir, "project-dir", "", "project directory containing project.json")
 
 	fs.BoolVar(&cfg.Resume, "resume", false, "resume: skip already-completed items, recover 'evaluating' to pending")
@@ -56,6 +56,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
+	explicit := map[string]bool{}
+	fs.Visit(func(f *flag.Flag) {
+		explicit[f.Name] = true
+	})
 	if project != "" || projectDir != "" {
 		pc, baseDir, err := shared.LoadProjectConfig(project, projectDir)
 		if err != nil {
@@ -64,34 +68,34 @@ func main() {
 		}
 		if pc != nil {
 			e := pc.Evaluation
-			if cfg.PackIn == "" && e.PackIn != "" {
+			if !explicit["pack-in"] && cfg.PackIn == "" && e.PackIn != "" {
 				cfg.PackIn = e.PackIn
 			}
-			if cfg.DB == def.DB && e.DB != "" {
+			if !explicit["db"] && cfg.DB == def.DB && e.DB != "" {
 				cfg.DB = e.DB
 			}
-			if cfg.RunName == def.RunName && e.RunName != "" {
+			if !explicit["run-name"] && cfg.RunName == def.RunName && e.RunName != "" {
 				cfg.RunName = e.RunName
 			}
-			if len(cfg.ContextFiles) == 0 && len(e.ContextFiles) > 0 {
+			if !explicit["context-file"] && len(cfg.ContextFiles) == 0 && len(e.ContextFiles) > 0 {
 				cfg.ContextFiles = append(cfg.ContextFiles, e.ContextFiles...)
 			}
-			if cfg.RulesFile == "" && e.RulesFile != "" {
+			if !explicit["rules-file"] && cfg.RulesFile == "" && e.RulesFile != "" {
 				cfg.RulesFile = e.RulesFile
 			}
-			if cfg.EvalRulesFile == "" && e.EvalRulesFile != "" {
+			if !explicit["eval-rules-file"] && cfg.EvalRulesFile == "" && e.EvalRulesFile != "" {
 				cfg.EvalRulesFile = e.EvalRulesFile
 			}
-			if cfg.ServerURL == def.ServerURL && e.ServerURL != "" {
+			if !explicit["server-url"] && cfg.ServerURL == def.ServerURL && e.ServerURL != "" {
 				cfg.ServerURL = e.ServerURL
 			}
-			if cfg.TransModel == def.TransModel && e.TransModel != "" {
+			if !explicit["trans-model"] && cfg.TransModel == def.TransModel && e.TransModel != "" {
 				cfg.TransModel = e.TransModel
 			}
-			if cfg.EvalModel == def.EvalModel && e.EvalModel != "" {
+			if !explicit["eval-model"] && cfg.EvalModel == def.EvalModel && e.EvalModel != "" {
 				cfg.EvalModel = e.EvalModel
 			}
-			if cfg.LLMBackend == def.LLMBackend && e.LLMBackend != "" {
+			if !explicit["llm-backend"] && cfg.LLMBackend == def.LLMBackend && e.LLMBackend != "" {
 				cfg.LLMBackend = e.LLMBackend
 			}
 			fmt.Printf("Project loaded: %s\n", baseDir)

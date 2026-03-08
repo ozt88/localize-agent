@@ -2,8 +2,22 @@ package evaluation
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
+
+func TestNewEvaluateSkill_MergesDefaultAndProjectRules(t *testing.T) {
+	skill := newEvaluateSkill("ctx", "PROJECT_RULE")
+	warmup := skill.warmup()
+	for _, sub := range []string{
+		"You are a strict quality evaluator, NOT a translator.",
+		"PROJECT_RULE",
+	} {
+		if !strings.Contains(warmup, sub) {
+			t.Fatalf("warmup missing %q:\n%s", sub, warmup)
+		}
+	}
+}
 
 func TestParseCSV(t *testing.T) {
 	tests := []struct {

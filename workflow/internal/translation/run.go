@@ -36,6 +36,15 @@ func Run(c Config) int {
 		fmt.Fprintf(os.Stderr, "error reading ids: %v\n", err)
 		return 1
 	}
+	lineContexts, chunkBatches, err := loadChunkContexts(c.TranslatorPackageChunks, ids)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error reading translator package chunks: %v\n", err)
+		return 1
+	}
+	idIndex := make(map[string]int, len(ids))
+	for i, id := range ids {
+		idIndex[id] = i
+	}
 
 	checkpoint, err := platform.NewSQLiteCheckpointStore(c.CheckpointDB)
 	if err != nil {
@@ -46,7 +55,7 @@ func Run(c Config) int {
 
 	doneFromCheckpoint := map[string]bool{}
 	if c.Resume && checkpoint.IsEnabled() {
-		doneFromCheckpoint, err = checkpoint.LoadDoneIDs()
+		doneFromCheckpoint, err = checkpoint.LoadDoneIDs(c.PipelineVersion)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error loading checkpoint: %v\n", err)
 			return 1
@@ -70,14 +79,40 @@ func Run(c Config) int {
 		fmt.Fprintf(os.Stderr, "error creating client: %v\n", err)
 		return 1
 	}
+	var highClient *serverClient
+	if c.HighModel != "" {
+		highBackend := c.HighLLMBackend
+		if highBackend == "" {
+			highBackend = c.LLMBackend
+		}
+		highServerURL := c.HighServerURL
+		if highServerURL == "" {
+			highServerURL = c.ServerURL
+		}
+		highAgent := c.HighAgent
+		if highAgent == "" {
+			highAgent = c.Agent
+		}
+		if highBackend != c.LLMBackend || highServerURL != c.ServerURL || c.HighModel != c.Model || highAgent != c.Agent {
+			highClient, err = newServerClientWithConfig(highBackend, highServerURL, c.HighModel, highAgent, c, skill, c.TimeoutSec, metrics, traceSink)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error creating high lane client: %v\n", err)
+				return 1
+			}
+		}
+	}
 
 	result := runPipeline(translationRuntime{
 		cfg:                c,
 		sourceStrings:      enStrings,
 		currentStrings:     curStrings,
 		ids:                ids,
+		idIndex:            idIndex,
+		lineContexts:       lineContexts,
+		chunkBatches:       chunkBatches,
 		doneFromCheckpoint: doneFromCheckpoint,
 		client:             client,
+		highClient:         highClient,
 		skill:              skill,
 		checkpoint:         checkpoint,
 	})

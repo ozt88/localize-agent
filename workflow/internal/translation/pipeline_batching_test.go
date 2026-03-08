@@ -64,3 +64,60 @@ func TestBuildJobBatches_RespectsBothConstraints(t *testing.T) {
 		t.Fatalf("batches=%v, want=%v", got, want)
 	}
 }
+
+func TestBuildJobBatches_CoalescesCompatibleChunks(t *testing.T) {
+	rt := translationRuntime{
+		cfg: Config{BatchSize: 2},
+		ids: []string{"a", "b", "c"},
+		sourceStrings: map[string]map[string]any{
+			"a": {"Text": "She laughs."},
+			"b": {"Text": "He nods."},
+			"c": {"Text": "They wait."},
+		},
+		currentStrings: map[string]map[string]any{
+			"a": {"Text": ""},
+			"b": {"Text": ""},
+			"c": {"Text": ""},
+		},
+		chunkBatches: [][]string{
+			{"a"},
+			{"b"},
+			{"c"},
+		},
+	}
+	got := buildJobBatches(rt)
+	want := [][]string{
+		{"a", "b"},
+		{"c"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("batches=%v, want=%v", got, want)
+	}
+}
+
+func TestBuildJobBatches_DoesNotCoalesceDifferentGroupKeys(t *testing.T) {
+	rt := translationRuntime{
+		cfg: Config{BatchSize: 4},
+		ids: []string{"a", "b"},
+		sourceStrings: map[string]map[string]any{
+			"a": {"Text": "She laughs."},
+			"b": {"Text": "ROLL14 str-Give back the papers."},
+		},
+		currentStrings: map[string]map[string]any{
+			"a": {"Text": ""},
+			"b": {"Text": ""},
+		},
+		chunkBatches: [][]string{
+			{"a"},
+			{"b"},
+		},
+	}
+	got := buildJobBatches(rt)
+	want := [][]string{
+		{"a"},
+		{"b"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("batches=%v, want=%v", got, want)
+	}
+}

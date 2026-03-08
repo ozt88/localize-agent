@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -26,6 +28,7 @@ type LLMProfile struct {
 
 type SessionLLMClient struct {
 	serverURL string
+	directory string
 	http      *http.Client
 	metrics   *shared.MetricCollector
 	traceSink LLMTraceSink
@@ -36,8 +39,10 @@ type SessionLLMClient struct {
 }
 
 func NewSessionLLMClient(serverURL string, timeoutSec int, metrics *shared.MetricCollector, traceSink LLMTraceSink) *SessionLLMClient {
+	directory, _ := os.Getwd()
 	return &SessionLLMClient{
 		serverURL:    strings.TrimRight(serverURL, "/"),
+		directory:    directory,
 		http:         newHTTPClient(timeoutSec),
 		metrics:      metrics,
 		traceSink:    traceSink,
@@ -168,7 +173,7 @@ func (c *SessionLLMClient) postJSON(path string, body any, out any) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPost, c.serverURL+path, bytes.NewReader(raw))
+	req, err := http.NewRequest(http.MethodPost, c.endpointURL(path), bytes.NewReader(raw))
 	if err != nil {
 		return err
 	}
@@ -187,6 +192,20 @@ func (c *SessionLLMClient) postJSON(path string, body any, out any) error {
 	}
 	c.metrics.Add(float64(time.Since(started).Milliseconds()), true)
 	return json.Unmarshal(payload, out)
+}
+
+func (c *SessionLLMClient) endpointURL(path string) string {
+	if strings.TrimSpace(c.directory) == "" {
+		return c.serverURL + path
+	}
+	u, err := url.Parse(c.serverURL + path)
+	if err != nil {
+		return c.serverURL + path
+	}
+	q := u.Query()
+	q.Set("directory", c.directory)
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func (c *SessionLLMClient) getSessionID(key string) (string, error) {

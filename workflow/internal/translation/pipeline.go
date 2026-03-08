@@ -13,8 +13,12 @@ type translationRuntime struct {
 	sourceStrings      map[string]map[string]any
 	currentStrings     map[string]map[string]any
 	ids                []string
+	idIndex            map[string]int
+	lineContexts       map[string]lineContext
+	chunkBatches       [][]string
 	doneFromCheckpoint map[string]bool
 	client             *serverClient
+	highClient         *serverClient
 	skill              *translateSkill
 	checkpoint         contracts.TranslationCheckpointStore
 }
@@ -48,8 +52,11 @@ func runPipeline(rt translationRuntime) pipelineResult {
 
 	worker := func(slot int, jobs <-chan []string, wg *sync.WaitGroup) {
 		defer wg.Done()
-		sessionKey := fmt.Sprintf("%s#go_pool%d", rt.cfg.ServerURL, slot)
-		_ = rt.client.ensureContext(sessionKey)
+		slotKey := fmt.Sprintf("go_pool%d", slot)
+		_ = rt.client.ensureContext(rt.client.sessionKey(slotKey))
+		if rt.highClient != nil {
+			_ = rt.highClient.ensureContext(rt.highClient.sessionKey(slotKey))
+		}
 
 		for batchIDs := range jobs {
 			batchSizeRequested := len(batchIDs)
@@ -74,13 +81,13 @@ func runPipeline(rt translationRuntime) pipelineResult {
 			}
 			countMu.Unlock()
 
-			proposals, batchInvalid, batchTransErr := collectProposals(rt, sessionKey, runItems)
+			proposals, batchInvalid, batchTransErr := collectProposals(rt, slotKey, runItems)
 			countMu.Lock()
 			skippedInvalid += batchInvalid
 			skippedTranslatorErr += batchTransErr
 			countMu.Unlock()
 
-			persist := persistResults(rt, sessionKey, proposals, metas, done, pack, &doneMu, cpWriter)
+			persist := persistResults(rt, slotKey, proposals, metas, done, pack, &doneMu, cpWriter)
 			pack = persist.pack
 			countMu.Lock()
 			skippedInvalid += persist.skippedInvalid
@@ -133,7 +140,20 @@ func runPipeline(rt translationRuntime) pipelineResult {
 	}
 }
 
+func (rt translationRuntime) clientForLane(lane string) *serverClient {
+	if lane == laneHigh && rt.highClient != nil {
+		return rt.highClient
+	}
+	return rt.client
+}
+
 func buildJobBatches(rt translationRuntime) [][]string {
+	if len(rt.chunkBatches) > 0 {
+		out := coalesceChunkBatches(rt)
+		if len(out) > 0 {
+			return out
+		}
+	}
 	batchSize := rt.cfg.BatchSize
 	if batchSize <= 0 {
 		batchSize = 1
@@ -173,6 +193,108 @@ func buildJobBatches(rt translationRuntime) [][]string {
 		out = append(out, cur)
 	}
 	return out
+}
+
+type chunkBatchPlan struct {
+	key       string
+	taskCount int
+	charCount int
+}
+
+func coalesceChunkBatches(rt translationRuntime) [][]string {
+	batchSize := rt.cfg.BatchSize
+	if batchSize <= 0 {
+		batchSize = 1
+	}
+	maxBatchChars := rt.cfg.MaxBatchChars
+	out := make([][]string, 0, len(rt.chunkBatches))
+	curIDs := make([]string, 0, batchSize)
+	curKey := ""
+	curTasks := 0
+	curChars := 0
+	flush := func() {
+		if len(curIDs) == 0 {
+			return
+		}
+		out = append(out, append([]string(nil), curIDs...))
+		curIDs = make([]string, 0, batchSize)
+		curKey = ""
+		curTasks = 0
+		curChars = 0
+	}
+	for _, chunkIDs := range rt.chunkBatches {
+		if len(chunkIDs) == 0 {
+			continue
+		}
+		plan := planChunkBatch(rt, chunkIDs)
+		if plan.taskCount == 0 || plan.key == "" {
+			flush()
+			out = append(out, append([]string(nil), chunkIDs...))
+			continue
+		}
+		exceedsSize := curTasks > 0 && curTasks+plan.taskCount > batchSize
+		exceedsChars := maxBatchChars > 0 && curChars > 0 && curChars+plan.charCount > maxBatchChars
+		incompatible := curKey != "" && curKey != plan.key
+		if exceedsSize || exceedsChars || incompatible {
+			flush()
+		}
+		curIDs = append(curIDs, chunkIDs...)
+		curKey = plan.key
+		curTasks += plan.taskCount
+		curChars += plan.charCount
+		if curTasks >= batchSize {
+			flush()
+		}
+	}
+	flush()
+	return out
+}
+
+func planChunkBatch(rt translationRuntime, ids []string) chunkBatchPlan {
+	key := ""
+	taskCount := 0
+	charCount := 0
+	for _, id := range ids {
+		enObj, ok := rt.sourceStrings[id]
+		if !ok {
+			continue
+		}
+		if _, ok := rt.currentStrings[id]; !ok {
+			continue
+		}
+		enText, _ := enObj["Text"].(string)
+		if rt.cfg.MaxPlainLen > 0 && len([]rune(enText)) > rt.cfg.MaxPlainLen {
+			continue
+		}
+		profile := effectiveTextProfile(rt, id, enText)
+		prepared := preparePromptText(enText, enText, profile)
+		if prepared.passthrough {
+			continue
+		}
+		textRole := ""
+		isShortContext := false
+		if ctx, ok := rt.lineContexts[id]; ok {
+			textRole = ctx.TextRole
+			isShortContext = ctx.LineIsShortContextDependent
+		}
+		itemKey := decideTranslationLane(enText, profile, textRole, isShortContext) + "::" + profileGroupKey(profile)
+		if key == "" {
+			key = itemKey
+		} else if key != itemKey {
+			return chunkBatchPlan{}
+		}
+		taskCount++
+		n := len([]rune(prepared.source))
+		if n < 1 {
+			n = 1
+		}
+		charCount += n
+	}
+	return chunkBatchPlan{
+		key:       key,
+		taskCount: taskCount,
+		charCount: charCount,
+	}
 }
 
 func estimateBatchItemChars(rt translationRuntime, id string) int {

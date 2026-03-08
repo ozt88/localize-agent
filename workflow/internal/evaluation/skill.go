@@ -13,19 +13,26 @@ type translateSkill struct {
 }
 
 func newEvaluateSkill(contextText, rulesText string) *evaluateSkill {
-	rules := rulesText
-	if strings.TrimSpace(rules) == "" {
-		rules = defaultEvalRules()
-	}
+	rules := mergeRules(defaultEvalRules(), rulesText)
 	return &evaluateSkill{contextText: strings.TrimSpace(contextText), staticRules: strings.TrimSpace(rules)}
 }
 
 func newTranslateSkill(contextText, rulesText string) *translateSkill {
-	rules := rulesText
-	if strings.TrimSpace(rules) == "" {
-		rules = defaultTranslateRules()
-	}
+	rules := mergeRules(defaultTranslateRules(), rulesText)
 	return &translateSkill{contextText: strings.TrimSpace(contextText), staticRules: strings.TrimSpace(rules)}
+}
+
+func mergeRules(base, extra string) string {
+	base = strings.TrimSpace(base)
+	extra = strings.TrimSpace(extra)
+	switch {
+	case base == "":
+		return extra
+	case extra == "":
+		return base
+	default:
+		return base + "\n" + extra
+	}
 }
 
 func defaultEvalRules() string {
@@ -52,6 +59,8 @@ func defaultEvalRules() string {
 		"11. Do not reward literal translations with high fidelity if they produce unnatural Korean.",
 		"12. Tone: Imperial officials=formal, voidsmen=rough, daemons=archaic.",
 		"13. Do not penalize creative phrasing if EN meaning is preserved and tone is appropriate.",
+		"14. Penalize unnecessary honorifics, bureaucratic phrasing, and English word-order calques in dialogue or choices.",
+		"15. For tagged emphasis, judge whether Korean emphasis is natural, not whether the English tag stayed in the same position.",
 	}, "\n")
 }
 
@@ -71,6 +80,8 @@ func defaultTranslateRules() string {
 		"12. Preserve every [Tn] tag exactly: no rename, no reorder, no add, no delete.",
 		"13. risk is mandatory: low | med | high.",
 		"14. notes must be a string; empty string only when truly nothing to flag.",
+		"15. Keep dialogue and choices in natural Korean register; avoid unnecessary honorifics unless context clearly requires them.",
+		"16. Preserve emphasis tags exactly, but reposition the emphasized Korean phrase if needed for natural word order.",
 	}, "\n")
 }
 

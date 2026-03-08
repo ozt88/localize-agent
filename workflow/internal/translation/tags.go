@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	tagRe         = regexp.MustCompile(`\{[^}]+\}`)
+	tagRe         = regexp.MustCompile(`(\$[A-Za-z0-9_]+|<[^>]+>|\{[^}]+\})`)
 	placeholderRe = regexp.MustCompile(`\[T\d+\]`)
 )
 

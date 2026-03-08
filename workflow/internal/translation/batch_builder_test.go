@@ -3,13 +3,16 @@ package translation
 import "testing"
 
 func TestBuildBatch_FiltersAndCounts(t *testing.T) {
-	giveRT := translationRuntime{
-		cfg: Config{
-			MaxPlainLen: 10,
+	rt := translationRuntime{
+		cfg: Config{MaxPlainLen: 10},
+		ids: []string{"id_done", "id_ok", "id_long", "id_nocur"},
+		idIndex: map[string]int{
+			"id_done":  0,
+			"id_ok":    1,
+			"id_long":  2,
+			"id_nocur": 3,
 		},
-		doneFromCheckpoint: map[string]bool{
-			"id_done": true,
-		},
+		doneFromCheckpoint: map[string]bool{"id_done": true},
 		sourceStrings: map[string]map[string]any{
 			"id_done":  {"Text": "ignored"},
 			"id_ok":    {"Text": "Hi {x}"},
@@ -22,38 +25,214 @@ func TestBuildBatch_FiltersAndCounts(t *testing.T) {
 		},
 	}
 
-	giveIDs := []string{"id_done", "id_ok", "id_long", "id_nocur"}
-	batch := buildBatch(giveRT, giveIDs)
-
+	batch := buildBatch(rt, []string{"id_done", "id_ok", "id_long", "id_nocur"})
 	if batch.skippedInvalid != 1 {
 		t.Fatalf("skippedInvalid=%d, want 1", batch.skippedInvalid)
 	}
 	if batch.skippedLong != 1 {
 		t.Fatalf("skippedLong=%d, want 1", batch.skippedLong)
 	}
-	if len(batch.skippedLongIDs) != 1 || batch.skippedLongIDs[0] != "id_long" {
-		t.Fatalf("skippedLongIDs=%v, want [id_long]", batch.skippedLongIDs)
-	}
 	if len(batch.runItems) != 1 {
-		t.Fatalf("runItems len = %d, want 1", len(batch.runItems))
+		t.Fatalf("runItems len=%d, want 1", len(batch.runItems))
 	}
-
 	item := batch.runItems[0]
-	if item["id"] != "id_ok" {
-		t.Fatalf("runItems[0].id = %s, want id_ok", item["id"])
+	if item.ID != "id_ok" {
+		t.Fatalf("id=%q", item.ID)
 	}
-	if item["en"] != "Hi [T0]" {
-		t.Fatalf("masked en=%q, want %q", item["en"], "Hi [T0]")
+	if item.BodyEN != "Hi [T0]" {
+		t.Fatalf("body=%q", item.BodyEN)
 	}
-	if item["current_ko"] != "hello [T0]" {
-		t.Fatalf("masked current_ko=%q, want %q", item["current_ko"], "hello [T0]")
+	if item.ContextEN != "" {
+		t.Fatalf("context=%q", item.ContextEN)
+	}
+}
+
+func TestBuildBatch_UsesPackageRoleMetadata(t *testing.T) {
+	rt := translationRuntime{
+		ids: []string{"id_target"},
+		idIndex: map[string]int{
+			"id_target": 0,
+		},
+		sourceStrings: map[string]map[string]any{
+			"id_target": {"Text": "Stand up."},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_target": {"Text": ""},
+		},
+		lineContexts: map[string]lineContext{
+			"id_target": {
+				TextRole:         "choice",
+				LineIsImperative: true,
+				Chunk: chunkContext{
+					ChunkID:         "chunk-1",
+					ParentSegmentID: "seg-1",
+					LineIDs:         []string{"id_target"},
+				},
+			},
+		},
 	}
 
-	meta, ok := batch.metas["id_ok"]
-	if !ok {
-		t.Fatalf("missing meta for id_ok")
+	batch := buildBatch(rt, []string{"id_target"})
+	item := batch.runItems[0]
+	if item.Profile.Kind != textKindChoice {
+		t.Fatalf("kind=%q, want choice", item.Profile.Kind)
 	}
-	if len(meta.mapTags) != 1 || meta.mapTags[0].original != "{x}" || meta.mapTags[0].placeholder != "[T0]" {
-		t.Fatalf("meta.mapTags=%v, want one mapping {x}<->[T0]", meta.mapTags)
+	if item.Lane != laneHigh {
+		t.Fatalf("translation_lane=%q, want high", item.Lane)
+	}
+}
+
+func TestBuildBatch_GameplayPrefixChoiceIsNotOverriddenByFragmentRole(t *testing.T) {
+	rt := translationRuntime{
+		ids: []string{"id_target"},
+		idIndex: map[string]int{
+			"id_target": 0,
+		},
+		sourceStrings: map[string]map[string]any{
+			"id_target": {"Text": `DC13 wis-"I'm definitely a cleric.`},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_target": {"Text": ""},
+		},
+		lineContexts: map[string]lineContext{
+			"id_target": {
+				TextRole: "fragment",
+				Chunk: chunkContext{
+					ChunkID:         "chunk-1",
+					ParentSegmentID: "seg-1",
+					LineIDs:         []string{"id_target"},
+				},
+			},
+		},
+	}
+
+	batch := buildBatch(rt, []string{"id_target"})
+	if len(batch.runItems) != 1 {
+		t.Fatalf("runItems len=%d, want 1", len(batch.runItems))
+	}
+	item := batch.runItems[0]
+	if item.Profile.Kind != textKindChoice {
+		t.Fatalf("kind=%q, want choice", item.Profile.Kind)
+	}
+	if item.BodyEN != `"I'm definitely a cleric.` {
+		t.Fatalf("body=%q", item.BodyEN)
+	}
+	meta := batch.metas["id_target"]
+	if meta.choicePrefix != `DC13 wis-` {
+		t.Fatalf("choicePrefix=%q, want %q", meta.choicePrefix, `DC13 wis-`)
+	}
+}
+
+func TestBuildBatch_UsesChunkContext(t *testing.T) {
+	rt := translationRuntime{
+		ids: []string{"id_a", "id_b", "id_c"},
+		idIndex: map[string]int{
+			"id_a": 0,
+			"id_b": 1,
+			"id_c": 2,
+		},
+		sourceStrings: map[string]map[string]any{
+			"id_a": {"Text": "ROLL14 str-Give back the papers."},
+			"id_b": {"Text": "Do <i>you</i> like maw pie?"},
+			"id_c": {"Text": "His flesh- now turning to <i>fine dust</i>."},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_a": {"Text": "prev"},
+			"id_b": {"Text": "cur"},
+			"id_c": {"Text": "next"},
+		},
+		lineContexts: map[string]lineContext{
+			"id_b": {
+				PrevLineID:                  "id_a",
+				NextLineID:                  "id_c",
+				TextRole:                    "dialogue",
+				LineIsShortContextDependent: true,
+				Chunk: chunkContext{
+					ChunkID:         "chunk-1",
+					ParentSegmentID: "seg-1",
+					LineIDs:         []string{"id_a", "id_b", "id_c"},
+				},
+			},
+		},
+	}
+
+	batch := buildBatch(rt, []string{"id_b"})
+	item := batch.runItems[0]
+	wantContext := "Give back the papers.\nDo [[E0]]you[[/E0]] like maw pie?\nHis flesh- now turning to [[E0]]fine dust[[/E0]]."
+	if item.ContextEN != wantContext {
+		t.Fatalf("context=%q", item.ContextEN)
+	}
+}
+
+func TestBuildBatch_LoreCueUsesHighLane(t *testing.T) {
+	rt := translationRuntime{
+		ids:     []string{"id_target"},
+		idIndex: map[string]int{"id_target": 0},
+		sourceStrings: map[string]map[string]any{
+			"id_target": {"Text": "But it will be the last Band I tackle. And it might be my doom."},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_target": {"Text": ""},
+		},
+		lineContexts: map[string]lineContext{
+			"id_target": {TextRole: "dialogue"},
+		},
+	}
+
+	batch := buildBatch(rt, []string{"id_target"})
+	if got := batch.runItems[0].Lane; got != laneHigh {
+		t.Fatalf("translation_lane=%q, want high", got)
+	}
+}
+
+func TestBuildBatch_PassthroughControlTokenSkipsRunItem(t *testing.T) {
+	rt := translationRuntime{
+		ids: []string{"id_control"},
+		idIndex: map[string]int{
+			"id_control": 0,
+		},
+		sourceStrings: map[string]map[string]any{
+			"id_control": {"Text": ".CB_RuinBOT==1-"},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_control": {"Text": ""},
+		},
+	}
+
+	batch := buildBatch(rt, []string{"id_control"})
+	if len(batch.runItems) != 0 {
+		t.Fatalf("runItems len=%d, want 0", len(batch.runItems))
+	}
+	meta := batch.metas["id_control"]
+	if !meta.passthrough {
+		t.Fatalf("passthrough=%v, want true", meta.passthrough)
+	}
+}
+
+func TestBuildBatch_ControlQuotedTailSplitsPrefix(t *testing.T) {
+	rt := translationRuntime{
+		ids: []string{"id_control_quote"},
+		idIndex: map[string]int{
+			"id_control_quote": 0,
+		},
+		sourceStrings: map[string]map[string]any{
+			"id_control_quote": {"Text": `.Lisa's_Place==1-"You ever hang out in a cozy little hag hut before?`},
+		},
+		currentStrings: map[string]map[string]any{
+			"id_control_quote": {"Text": ""},
+		},
+	}
+
+	batch := buildBatch(rt, []string{"id_control_quote"})
+	if len(batch.runItems) != 1 {
+		t.Fatalf("runItems len=%d, want 1", len(batch.runItems))
+	}
+	item := batch.runItems[0]
+	if item.BodyEN != `"You ever hang out in a cozy little hag hut before?` {
+		t.Fatalf("body=%q", item.BodyEN)
+	}
+	meta := batch.metas["id_control_quote"]
+	if meta.controlPrefix != `.Lisa's_Place==1-` {
+		t.Fatalf("controlPrefix=%q", meta.controlPrefix)
 	}
 }

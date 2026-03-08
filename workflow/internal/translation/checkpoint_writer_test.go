@@ -51,7 +51,7 @@ func TestCheckpointBatchWriter_ConcurrentEnqueue(t *testing.T) {
 		t.Fatalf("writer close error: %v", err)
 	}
 
-	done, err := store.LoadDoneIDs()
+	done, err := store.LoadDoneIDs("")
 	if err != nil {
 		t.Fatalf("LoadDoneIDs error: %v", err)
 	}

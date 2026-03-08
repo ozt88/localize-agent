@@ -134,27 +134,36 @@ func (cs *sqliteCheckpointStore) UpsertItems(items []contracts.TranslationCheckp
 	return tx.Commit()
 }
 
-func (cs *sqliteCheckpointStore) LoadDoneIDs() (map[string]bool, error) {
+func (cs *sqliteCheckpointStore) LoadDoneIDs(pipelineVersion string) (map[string]bool, error) {
 	if !cs.enabled {
 		return nil, nil
 	}
-	rows, err := cs.db.Query("SELECT id FROM items WHERE status='done'")
+	rows, err := cs.db.Query("SELECT id, pack_json FROM items WHERE status='done'")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	done := map[string]bool{}
 	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
+		var id, packJSON string
+		if err := rows.Scan(&id, &packJSON); err != nil {
 			return nil, err
+		}
+		if pipelineVersion != "" {
+			var packObj map[string]any
+			if strings.TrimSpace(packJSON) == "" || json.Unmarshal([]byte(packJSON), &packObj) != nil {
+				continue
+			}
+			if stringField(packObj, "pipeline_version") != pipelineVersion {
+				continue
+			}
 		}
 		done[id] = true
 	}
 	return done, rows.Err()
 }
 
-func LoadDonePackItems(dbPath string) ([]contracts.EvalPackItem, error) {
+func LoadDonePackItems(dbPath, pipelineVersion string) ([]contracts.EvalPackItem, error) {
 	db, err := openSQLite(dbPath, nil)
 	if err != nil {
 		return nil, err
@@ -180,12 +189,29 @@ func LoadDonePackItems(dbPath string) ([]contracts.EvalPackItem, error) {
 		if err := json.Unmarshal([]byte(raw), &item); err != nil {
 			continue
 		}
+		if pipelineVersion != "" {
+			var packObj map[string]any
+			if json.Unmarshal([]byte(raw), &packObj) != nil {
+				continue
+			}
+			if stringField(packObj, "pipeline_version") != pipelineVersion {
+				continue
+			}
+		}
 		if item.ID == "" {
 			continue
 		}
 		out = append(out, item)
 	}
 	return out, rows.Err()
+}
+
+func stringField(m map[string]any, key string) string {
+	if m == nil {
+		return ""
+	}
+	v, _ := m[key].(string)
+	return v
 }
 
 func ExportTranslationCheckpointRows(dbPath string, statuses []string) ([]map[string]any, error) {

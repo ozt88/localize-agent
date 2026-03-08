@@ -21,13 +21,28 @@ type record struct {
 	Category string
 }
 
+type translatorPackage struct {
+	Format   string                   `json:"format"`
+	Segments []translatorPackageEntry `json:"segments"`
+}
+
+type translatorPackageEntry struct {
+	Lines []translatorPackageLine `json:"lines"`
+}
+
+type translatorPackageLine struct {
+	LineID     string `json:"line_id"`
+	SourceText string `json:"source_text"`
+	TextRole   string `json:"text_role"`
+}
+
 func main() {
 	var inPath string
 	var outDir string
 	var includeNonEmptyTarget bool
 	var skipNoise bool
 
-	flag.StringVar(&inPath, "in", "projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json", "input esoteric translation json")
+	flag.StringVar(&inPath, "in", "projects/esoteric-ebb/source/translator_package.json", "input esoteric translation json or translator package json")
 	flag.StringVar(&outDir, "out-dir", "projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique", "output directory")
 	flag.BoolVar(&includeNonEmptyTarget, "include-non-empty-target", false, "include rows where target is already non-empty")
 	flag.BoolVar(&skipNoise, "skip-noise", true, "skip low-value noise entries (asset/event/key-like)")
@@ -195,11 +210,42 @@ func loadEntries(path string) (any, []map[string]any, error) {
 	if err := json.Unmarshal(raw, &root); err != nil {
 		return nil, nil, err
 	}
+	if pkgEntries, ok, err := extractTranslatorPackageEntries(raw); err != nil {
+		return nil, nil, err
+	} else if ok {
+		return root, pkgEntries, nil
+	}
 	entries, err := extractEntries(root)
 	if err != nil {
 		return nil, nil, err
 	}
 	return root, entries, nil
+}
+
+func extractTranslatorPackageEntries(raw []byte) ([]map[string]any, bool, error) {
+	var pkg translatorPackage
+	if err := json.Unmarshal(raw, &pkg); err != nil {
+		return nil, false, nil
+	}
+	if !strings.Contains(pkg.Format, "translator-package") || len(pkg.Segments) == 0 {
+		return nil, false, nil
+	}
+	out := make([]map[string]any, 0)
+	for _, seg := range pkg.Segments {
+		for _, line := range seg.Lines {
+			if strings.TrimSpace(line.LineID) == "" || strings.TrimSpace(line.SourceText) == "" {
+				continue
+			}
+			out = append(out, map[string]any{
+				"id":       line.LineID,
+				"source":   line.SourceText,
+				"target":   "",
+				"status":   "new",
+				"category": line.TextRole,
+			})
+		}
+	}
+	return out, true, nil
 }
 
 func extractEntries(root any) ([]map[string]any, error) {

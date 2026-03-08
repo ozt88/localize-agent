@@ -3,6 +3,8 @@
 workflow/output/
 workflow/output/_tmp_batches/
 projects/*/output/
+projects/*/.bin/
+projects/*/source/prepared/
 plan.md
 *.db
 *.db-shm

@@ -6,10 +6,15 @@ type Config struct {
 	Source                      string
 	Current                     string
 	IDsFile                     string
+	TranslatorPackageChunks     string
 	LLMBackend                  string
 	ServerURL                   string
 	Model                       string
 	Agent                       string
+	HighLLMBackend              string
+	HighServerURL               string
+	HighModel                   string
+	HighAgent                   string
 	Concurrency                 int
 	BatchSize                   int
 	MaxBatchChars               int
@@ -28,23 +33,48 @@ type Config struct {
 	ReviewStatuses              string
 	Resume                      bool
 	OllamaStructuredOutput      bool
+	OllamaBakedSystem          bool
 	OllamaResetHistory          bool
 	OllamaKeepAlive             string
 	OllamaNumCtx                int
 	OllamaTemperature           float64
+	TranslatorResponseMode      string
+	PipelineVersion             string
 }
+
+const (
+	responseModePlain = "plain"
+	responseModeJSON  = "json"
+)
 
 type mapping struct {
 	placeholder string
 	original    string
 }
 
+type emphasisSpan struct {
+	openMarker string
+	closeMarker string
+	openTag    string
+	closeTag   string
+}
+
 type itemMeta struct {
-	id      string
-	enText  string
-	curText string
-	curObj  map[string]any
-	mapTags []mapping
+	id              string
+	sourceRaw       string
+	enText          string
+	curText         string
+	contextEN       string
+	textRole        string
+	speakerHint     string
+	curObj          map[string]any
+	mapTags         []mapping
+	profile         textProfile
+	choicePrefix    string
+	controlPrefix   string
+	emphasisSpans   []emphasisSpan
+	passthrough     bool
+	translationLane string
 }
 
 type proposal struct {
@@ -52,6 +82,36 @@ type proposal struct {
 	ProposedKO string `json:"proposed_ko"`
 	Risk       string `json:"risk"`
 	Notes      string `json:"notes"`
+}
+
+type translationTask struct {
+	ID            string
+	BodyEN        string
+	ContextEN     string
+	TextRole      string
+	SpeakerHint   string
+	GroupKey      string
+	Lane          string
+	Profile       textProfile
+}
+
+type chunkContext struct {
+	ChunkID         string
+	ParentSegmentID string
+	ChunkPos        int
+	ChunkCount      int
+	LineIDs         []string
+}
+
+type lineContext struct {
+	PrevLineID                  string
+	NextLineID                  string
+	TextRole                    string
+	SpeakerHint                 string
+	LineIsShortContextDependent bool
+	LineHasEmphasis             bool
+	LineIsImperative            bool
+	Chunk                       chunkContext
 }
 
 func DefaultConfig() Config {
@@ -62,6 +122,10 @@ func DefaultConfig() Config {
 		ServerURL:                   "http://127.0.0.1:4112",
 		Model:                       "openai/gpt-5.2",
 		Agent:                       "rt-ko-translate-primary",
+		HighLLMBackend:              "",
+		HighServerURL:               "",
+		HighModel:                   "",
+		HighAgent:                   "",
 		Concurrency:                 10,
 		BatchSize:                   10,
 		MaxBatchChars:               0,
@@ -75,9 +139,12 @@ func DefaultConfig() Config {
 		CheckpointDB:                "workflow/output/translation_checkpoint.db",
 		ReviewStatuses:              "done",
 		OllamaStructuredOutput:      false,
+		OllamaBakedSystem:           false,
 		OllamaResetHistory:          false,
 		OllamaKeepAlive:             "",
 		OllamaNumCtx:                0,
 		OllamaTemperature:           -1,
+		TranslatorResponseMode:      responseModePlain,
+		PipelineVersion:             "chunkctx-v1",
 	}
 }
