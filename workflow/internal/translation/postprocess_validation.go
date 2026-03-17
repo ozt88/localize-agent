@@ -10,20 +10,28 @@ var (
 	tokenRE             = regexp.MustCompile(`(\$[A-Za-z0-9_]+|<[^>]+>|\{[^{}]+\})`)
 	lowerEnglishInTagRe = regexp.MustCompile(`>([^<]*[a-z][a-z][^<]*)<`)
 	politeChoiceEndRe   = regexp.MustCompile(`(하세요|하십시오|합니다|입니다|할까요|드리겠습니다)[.!?]?$`)
-	fieldResidueRe      = regexp.MustCompile(`(?i)(prev_ko|next_ko|proposed_ko|risk|notes|id)"?\s*[:=]`)
+	fieldResidueRe       = regexp.MustCompile(`(?i)(prev_ko|next_ko|proposed_ko|risk|notes|id)"?\s*[:=]`)
+	placeholderResidueRe = regexp.MustCompile(`(\[T\d+\]|\[\[/?E\d+\]\])`)
 )
 
 func validateRestoredOutput(meta itemMeta, restored string) error {
-	if strings.Contains(restored, "[T") || strings.Contains(restored, "]") {
+	if placeholderResidueRe.MatchString(restored) {
 		return fmt.Errorf("placeholder residue found")
 	}
 	if !tokenCompatible(meta.sourceRaw, restored) {
 		return fmt.Errorf("token mismatch after restore")
 	}
 	if meta.profile.Kind == textKindChoice {
-		prefix := gameplayPrefixRe.FindString(meta.sourceRaw)
-		if prefix != "" && !strings.HasPrefix(restored, prefix) {
-			return fmt.Errorf("choice prefix not preserved")
+		if meta.isStatCheck && meta.statCheck != "" {
+			prefix := localizedStatCheckPrefix(meta.statCheck)
+			if prefix != "" && !strings.HasPrefix(restored, prefix) {
+				return fmt.Errorf("stat-check prefix not preserved")
+			}
+		} else {
+			prefix := gameplayPrefixRe.FindString(meta.sourceRaw)
+			if prefix != "" && !strings.HasPrefix(restored, prefix) {
+				return fmt.Errorf("choice prefix not preserved")
+			}
 		}
 		if politeChoiceEndRe.MatchString(strings.TrimSpace(restored)) {
 			return fmt.Errorf("choice line ended in polite register")
@@ -34,6 +42,9 @@ func validateRestoredOutput(meta itemMeta, restored string) error {
 	}
 	if fieldResidueRe.MatchString(restored) {
 		return fmt.Errorf("structured field residue leaked into output")
+	}
+	if hasUnexpectedScriptGroup(restored, meta.sourceRaw) {
+		return fmt.Errorf("unexpected foreign-script contamination")
 	}
 	return nil
 }

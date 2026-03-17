@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 var emphasisPairRe = regexp.MustCompile(`(?is)<(i|b)>(.*?)</(i|b)>`)
@@ -47,6 +48,8 @@ func preparePromptText(sourceRaw, currentRaw string, profile textProfile) prepar
 	passthrough := false
 	if pureControlTokenRe.MatchString(strings.TrimSpace(source)) {
 		passthrough = true
+	} else if looksNonEnglishPassthroughSource(source) {
+		passthrough = true
 	} else if m := controlQuotedTailRe.FindStringSubmatch(source); len(m) == 3 {
 		controlPrefix = m[1]
 		source = m[2]
@@ -66,6 +69,35 @@ func preparePromptText(sourceRaw, currentRaw string, profile textProfile) prepar
 		controlPrefix: controlPrefix,
 		passthrough:   passthrough,
 	}
+}
+
+func looksNonEnglishPassthroughSource(source string) bool {
+	stripped := stripSimpleTags(strings.TrimSpace(source))
+	if stripped == "" {
+		return false
+	}
+	lower := " " + strings.ToLower(stripped) + " "
+	for _, marker := range []string{" the ", " and ", " of ", " is ", " are ", " your ", " you ", " this ", " that ", " with ", " from ", " for ", " to "} {
+		if strings.Contains(lower, marker) {
+			return false
+		}
+	}
+	asciiLetters := 0
+	nonASCIILetters := 0
+	for _, r := range stripped {
+		if !unicode.IsLetter(r) {
+			continue
+		}
+		if r <= unicode.MaxASCII {
+			asciiLetters++
+			continue
+		}
+		nonASCIILetters++
+	}
+	if nonASCIILetters < 3 {
+		return false
+	}
+	return asciiLetters+nonASCIILetters >= 8
 }
 
 func liftEmphasisTags(text string) (string, []emphasisSpan) {
@@ -95,7 +127,13 @@ func restorePreparedText(proposed string, meta itemMeta) (string, error) {
 		return meta.sourceRaw, nil
 	}
 	text := strings.TrimSpace(proposed)
-	if meta.choicePrefix != "" && !strings.HasPrefix(text, meta.choicePrefix) {
+	if meta.isStatCheck && meta.statCheck != "" {
+		text = stripExistingStatCheckPrefix(text, meta.statCheck)
+		prefix := localizedStatCheckPrefix(meta.statCheck)
+		if prefix != "" && !strings.HasPrefix(text, prefix) {
+			text = prefix + text
+		}
+	} else if meta.choicePrefix != "" && !strings.HasPrefix(text, meta.choicePrefix) {
 		text = meta.choicePrefix + text
 	}
 	if meta.controlPrefix != "" && !strings.HasPrefix(text, meta.controlPrefix) {
@@ -106,6 +144,35 @@ func restorePreparedText(proposed string, meta itemMeta) (string, error) {
 		return text, err
 	}
 	return restoreTags(withTags, meta.mapTags)
+}
+
+func localizedStatCheckPrefix(statCheck string) string {
+	parts := strings.Fields(strings.TrimSpace(statCheck))
+	if len(parts) != 2 {
+		return ""
+	}
+	label := map[string]string{
+		"STR": "힘",
+		"DEX": "민첩",
+		"INT": "지능",
+		"WIS": "지혜",
+		"CON": "건강",
+		"CHA": "매력",
+	}[strings.ToUpper(parts[0])]
+	if label == "" {
+		label = strings.ToUpper(parts[0])
+	}
+	return "[" + label + " " + parts[1] + "] "
+}
+
+func stripExistingStatCheckPrefix(text, statCheck string) string {
+	parts := strings.Fields(strings.TrimSpace(statCheck))
+	if len(parts) != 2 {
+		return text
+	}
+	number := regexp.QuoteMeta(parts[1])
+	re := regexp.MustCompile(`^\[[^\[\]]{1,12}\s+` + number + `\]\s*`)
+	return strings.TrimSpace(re.ReplaceAllString(strings.TrimSpace(text), ""))
 }
 
 func restoreEmphasisTags(text string, spans []emphasisSpan) (string, error) {

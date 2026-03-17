@@ -33,6 +33,26 @@ func TestPreparePromptText_ChoiceWithSpacedPrefix(t *testing.T) {
 	}
 }
 
+func TestPreparePromptText_PassthroughsPureNonEnglishLine(t *testing.T) {
+	prepared := preparePromptText("<i>Hôr, mina vânner frân djupets sal!</i>", "", textProfile{
+		Kind:        textKindNarration,
+		HasRichText: true,
+	})
+	if !prepared.passthrough {
+		t.Fatalf("passthrough=%v, want true", prepared.passthrough)
+	}
+}
+
+func TestPreparePromptText_DoesNotPassthroughMixedForeignAndEnglishLine(t *testing.T) {
+	prepared := preparePromptText("<b>Leva och dô i Askan</b>. That is your fate.", "", textProfile{
+		Kind:        textKindNarration,
+		HasRichText: true,
+	})
+	if prepared.passthrough {
+		t.Fatalf("passthrough=%v, want false", prepared.passthrough)
+	}
+}
+
 func TestRestorePreparedText_ReattachesPrefixAndEmphasis(t *testing.T) {
 	meta := itemMeta{
 		choicePrefix: "ROLL14 str-",
@@ -49,6 +69,21 @@ func TestRestorePreparedText_ReattachesPrefixAndEmphasis(t *testing.T) {
 		t.Fatalf("restorePreparedText error=%v", err)
 	}
 	if got != "ROLL14 str-<i>그에게</i> 떠나라고 한다." {
+		t.Fatalf("got=%q", got)
+	}
+}
+
+func TestRestorePreparedText_UsesLocalizedStatCheckPrefix(t *testing.T) {
+	meta := itemMeta{
+		statCheck:   "STR 14",
+		isStatCheck: true,
+	}
+
+	got, err := restorePreparedText("강하게 밀어붙인다", meta)
+	if err != nil {
+		t.Fatalf("restorePreparedText error=%v", err)
+	}
+	if got != "[힘 14] 강하게 밀어붙인다" {
 		t.Fatalf("got=%q", got)
 	}
 }
