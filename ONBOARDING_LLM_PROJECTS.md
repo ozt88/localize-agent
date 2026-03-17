@@ -13,7 +13,7 @@
 핵심 원칙:
 - vendor를 직접 기준으로 삼지 않는다
 - project-local contract와 low/high/score 역할 분리를 먼저 정의한다
-- runtime worker는 SQLite 상태를 source of truth로 사용한다
+- runtime worker는 DB 상태를 source of truth로 사용한다 (PostgreSQL 권장, SQLite fallback)
 
 ## 1. 필수 개념
 
@@ -48,7 +48,7 @@
 - evaluator / rich metadata가 필요한 review: `json` 또는 `plain score`
 
 ### 1.4 DB state machine
-checkpoint DB를 source of truth로 사용한다.
+checkpoint DB를 source of truth로 사용한다 (PostgreSQL 권장).
 
 현재 최소 state:
 - `pending_translate`
@@ -283,7 +283,7 @@ pipeline 코드는 가능하면 공통으로 유지한다.
 
 ## 6. 현재 Esoteric Ebb 기준 추천
 - `low_llm`
-  - Ollama / TranslateGemma-fast
+  - OpenCode / `openai/gpt-5.2`
   - `plain`
 - `high_llm`
   - OpenCode / `openai/gpt-5.4`

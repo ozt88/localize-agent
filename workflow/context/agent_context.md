@@ -4,9 +4,9 @@ This file is shared agent guidance for the current workspace.
 
 ## Scope
 
-- Default active project is `projects/esoteric-ebb`.
+- Identify the active project under `projects/`.
 - Use shared workflow docs from `workflow/context/`.
-- Use project-specific runtime context from `projects/esoteric-ebb/context/`.
+- Use project-specific runtime context from `projects/<project>/context/`.
 
 ## Shared Translation Rules
 
@@ -20,13 +20,9 @@ This file is shared agent guidance for the current workspace.
 
 ## Context Loading
 
-- Shared workflow behavior: `workflow/context/ops.md`
+- Shared workflow guidance: `workflow/context/`
 - Project runtime context: `projects/<project>/context/*.md`
-- Project rules/system contracts: `projects/<project>/context/*.md`
-
-## Active File References
-
-- Canonical source: `projects/esoteric-ebb/source/translation_assetripper_textasset_unique.json`
-- Active batch directory: `projects/esoteric-ebb/output/batches/translation_assetripper_textasset_unique`
+- Project config: `projects/<project>/project.json`
+- Project ops/live stack: `projects/<project>/context/live_stack.md` (if exists)
 
 This file is intentionally generic. Project-specific lore, tone, and schema details belong in the project context files.

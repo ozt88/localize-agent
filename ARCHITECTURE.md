@@ -4,12 +4,17 @@
 
 ## 1) 레이어 구조
 
-- `workflow/cmd/*`: CLI 진입점, `flag` 파싱/검증
+- `workflow/cmd/*`: 공용 CLI 진입점, `flag` 파싱/검증
+- `projects/<name>/cmd/*`: 프로젝트 전용 CLI 진입점
 - `workflow/internal/translation`: 번역 도메인 로직
+- `workflow/internal/translationpipeline`: DB 기반 파이프라인 오케스트레이션
+- `workflow/internal/semanticreview`: 의미 평가/스코어링
 - `workflow/internal/evaluation`: 평가 도메인 로직
 - `workflow/internal/contracts`: 공통 인터페이스/DTO
-- `workflow/internal/platform`: DB/파일/LLM 같은 사이드이펙트 구현
-- `workflow/internal/shared`: 범용 유틸
+- `workflow/internal/fragmentcluster`: 프래그먼트 클러스터 번역
+- `workflow/pkg/platform`: DB/파일/LLM 같은 사이드이펙트 구현
+- `workflow/pkg/shared`: 범용 유틸 (프로젝트 설정 로드 등)
+- `workflow/pkg/segmentchunk`: 세그먼트 청크 분할
 
 ## 2) 책임 분리 원칙
 
@@ -23,8 +28,8 @@
 - 배치/평가/판정 흐름
 - 인터페이스(`contracts`)를 통한 의존성 사용
 
-3. `platform`은 구현 세부사항 담당
-- SQLite 접근
+3. `platform`(`workflow/pkg/platform`)은 구현 세부사항 담당
+- SQLite/PostgreSQL 접근
 - 파일 읽기/쓰기
 - LLM 세션/프롬프트 전송
 
@@ -116,15 +121,18 @@ cmd/go-apply/main.go
 - `item_runner.go`: 단일 아이템 평가-재작성 루프
 - `client.go`, `skill.go`, `prompts.go`, `logic.go`, `file_logic.go`
 
-### 5.3 contracts / platform
+### 5.3 contracts / platform (pkg)
 
 - `contracts/files.go`: 파일 저장소 인터페이스
 - `contracts/evaluation.go`: 평가 DTO/저장소 인터페이스
 - `contracts/translation.go`: 번역 체크포인트 인터페이스
-- `platform/filestore.go`: OS 파일 구현
-- `platform/eval_store.go`: 평가 SQLite 저장소
-- `platform/checkpoint_store.go`: 번역 체크포인트 SQLite 저장소
-- `platform/llm_client.go`: 공용 LLM 세션 클라이언트
+- `pkg/platform/filestore.go`: OS 파일 구현
+- `pkg/platform/eval_store.go`: 평가 SQLite 저장소
+- `pkg/platform/checkpoint_store.go`: 번역 체크포인트 (SQLite/PostgreSQL)
+- `pkg/platform/llm_client.go`: 공용 LLM 세션 클라이언트 (OpenCode)
+- `pkg/platform/ollama_client.go`: Ollama LLM 클라이언트
+- `pkg/shared/project.go`: 프로젝트 설정 로드
+- `pkg/segmentchunk/chunker.go`: 세그먼트 청크 분할
 
 ## 6) 구조 일치 체크 (현재 코드 기준)
 
