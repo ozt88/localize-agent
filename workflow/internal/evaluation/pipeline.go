@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func runEvaluationPipeline(c Config, store contracts.EvalStore, files contracts.FileStore) int {

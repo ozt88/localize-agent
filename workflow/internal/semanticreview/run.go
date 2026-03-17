@@ -8,11 +8,11 @@ import (
 	"strings"
 	"sync"
 
-	"localize-agent/workflow/internal/platform"
+	"localize-agent/workflow/pkg/platform"
 )
 
 func Run(cfg Config) int {
-	items, err := LoadDoneItems(cfg.CheckpointDB, cfg.Limit)
+	items, err := loadDoneItems(cfg, cfg.Limit)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "semantic review load error: %v\n", err)
 		return 1
@@ -30,7 +30,7 @@ func Run(cfg Config) int {
 		return runDirect(cfg, items, traceSink)
 	}
 
-	bt, err := NewBacktranslator(cfg, traceSink)
+	bt, err := newBacktranslator(cfg, traceSink)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "semantic review client init error: %v\n", err)
 		return 1
@@ -71,7 +71,7 @@ func Run(cfg Config) int {
 		pairs = append(pairs, embeddingPair{ID: item.ID, A: item.SourceEN, B: back})
 	}
 
-	sims, err := ComputeSemanticSimilarities(cfg.OutputDir, pairs)
+	sims, err := computeSemanticSimilarities(cfg.OutputDir, pairs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "semantic review embedding error: %v\n", err)
 		return 1
@@ -80,11 +80,11 @@ func Run(cfg Config) int {
 	for _, item := range items {
 		back := backs[item.ID]
 		sim := sims[item.ID]
-		report = append(report, BuildReportItem(item, back, sim))
+		report = append(report, buildReportItem(item, back, sim))
 	}
 	sort.Slice(report, func(i, j int) bool { return report[i].ScoreFinal > report[j].ScoreFinal })
 
-	if err := WriteReports(cfg.OutputDir, report); err != nil {
+	if err := writeReports(cfg.OutputDir, report); err != nil {
 		fmt.Fprintf(os.Stderr, "semantic review write error: %v\n", err)
 		return 1
 	}
@@ -114,7 +114,7 @@ func runDirect(cfg Config, items []ReviewItem, traceSink platform.LLMTraceSink) 
 
 	var wg sync.WaitGroup
 	for workerIdx := 0; workerIdx < workerCount; workerIdx++ {
-		scorer, err := NewDirectScorer(cfg, traceSink)
+		scorer, err := newDirectScorer(cfg, traceSink)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "semantic review client init error: %v\n", err)
 			return 1
@@ -151,7 +151,7 @@ func runDirect(cfg Config, items []ReviewItem, traceSink platform.LLMTraceSink) 
 		report = append(report, reportByBatch[i]...)
 	}
 	sort.Slice(report, func(i, j int) bool { return report[i].ScoreFinal > report[j].ScoreFinal })
-	if err := WriteReports(cfg.OutputDir, report); err != nil {
+	if err := writeReports(cfg.OutputDir, report); err != nil {
 		fmt.Fprintf(os.Stderr, "semantic review write error: %v\n", err)
 		return 1
 	}
@@ -169,7 +169,7 @@ func scoreDirectBatch(scorer *DirectScorer, slotKey string, batch []ReviewItem) 
 				ID:           item.ID,
 				SourceEN:     item.SourceEN,
 				TranslatedKO: item.TranslatedKO,
-				ScoreFinal:   1.0,
+				ScoreFinal:   0,
 				ReasonTags:   []string{"scoring_error"},
 				ShortReason:  err.Error(),
 			})
@@ -185,13 +185,13 @@ func scoreDirectBatch(scorer *DirectScorer, slotKey string, batch []ReviewItem) 
 				ID:           item.ID,
 				SourceEN:     item.SourceEN,
 				TranslatedKO: item.TranslatedKO,
-				ScoreFinal:   1.0,
+				ScoreFinal:   0,
 				ReasonTags:   []string{"missing_score"},
 				ShortReason:  "model returned no score for item",
 			})
 			continue
 		}
-		report = append(report, BuildDirectScoreReportItem(item, score))
+		report = append(report, buildDirectScoreReportItem(item, score))
 	}
 	return report
 }

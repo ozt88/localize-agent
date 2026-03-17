@@ -1,8 +1,10 @@
 package translation
 
-import "localize-agent/workflow/internal/shared"
+import "localize-agent/workflow/pkg/shared"
 
 type Config struct {
+	CheckpointBackend           string
+	CheckpointDSN               string
 	Source                      string
 	Current                     string
 	IDsFile                     string
@@ -27,19 +29,22 @@ type Config struct {
 	PlaceholderRecoveryAttempts int
 	ContextFiles                shared.MultiFlag
 	RulesFile                   string
+	GlossaryFile                string
 	CheckpointDB                string
 	TraceOut                    string
 	ReviewExportOut             string
 	ReviewStatuses              string
 	Resume                      bool
+	RetryReasons                map[string]string
 	OllamaStructuredOutput      bool
-	OllamaBakedSystem          bool
+	OllamaBakedSystem           bool
 	OllamaResetHistory          bool
 	OllamaKeepAlive             string
 	OllamaNumCtx                int
 	OllamaTemperature           float64
 	TranslatorResponseMode      string
 	PipelineVersion             string
+	UseCheckpointCurrent        bool
 }
 
 const (
@@ -53,10 +58,10 @@ type mapping struct {
 }
 
 type emphasisSpan struct {
-	openMarker string
+	openMarker  string
 	closeMarker string
-	openTag    string
-	closeTag   string
+	openTag     string
+	closeTag    string
 }
 
 type itemMeta struct {
@@ -65,12 +70,31 @@ type itemMeta struct {
 	enText          string
 	curText         string
 	contextEN       string
+	prevEN          string
+	nextEN          string
+	prevKO          string
+	nextKO          string
 	textRole        string
 	speakerHint     string
+	retryReason     string
+	translationPolicy string
+	sourceType      string
+	sourceFile      string
+	resourceKey     string
+	metaPathLabel   string
+	sceneHint       string
+	segmentID       string
+	segmentPos      *int
+	choiceBlockID   string
+	prevLineID      string
+	nextLineID      string
 	curObj          map[string]any
 	mapTags         []mapping
 	profile         textProfile
 	choicePrefix    string
+	statCheck       string
+	choiceMode      string
+	isStatCheck     bool
 	controlPrefix   string
 	emphasisSpans   []emphasisSpan
 	passthrough     bool
@@ -84,15 +108,66 @@ type proposal struct {
 	Notes      string `json:"notes"`
 }
 
+type glossaryEntry struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	Mode   string `json:"mode"`
+}
+
 type translationTask struct {
-	ID            string
-	BodyEN        string
+	ID           string
+	BodyEN       string
+	ContextEN    string
+	ContextLines []string
+	ContextLine  int
+	StatCheck    string
+	ChoiceMode   string
+	IsStatCheck  bool
+	CurrentKO    string
+	PrevEN       string
+	NextEN       string
+	PrevKO       string
+	NextKO       string
+	TextRole     string
+	SpeakerHint  string
+	RetryReason  string
+	Glossary     []glossaryEntry
+	SourceType   string
+	SourceFile   string
+	ResourceKey  string
+	MetaPath     string
+	SegmentID    string
+	SegmentPos   *int
+	ChoiceBlock  string
+	GroupKey     string
+	Lane         string
+	Profile      textProfile
+}
+
+type checkpointPromptMeta struct {
 	ContextEN     string
+	CurrentKO     string
+	PrevEN        string
+	NextEN        string
+	PrevKO        string
+	NextKO        string
 	TextRole      string
 	SpeakerHint   string
-	GroupKey      string
-	Lane          string
-	Profile       textProfile
+	RetryReason   string
+	TranslationPolicy string
+	SourceType    string
+	SourceFile    string
+	ResourceKey   string
+	MetaPathLabel string
+	SceneHint     string
+	SegmentID     string
+	SegmentPos    *int
+	ChoiceBlockID string
+	PrevLineID    string
+	NextLineID    string
+	StatCheck     string
+	ChoiceMode    string
+	IsStatCheck   bool
 }
 
 type chunkContext struct {
@@ -137,6 +212,8 @@ func DefaultConfig() Config {
 		SkipTimeout:                 true,
 		PlaceholderRecoveryAttempts: 1,
 		CheckpointDB:                "workflow/output/translation_checkpoint.db",
+		CheckpointBackend:           "sqlite",
+		CheckpointDSN:               "",
 		ReviewStatuses:              "done",
 		OllamaStructuredOutput:      false,
 		OllamaBakedSystem:           false,

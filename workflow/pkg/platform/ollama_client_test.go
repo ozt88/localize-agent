@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func TestNormalizeLLMBackend(t *testing.T) {

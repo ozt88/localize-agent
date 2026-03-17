@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type fakeCheckpointStore struct {
@@ -95,7 +95,7 @@ func newServerClientForTest(t *testing.T, responder llmPromptResponder) *serverC
 func TestCollectProposals_SingleFallbackID(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, `"id":"id-1"`) {
-			return http.StatusOK, `{"id":"wrong","proposed_ko":"ko one [T0]"}`
+			return http.StatusOK, `{"id":"wrong","proposed_ko":"번역 하나 [T0]"}`
 		}
 		return http.StatusInternalServerError, "unexpected prompt"
 	})
@@ -107,14 +107,14 @@ func TestCollectProposals_SingleFallbackID(t *testing.T) {
 	if skippedInvalid != 0 || skippedErr != 0 {
 		t.Fatalf("skippedInvalid=%d skippedErr=%d", skippedInvalid, skippedErr)
 	}
-	if props["id-1"].ID != "id-1" || props["id-1"].ProposedKO != "ko one [T0]" {
+	if props["id-1"].ID != "id-1" || props["id-1"].ProposedKO != "번역 하나 [T0]" {
 		t.Fatalf("proposal=%+v", props["id-1"])
 	}
 }
 
 func TestCollectProposals_BatchErrorFallsBackToSingles(t *testing.T) {
 	responses := map[string]string{
-		"id-1": `{"id":"id-1","proposed_ko":"ko1 [T0]"}`,
+		"id-1": `{"id":"id-1","proposed_ko":"번역1 [T0]"}`,
 	}
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, "Input items") {
@@ -163,9 +163,9 @@ func TestCollectProposals_SplitsMixedKinds(t *testing.T) {
 		prompts = append(prompts, prompt)
 		switch {
 		case strings.Contains(prompt, `"id":"id-choice"`):
-			return http.StatusOK, `[{"id":"id-choice","proposed_ko":"ko choice"}]`
+			return http.StatusOK, `[{"id":"id-choice","proposed_ko":"선택지 번역"}]`
 		case strings.Contains(prompt, `"id":"id-rich"`):
-			return http.StatusOK, `[{"id":"id-rich","proposed_ko":"ko rich [T0]text[T1]"}]`
+			return http.StatusOK, `[{"id":"id-rich","proposed_ko":"강조 [T0]텍스트[T1] 번역"}]`
 		default:
 			return http.StatusInternalServerError, "unexpected"
 		}
@@ -196,13 +196,20 @@ func TestPersistResults_RestoreAndCheckpoint(t *testing.T) {
 	}
 	metas := map[string]itemMeta{
 		"id-1": {
-			id:        "id-1",
-			sourceRaw: "EN {name}",
-			enText:    "EN [T0]",
-			curText:   "CUR [T0]",
-			curObj:    map[string]any{"Text": "before"},
-			mapTags:   []mapping{{placeholder: "[T0]", original: "{name}"}},
-			profile:   textProfile{Kind: textKindDialogue},
+			id:            "id-1",
+			sourceRaw:     "EN {name}",
+			enText:        "EN [T0]",
+			curText:       "CUR [T0]",
+			sourceType:    "textasset",
+			sourceFile:    "AR_Viira",
+			resourceKey:   "UI_1",
+			metaPathLabel: "Assets/TextAsset/AR_Viira.bytes:12",
+			segmentID:     "seg-1",
+			segmentPos:    intPtr(2),
+			choiceBlockID: "choice-1",
+			curObj:        map[string]any{"Text": "before"},
+			mapTags:       []mapping{{placeholder: "[T0]", original: "{name}"}},
+			profile:       textProfile{Kind: textKindDialogue},
 		},
 	}
 	done := map[string]map[string]any{}
@@ -214,6 +221,18 @@ func TestPersistResults_RestoreAndCheckpoint(t *testing.T) {
 	}
 	if got := done["id-1"]["Text"]; got != "localized {name}" {
 		t.Fatalf("restored text=%v", got)
+	}
+	if len(out.pack) != 1 {
+		t.Fatalf("pack len=%d", len(out.pack))
+	}
+	if got := out.pack[0]["current_ko"]; got != "before" {
+		t.Fatalf("current_ko=%v", got)
+	}
+	if out.pack[0]["source_file"] != "AR_Viira" || out.pack[0]["resource_key"] != "UI_1" {
+		t.Fatalf("pack=%v", out.pack[0])
+	}
+	if out.pack[0]["segment_pos"] != 2 {
+		t.Fatalf("segment_pos=%v", out.pack[0]["segment_pos"])
 	}
 	if len(cp.upserts) != 1 || cp.upserts[0] != "id-1:done" {
 		t.Fatalf("checkpoint upserts=%v", cp.upserts)
@@ -289,12 +308,15 @@ func TestPersistResults_PassthroughControlToken(t *testing.T) {
 	if got := done["id-1"]["Text"]; got != ".CB_RuinBOT==1-" {
 		t.Fatalf("restored text=%v", got)
 	}
+	if got := out.pack[0]["current_ko"]; got != "" {
+		t.Fatalf("current_ko=%v", got)
+	}
 }
 
 func TestRunPipeline_AggregatesCounts(t *testing.T) {
 	client := newServerClientForTest(t, func(prompt string) (int, string) {
 		if strings.Contains(prompt, `"id":"id-ok"`) {
-			return http.StatusOK, `{"id":"id-ok","proposed_ko":"ok [T0]"}`
+			return http.StatusOK, `{"id":"id-ok","proposed_ko":"정상 [T0]"}`
 		}
 		return http.StatusInternalServerError, fmt.Sprintf("unexpected prompt: %s", prompt)
 	})
@@ -335,4 +357,8 @@ func TestRunPipeline_AggregatesCounts(t *testing.T) {
 	if len(result.skippedLongIDs) != 1 || result.skippedLongIDs[0] != "id-long" {
 		t.Fatalf("skippedLongIDs=%v", result.skippedLongIDs)
 	}
+}
+
+func intPtr(v int) *int {
+	return &v
 }

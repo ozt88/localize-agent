@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/platform"
+	"localize-agent/workflow/pkg/platform"
 )
 
 func TestCheckpointBatchWriter_ConcurrentEnqueue(t *testing.T) {

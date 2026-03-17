@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"localize-agent/workflow/internal/platform"
+	"localize-agent/workflow/pkg/platform"
 )
 
 func parseCSV(raw string) []string {

@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type fakeEvalStore struct {

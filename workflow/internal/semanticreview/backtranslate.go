@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type backtranslationResult struct {
@@ -25,7 +25,7 @@ type Backtranslator struct {
 	sessionPrefix string
 }
 
-func NewBacktranslator(cfg Config, traceSink platform.LLMTraceSink) (*Backtranslator, error) {
+func newBacktranslator(cfg Config, traceSink platform.LLMTraceSink) (*Backtranslator, error) {
 	client, profile, sessionPrefix, err := newReviewClientAndProfile(cfg, traceSink, backtranslationWarmup(cfg), backtranslationArraySchema())
 	if err != nil {
 		return nil, err

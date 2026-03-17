@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 	"localize-agent/workflow/internal/translation"
 )
 

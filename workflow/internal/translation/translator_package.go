@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"localize-agent/workflow/internal/segmentchunk"
+	"localize-agent/workflow/pkg/segmentchunk"
 )
 
 func loadChunkContexts(path string, requestedIDs []string) (map[string]lineContext, [][]string, error) {

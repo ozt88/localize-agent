@@ -3,13 +3,14 @@ package platform
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type fakeTraceSink struct {
@@ -25,6 +26,28 @@ func (f *fakeTraceSink) Write(event LLMTraceEvent) error {
 }
 
 func (f *fakeTraceSink) Close() error { return nil }
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
+}
+
+type errReadCloser struct {
+	data []byte
+	read bool
+}
+
+func (e *errReadCloser) Read(p []byte) (int, error) {
+	if !e.read {
+		e.read = true
+		n := copy(p, e.data)
+		return n, io.ErrUnexpectedEOF
+	}
+	return 0, io.ErrUnexpectedEOF
+}
+
+func (e *errReadCloser) Close() error { return nil }
 
 func TestParseModel(t *testing.T) {
 	tests := []struct {
@@ -188,11 +211,23 @@ func TestSessionLLMClient_SendPrompt_WarmupSessionReuseAndTrace(t *testing.T) {
 	if promptCalls != 2 {
 		t.Fatalf("promptCalls=%d, want 2", promptCalls)
 	}
-	if len(trace.events) != 3 {
-		t.Fatalf("trace events=%d, want 3", len(trace.events))
+	if len(trace.events) != 7 {
+		t.Fatalf("trace events=%d, want 7", len(trace.events))
 	}
-	if trace.events[0].Kind != "warmup" || trace.events[1].Kind != "prompt" || trace.events[2].Kind != "prompt" {
-		t.Fatalf("trace kinds=%v/%v/%v", trace.events[0].Kind, trace.events[1].Kind, trace.events[2].Kind)
+	kinds := []string{
+		trace.events[0].Kind,
+		trace.events[1].Kind,
+		trace.events[2].Kind,
+		trace.events[3].Kind,
+		trace.events[4].Kind,
+		trace.events[5].Kind,
+		trace.events[6].Kind,
+	}
+	want := []string{"request", "request", "warmup", "request", "prompt", "request", "prompt"}
+	for i := range want {
+		if kinds[i] != want[i] {
+			t.Fatalf("trace kinds=%v, want %v", kinds, want)
+		}
 	}
 }
 
@@ -223,11 +258,141 @@ func TestSessionLLMClient_SendPrompt_NoTextReturnsErrorAndTrace(t *testing.T) {
 	if !strings.Contains(err.Error(), "no text in response") {
 		t.Fatalf("error=%v", err)
 	}
-	if len(trace.events) != 1 {
-		t.Fatalf("trace events=%d, want 1", len(trace.events))
+	if len(trace.events) != 3 {
+		t.Fatalf("trace events=%d, want 3", len(trace.events))
 	}
-	if trace.events[0].Kind != "prompt_error" {
-		t.Fatalf("trace kind=%s, want prompt_error", trace.events[0].Kind)
+	if trace.events[0].Kind != "request" || trace.events[1].Kind != "request" || trace.events[2].Kind != "prompt_error" {
+		t.Fatalf("trace kinds=%s/%s/%s, want request/request/prompt_error", trace.events[0].Kind, trace.events[1].Kind, trace.events[2].Kind)
+	}
+}
+
+func TestSessionLLMClient_SendPrompt_ResponseParseErrorCapturesRawResponse(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/session":
+			w.Header().Set("content-type", "application/json")
+			_, _ = w.Write([]byte(`{"id":"s1"}`))
+			return
+		case r.Method == http.MethodPost && r.URL.Path == "/session/s1/message":
+			w.Header().Set("content-type", "application/json")
+			_, _ = w.Write([]byte(`{"parts":[{"type":"text","text":"unterminated"}`))
+			return
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer ts.Close()
+
+	trace := &fakeTraceSink{}
+	c := NewSessionLLMClient(ts.URL, 2, &shared.MetricCollector{}, trace)
+	_, err := c.SendPrompt("slot-a", LLMProfile{ProviderID: "openai", ModelID: "gpt-5.2"}, "q")
+	if err == nil {
+		t.Fatalf("SendPrompt error=nil, want parse error")
+	}
+	if len(trace.events) != 4 {
+		t.Fatalf("trace events=%d, want 4", len(trace.events))
+	}
+	if trace.events[0].Kind != "request" {
+		t.Fatalf("trace event[0].Kind=%q, want request", trace.events[0].Kind)
+	}
+	if trace.events[2].Kind != "response_parse_error" {
+		t.Fatalf("trace event[2].Kind=%q, want response_parse_error", trace.events[2].Kind)
+	}
+	if !strings.Contains(trace.events[2].ResponseRaw, `"unterminated"`) {
+		t.Fatalf("response_raw=%q, want malformed payload captured", trace.events[2].ResponseRaw)
+	}
+	if trace.events[3].Kind != "prompt_error" {
+		t.Fatalf("trace event[3].Kind=%q, want prompt_error", trace.events[3].Kind)
+	}
+}
+
+func TestSessionLLMClient_SendPrompt_ResponseReadErrorCapturesRawResponse(t *testing.T) {
+	trace := &fakeTraceSink{}
+	c := NewSessionLLMClient("http://example.invalid", 2, &shared.MetricCollector{}, trace)
+	c.http = &http.Client{
+		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			if r.URL.Path == "/session" {
+				return &http.Response{
+					StatusCode: 200,
+					Header:     make(http.Header),
+					Body:       io.NopCloser(strings.NewReader(`{"id":"s1"}`)),
+				}, nil
+			}
+			if r.URL.Path == "/session/s1/message" {
+				return &http.Response{
+					StatusCode: 200,
+					Header:     make(http.Header),
+					Body:       &errReadCloser{data: []byte(`{"parts":[{"type":"text","text":"partial"}`)},
+				}, nil
+			}
+			return &http.Response{
+				StatusCode: 404,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(`not found`)),
+			}, nil
+		}),
+	}
+
+	_, err := c.SendPrompt("slot-a", LLMProfile{ProviderID: "openai", ModelID: "gpt-5.2"}, "q")
+	if err == nil {
+		t.Fatalf("SendPrompt error=nil, want read error")
+	}
+	if !strings.Contains(err.Error(), "read response body") {
+		t.Fatalf("error=%v, want read response body", err)
+	}
+	if len(trace.events) != 4 {
+		t.Fatalf("trace events=%d, want 4", len(trace.events))
+	}
+	if trace.events[2].Kind != "response_read_error" {
+		t.Fatalf("trace event[2].Kind=%q, want response_read_error", trace.events[2].Kind)
+	}
+	if !strings.Contains(trace.events[2].ResponseRaw, `"partial"`) {
+		t.Fatalf("response_raw=%q, want partial payload captured", trace.events[2].ResponseRaw)
+	}
+	if trace.events[3].Kind != "prompt_error" {
+		t.Fatalf("trace event[3].Kind=%q, want prompt_error", trace.events[3].Kind)
+	}
+}
+
+func TestSessionLLMClient_SendPrompt_EmptyResponseBodyTracesExplicitly(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/session":
+			w.Header().Set("content-type", "application/json")
+			_, _ = w.Write([]byte(`{"id":"s1"}`))
+			return
+		case r.Method == http.MethodPost && r.URL.Path == "/session/s1/message":
+			w.WriteHeader(http.StatusOK)
+			return
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer ts.Close()
+
+	trace := &fakeTraceSink{}
+	c := NewSessionLLMClient(ts.URL, 2, &shared.MetricCollector{}, trace)
+	_, err := c.SendPrompt("slot-a", LLMProfile{ProviderID: "openai", ModelID: "gpt-5.2"}, "q")
+	if err == nil {
+		t.Fatalf("SendPrompt error=nil, want empty response error")
+	}
+	if !strings.Contains(err.Error(), "empty response body") {
+		t.Fatalf("error=%v, want empty response body", err)
+	}
+	if len(trace.events) != 4 {
+		t.Fatalf("trace events=%d, want 4", len(trace.events))
+	}
+	if trace.events[2].Kind != "response_empty" {
+		t.Fatalf("trace event[2].Kind=%q, want response_empty", trace.events[2].Kind)
+	}
+	if trace.events[2].ResponseBytes != 0 {
+		t.Fatalf("response bytes=%d, want 0", trace.events[2].ResponseBytes)
+	}
+	if !trace.events[2].ResponseEmpty {
+		t.Fatalf("response empty flag=false, want true")
+	}
+	if trace.events[3].Kind != "prompt_error" {
+		t.Fatalf("trace event[3].Kind=%q, want prompt_error", trace.events[3].Kind)
 	}
 }
 

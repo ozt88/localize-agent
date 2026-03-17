@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type LLMProfile struct {
@@ -116,6 +116,12 @@ func (c *SessionLLMClient) EnsureContext(key string, profile LLMProfile) error {
 }
 
 func (c *SessionLLMClient) SendPrompt(key string, profile LLMProfile, prompt string) (string, error) {
+	if profile.ResetHistory {
+		c.mu.Lock()
+		delete(c.sessionIDs, key)
+		delete(c.contextReady, key)
+		c.mu.Unlock()
+	}
 	if err := c.EnsureContext(key, profile); err != nil {
 		return "", err
 	}
@@ -173,6 +179,22 @@ func (c *SessionLLMClient) postJSON(path string, body any, out any) error {
 	if err != nil {
 		return err
 	}
+	var providerID, modelID, agent string
+	if bodyMap, ok := body.(map[string]any); ok {
+		if modelMap, ok := bodyMap["model"].(map[string]any); ok {
+			providerID, _ = modelMap["providerID"].(string)
+			modelID, _ = modelMap["modelID"].(string)
+		}
+		agent, _ = bodyMap["agent"].(string)
+	}
+	c.writeTrace(LLMTraceEvent{
+		Kind:       "request",
+		Path:       path,
+		ProviderID: providerID,
+		ModelID:    modelID,
+		Agent:      agent,
+		Request:    string(raw),
+	})
 	req, err := http.NewRequest(http.MethodPost, c.endpointURL(path), bytes.NewReader(raw))
 	if err != nil {
 		return err
@@ -182,16 +204,84 @@ func (c *SessionLLMClient) postJSON(path string, body any, out any) error {
 	resp, err := c.http.Do(req)
 	if err != nil {
 		c.metrics.Add(float64(time.Since(started).Milliseconds()), false)
+		c.writeTrace(LLMTraceEvent{
+			Kind:       "request_error",
+			Path:       path,
+			ProviderID: providerID,
+			ModelID:    modelID,
+			Agent:      agent,
+			Request:    string(raw),
+			Error:      err.Error(),
+		})
 		return err
 	}
 	defer resp.Body.Close()
-	payload, _ := io.ReadAll(resp.Body)
+	payload, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		c.metrics.Add(float64(time.Since(started).Milliseconds()), false)
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_read_error",
+			Path:        path,
+			ProviderID:  providerID,
+			ModelID:     modelID,
+			Agent:       agent,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       readErr.Error(),
+		})
+		return fmt.Errorf("read response body: %w", readErr)
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		c.metrics.Add(float64(time.Since(started).Milliseconds()), false)
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_error",
+			Path:        path,
+			ProviderID:  providerID,
+			ModelID:     modelID,
+			Agent:       agent,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       fmt.Sprintf("http %d", resp.StatusCode),
+		})
 		return fmt.Errorf("http %d: %s", resp.StatusCode, string(payload))
 	}
 	c.metrics.Add(float64(time.Since(started).Milliseconds()), true)
-	return json.Unmarshal(payload, out)
+	if len(payload) == 0 {
+		c.writeTrace(LLMTraceEvent{
+			Kind:           "response_empty",
+			Path:           path,
+			ProviderID:     providerID,
+			ModelID:        modelID,
+			Agent:          agent,
+			Request:        string(raw),
+			ResponseRaw:    "",
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  0,
+			ResponseEmpty:  true,
+			Error:          "empty response body",
+		})
+		return fmt.Errorf("empty response body")
+	}
+	if err := json.Unmarshal(payload, out); err != nil {
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_parse_error",
+			Path:        path,
+			ProviderID:  providerID,
+			ModelID:     modelID,
+			Agent:       agent,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       err.Error(),
+		})
+		return err
+	}
+	return nil
 }
 
 func (c *SessionLLMClient) endpointURL(path string) string {
@@ -218,10 +308,22 @@ func (c *SessionLLMClient) getSessionID(key string) (string, error) {
 
 	var resp map[string]any
 	if err := c.postJSON("/session", map[string]any{}, &resp); err != nil {
+		c.writeTrace(LLMTraceEvent{
+			Kind:       "session_create_error",
+			SessionKey: key,
+			Path:       "/session",
+			Error:      err.Error(),
+		})
 		return "", err
 	}
 	id, _ := resp["id"].(string)
 	if id == "" {
+		c.writeTrace(LLMTraceEvent{
+			Kind:       "session_create_error",
+			SessionKey: key,
+			Path:       "/session",
+			Error:      "session id missing in response",
+		})
 		return "", fmt.Errorf("session id missing in response")
 	}
 	c.mu.Lock()

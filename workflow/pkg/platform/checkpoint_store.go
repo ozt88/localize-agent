@@ -2,6 +2,7 @@ package platform
 
 import (
 	"database/sql"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -17,6 +18,29 @@ type sqliteCheckpointStore struct {
 	enabled bool
 }
 
+type postgresCheckpointStore struct {
+	db      *sql.DB
+	enabled bool
+}
+
+//go:embed postgres_translation_pipeline_schema.sql
+var postgresTranslationPipelineSchema string
+
+func NewTranslationCheckpointStore(backend string, path string, dsn string) (contracts.TranslationCheckpointStore, error) {
+	normalizedBackend, err := NormalizeDBBackend(backend)
+	if err != nil {
+		return nil, err
+	}
+	switch normalizedBackend {
+	case DBBackendSQLite:
+		return NewSQLiteCheckpointStore(path)
+	case DBBackendPostgres:
+		return NewPostgresCheckpointStore(dsn)
+	default:
+		return nil, fmt.Errorf("unsupported checkpoint backend: %s", normalizedBackend)
+	}
+}
+
 func NewSQLiteCheckpointStore(path string) (contracts.TranslationCheckpointStore, error) {
 	if path == "" {
 		return &sqliteCheckpointStore{enabled: false}, nil
@@ -25,14 +49,29 @@ func NewSQLiteCheckpointStore(path string) (contracts.TranslationCheckpointStore
 	if err != nil {
 		return nil, fmt.Errorf("failed to open checkpoint db: %w", err)
 	}
-	if err := initCheckpointSchema(db); err != nil {
+	if err := initSQLiteCheckpointSchema(db); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to init schema: %w", err)
 	}
 	return &sqliteCheckpointStore{db: db, enabled: true}, nil
 }
 
-func initCheckpointSchema(db *sql.DB) error {
+func NewPostgresCheckpointStore(dsn string) (contracts.TranslationCheckpointStore, error) {
+	if strings.TrimSpace(dsn) == "" {
+		return &postgresCheckpointStore{enabled: false}, nil
+	}
+	db, err := openPostgres(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open checkpoint postgres: %w", err)
+	}
+	if err := initPostgresCheckpointSchema(db); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to init postgres schema: %w", err)
+	}
+	return &postgresCheckpointStore{db: db, enabled: true}, nil
+}
+
+func initSQLiteCheckpointSchema(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS jobs (
 		  run_id TEXT PRIMARY KEY,
@@ -64,7 +103,13 @@ func initCheckpointSchema(db *sql.DB) error {
 	return err
 }
 
-func (cs *sqliteCheckpointStore) IsEnabled() bool { return cs.enabled }
+func initPostgresCheckpointSchema(db *sql.DB) error {
+	_, err := db.Exec(postgresTranslationPipelineSchema)
+	return err
+}
+
+func (cs *sqliteCheckpointStore) IsEnabled() bool   { return cs.enabled }
+func (cs *postgresCheckpointStore) IsEnabled() bool { return cs.enabled }
 
 func (cs *sqliteCheckpointStore) Close() error {
 	if !cs.enabled || cs.db == nil {
@@ -73,7 +118,29 @@ func (cs *sqliteCheckpointStore) Close() error {
 	return cs.db.Close()
 }
 
+func (cs *postgresCheckpointStore) Close() error {
+	if !cs.enabled || cs.db == nil {
+		return nil
+	}
+	return cs.db.Close()
+}
+
 func (cs *sqliteCheckpointStore) UpsertItem(entryID, status, sourceHash string, attempts int, lastError string, latencyMs float64, koObj, packObj map[string]any) error {
+	return cs.UpsertItems([]contracts.TranslationCheckpointItem{
+		{
+			EntryID:    entryID,
+			Status:     status,
+			SourceHash: sourceHash,
+			Attempts:   attempts,
+			LastError:  lastError,
+			LatencyMs:  latencyMs,
+			KOObj:      koObj,
+			PackObj:    packObj,
+		},
+	})
+}
+
+func (cs *postgresCheckpointStore) UpsertItem(entryID, status, sourceHash string, attempts int, lastError string, latencyMs float64, koObj, packObj map[string]any) error {
 	return cs.UpsertItems([]contracts.TranslationCheckpointItem{
 		{
 			EntryID:    entryID,
@@ -134,11 +201,86 @@ func (cs *sqliteCheckpointStore) UpsertItems(items []contracts.TranslationCheckp
 	return tx.Commit()
 }
 
+func (cs *postgresCheckpointStore) UpsertItems(items []contracts.TranslationCheckpointItem) error {
+	if !cs.enabled {
+		return nil
+	}
+	if len(items) == 0 {
+		return nil
+	}
+
+	tx, err := cs.db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(`
+		INSERT INTO items(id, status, ko_json, pack_json, attempts, last_error, updated_at, latency_ms, source_hash)
+		VALUES($1, $2, $3::jsonb, $4::jsonb, $5, $6, $7, $8, $9)
+		ON CONFLICT(id) DO UPDATE SET
+		  status=EXCLUDED.status,
+		  ko_json=COALESCE(EXCLUDED.ko_json, items.ko_json),
+		  pack_json=COALESCE(EXCLUDED.pack_json, items.pack_json),
+		  attempts=EXCLUDED.attempts,
+		  last_error=EXCLUDED.last_error,
+		  updated_at=EXCLUDED.updated_at,
+		  latency_ms=EXCLUDED.latency_ms,
+		  source_hash=EXCLUDED.source_hash
+	`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	now := time.Now().UTC()
+	for _, it := range items {
+		koJSON, _ := json.Marshal(it.KOObj)
+		packJSON, _ := json.Marshal(it.PackObj)
+		if _, err := stmt.Exec(
+			it.EntryID, it.Status, string(koJSON), string(packJSON),
+			it.Attempts, it.LastError, now, it.LatencyMs, it.SourceHash,
+		); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func (cs *sqliteCheckpointStore) LoadDoneIDs(pipelineVersion string) (map[string]bool, error) {
 	if !cs.enabled {
 		return nil, nil
 	}
 	rows, err := cs.db.Query("SELECT id, pack_json FROM items WHERE status='done'")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	done := map[string]bool{}
+	for rows.Next() {
+		var id, packJSON string
+		if err := rows.Scan(&id, &packJSON); err != nil {
+			return nil, err
+		}
+		if pipelineVersion != "" {
+			var packObj map[string]any
+			if strings.TrimSpace(packJSON) == "" || json.Unmarshal([]byte(packJSON), &packObj) != nil {
+				continue
+			}
+			if stringField(packObj, "pipeline_version") != pipelineVersion {
+				continue
+			}
+		}
+		done[id] = true
+	}
+	return done, rows.Err()
+}
+
+func (cs *postgresCheckpointStore) LoadDoneIDs(pipelineVersion string) (map[string]bool, error) {
+	if !cs.enabled {
+		return nil, nil
+	}
+	rows, err := cs.db.Query("SELECT id, pack_json::text FROM items WHERE status='done'")
 	if err != nil {
 		return nil, err
 	}

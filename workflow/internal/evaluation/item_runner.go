@@ -1,6 +1,6 @@
 package evaluation
 
-import "localize-agent/workflow/internal/shared"
+import "localize-agent/workflow/pkg/shared"
 
 func runEvalItem(client *evalClient, slotKey string, item *packItem, maxAttempts int, backoffSec float64, maxRetry int) itemOutcome {
 	out := itemOutcome{id: item.ID, finalKO: item.ProposedKORestored, finalRisk: item.Risk, finalNotes: item.Notes}

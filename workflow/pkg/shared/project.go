@@ -20,6 +20,7 @@ type ProjectLLMProfile struct {
 	ServerURL              string   `json:"server_url"`
 	Model                  string   `json:"model"`
 	Agent                  string   `json:"agent"`
+	PromptVariant          string   `json:"prompt_variant"`
 	ContextFiles           []string `json:"context_files"`
 	TranslatorResponseMode string   `json:"translator_response_mode"`
 	OllamaStructuredOutput bool     `json:"ollama_structured_output"`
@@ -43,23 +44,25 @@ type ProjectPipeline struct {
 }
 
 type ProjectTranslation struct {
-	Source                 string   `json:"source"`
-	Current                string   `json:"current"`
-	IDsFile                string   `json:"ids_file"`
+	CheckpointBackend       string   `json:"checkpoint_backend"`
+	CheckpointDSN           string   `json:"checkpoint_dsn"`
+	Source                  string   `json:"source"`
+	Current                 string   `json:"current"`
+	IDsFile                 string   `json:"ids_file"`
 	TranslatorPackageChunks string   `json:"translator_package_chunks"`
-	CheckpointDB           string   `json:"checkpoint_db"`
-	ContextFiles           []string `json:"context_files"`
-	RulesFile              string   `json:"rules_file"`
-	ServerURL              string   `json:"server_url"`
-	Model                  string   `json:"model"`
-	LLMBackend             string   `json:"llm_backend"`
-	OllamaStructuredOutput bool     `json:"ollama_structured_output"`
-	OllamaBakedSystem      bool     `json:"ollama_baked_system"`
-	OllamaResetHistory     bool     `json:"ollama_reset_history"`
-	OllamaKeepAlive        string   `json:"ollama_keep_alive"`
-	OllamaNumCtx           int      `json:"ollama_num_ctx"`
-	OllamaTemperature      float64  `json:"ollama_temperature"`
-	TranslatorResponseMode string   `json:"translator_response_mode"`
+	CheckpointDB            string   `json:"checkpoint_db"`
+	ContextFiles            []string `json:"context_files"`
+	RulesFile               string   `json:"rules_file"`
+	ServerURL               string   `json:"server_url"`
+	Model                   string   `json:"model"`
+	LLMBackend              string   `json:"llm_backend"`
+	OllamaStructuredOutput  bool     `json:"ollama_structured_output"`
+	OllamaBakedSystem       bool     `json:"ollama_baked_system"`
+	OllamaResetHistory      bool     `json:"ollama_reset_history"`
+	OllamaKeepAlive         string   `json:"ollama_keep_alive"`
+	OllamaNumCtx            int      `json:"ollama_num_ctx"`
+	OllamaTemperature       float64  `json:"ollama_temperature"`
+	TranslatorResponseMode  string   `json:"translator_response_mode"`
 }
 
 type ProjectEvaluation struct {
@@ -118,6 +121,9 @@ func resolveProjectPaths(cfg *ProjectConfig, base string) {
 	cfg.Translation.IDsFile = resolvePath(base, cfg.Translation.IDsFile)
 	cfg.Translation.TranslatorPackageChunks = resolvePath(base, cfg.Translation.TranslatorPackageChunks)
 	cfg.Translation.CheckpointDB = resolvePath(base, cfg.Translation.CheckpointDB)
+	if strings.TrimSpace(cfg.Translation.CheckpointBackend) == "" {
+		cfg.Translation.CheckpointBackend = "sqlite"
+	}
 	cfg.Translation.RulesFile = resolvePath(base, cfg.Translation.RulesFile)
 	for i := range cfg.Translation.ContextFiles {
 		cfg.Translation.ContextFiles[i] = resolvePath(base, cfg.Translation.ContextFiles[i])

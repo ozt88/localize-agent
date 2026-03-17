@@ -1,12 +1,14 @@
 package translation
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func Run(c Config) int {
@@ -46,12 +48,29 @@ func Run(c Config) int {
 		idIndex[id] = i
 	}
 
-	checkpoint, err := platform.NewSQLiteCheckpointStore(c.CheckpointDB)
+	checkpoint, err := platform.NewTranslationCheckpointStore(c.CheckpointBackend, c.CheckpointDB, c.CheckpointDSN)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error opening checkpoint: %v\n", err)
 		return 1
 	}
 	defer checkpoint.Close()
+
+	if c.UseCheckpointCurrent {
+		if err := overlayCurrentStringsFromCheckpoint(c.CheckpointBackend, c.CheckpointDB, c.CheckpointDSN, curStrings); err != nil {
+			fmt.Fprintf(os.Stderr, "error overlaying checkpoint current strings: %v\n", err)
+			return 1
+		}
+	}
+	checkpointMetas, err := loadCheckpointPromptMetas(c.CheckpointBackend, c.CheckpointDB, c.CheckpointDSN, ids)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error loading checkpoint prompt metadata: %v\n", err)
+		return 1
+	}
+	glossaryEntries, err := loadGlossaryEntries(c.GlossaryFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error loading glossary: %v\n", err)
+		return 1
+	}
 
 	doneFromCheckpoint := map[string]bool{}
 	if c.Resume && checkpoint.IsEnabled() {
@@ -111,6 +130,9 @@ func Run(c Config) int {
 		lineContexts:       lineContexts,
 		chunkBatches:       chunkBatches,
 		doneFromCheckpoint: doneFromCheckpoint,
+		retryReasons:       c.RetryReasons,
+		checkpointMetas:    checkpointMetas,
+		glossaryEntries:    glossaryEntries,
 		client:             client,
 		highClient:         highClient,
 		skill:              skill,
@@ -129,4 +151,42 @@ func Run(c Config) int {
 		return 1
 	}
 	return 0
+}
+
+func overlayCurrentStringsFromCheckpoint(backend string, dbPath string, dsn string, currentStrings map[string]map[string]any) error {
+	if strings.TrimSpace(dbPath) == "" {
+		return nil
+	}
+	db, err := platform.OpenTranslationCheckpointDB(backend, dbPath, dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	rows, err := db.Query(platform.RebindSQL(backend, "SELECT id, ko_json FROM items WHERE status='done'"))
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		var koJSONRaw any
+		if err := rows.Scan(&id, &koJSONRaw); err != nil {
+			return err
+		}
+		koJSON := platform.NormalizeSQLValue(koJSONRaw)
+		if strings.TrimSpace(koJSON) == "" {
+			continue
+		}
+		var koObj map[string]any
+		if err := json.Unmarshal([]byte(koJSON), &koObj); err != nil {
+			continue
+		}
+		if _, ok := koObj["Text"].(string); !ok {
+			continue
+		}
+		currentStrings[id] = koObj
+	}
+	return rows.Err()
 }

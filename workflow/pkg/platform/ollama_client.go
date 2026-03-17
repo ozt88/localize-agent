@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type ollamaMessage struct {
@@ -172,6 +172,10 @@ func (c *OllamaLLMClient) postJSON(path string, body any, out any) error {
 	if err != nil {
 		return err
 	}
+	var modelID string
+	if bodyMap, ok := body.(map[string]any); ok {
+		modelID, _ = bodyMap["model"].(string)
+	}
 	req, err := http.NewRequest(http.MethodPost, c.serverURL+path, bytes.NewReader(raw))
 	if err != nil {
 		return err
@@ -184,13 +188,64 @@ func (c *OllamaLLMClient) postJSON(path string, body any, out any) error {
 		return err
 	}
 	defer resp.Body.Close()
-	payload, _ := io.ReadAll(resp.Body)
+	payload, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		c.metrics.Add(float64(time.Since(started).Milliseconds()), false)
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_read_error",
+			Path:        path,
+			ProviderID:  "ollama",
+			ModelID:     modelID,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       readErr.Error(),
+		})
+		return fmt.Errorf("read response body: %w", readErr)
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		c.metrics.Add(float64(time.Since(started).Milliseconds()), false)
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_error",
+			Path:        path,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       fmt.Sprintf("http %d", resp.StatusCode),
+		})
 		return fmt.Errorf("http %d: %s", resp.StatusCode, string(payload))
 	}
 	c.metrics.Add(float64(time.Since(started).Milliseconds()), true)
-	return json.Unmarshal(payload, out)
+	if len(payload) == 0 {
+		c.writeTrace(LLMTraceEvent{
+			Kind:           "response_empty",
+			Path:           path,
+			ProviderID:     "ollama",
+			ModelID:        modelID,
+			Request:        string(raw),
+			ResponseRaw:    "",
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  0,
+			ResponseEmpty:  true,
+			Error:          "empty response body",
+		})
+		return fmt.Errorf("empty response body")
+	}
+	if err := json.Unmarshal(payload, out); err != nil {
+		c.writeTrace(LLMTraceEvent{
+			Kind:        "response_parse_error",
+			Path:        path,
+			Request:     string(raw),
+			ResponseRaw: string(payload),
+			ResponseStatus: resp.StatusCode,
+			ResponseBytes:  len(payload),
+			Error:       err.Error(),
+		})
+		return err
+	}
+	return nil
 }
 
 func (c *OllamaLLMClient) writeTrace(event LLMTraceEvent) {

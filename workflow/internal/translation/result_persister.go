@@ -3,10 +3,11 @@ package translation
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type persistResult struct {
@@ -59,22 +60,45 @@ func persistResults(
 			return out
 		}
 
+		currentKO := checkpointCurrentKO(meta)
 		base := meta.curObj
 		base["Text"] = restored
 		packObj := map[string]any{
-			"id":                              id,
-			"en":                              meta.enText,
-			"source_raw":                      meta.sourceRaw,
-			"current_ko":                      meta.curText,
-			"context_en":                      meta.contextEN,
-			"text_role":                       meta.textRole,
-			"speaker_hint":                    meta.speakerHint,
-			"choice_prefix":                   meta.choicePrefix,
-			"translation_lane":                meta.translationLane,
-			"proposed_ko_restored":            restored,
-			"risk":                            p.Risk,
-			"notes":                           p.Notes,
-			"pipeline_version":                rt.cfg.PipelineVersion,
+			"id":                   id,
+			"en":                   meta.enText,
+			"source_raw":           meta.sourceRaw,
+			"current_ko":           currentKO,
+			"fresh_ko":             restored,
+			"context_en":           meta.contextEN,
+			"prev_en":              meta.prevEN,
+			"next_en":              meta.nextEN,
+			"prev_ko":              meta.prevKO,
+			"next_ko":              meta.nextKO,
+			"text_role":            meta.textRole,
+			"speaker_hint":         meta.speakerHint,
+			"retry_reason":         meta.retryReason,
+			"translation_policy":   meta.translationPolicy,
+			"source_type":          meta.sourceType,
+			"source_file":          meta.sourceFile,
+			"resource_key":         meta.resourceKey,
+			"meta_path_label":      meta.metaPathLabel,
+			"scene_hint":           meta.sceneHint,
+			"segment_id":           meta.segmentID,
+			"choice_block_id":      meta.choiceBlockID,
+			"prev_line_id":         meta.prevLineID,
+			"next_line_id":         meta.nextLineID,
+			"choice_prefix":        meta.choicePrefix,
+			"stat_check":           meta.statCheck,
+			"choice_mode":          meta.choiceMode,
+			"is_stat_check":        meta.isStatCheck,
+			"translation_lane":     meta.translationLane,
+			"proposed_ko_restored": restored,
+			"risk":                 p.Risk,
+			"notes":                p.Notes,
+			"pipeline_version":     rt.cfg.PipelineVersion,
+		}
+		if meta.segmentPos != nil {
+			packObj["segment_pos"] = *meta.segmentPos
 		}
 		doneMu.Lock()
 		done[id] = base
@@ -113,17 +137,42 @@ func persistResults(
 		if !meta.passthrough {
 			continue
 		}
+		currentKO := checkpointCurrentKO(meta)
 		base := meta.curObj
 		base["Text"] = meta.sourceRaw
 		packObj := map[string]any{
-			"id":               id,
-			"en":               meta.enText,
-			"source_raw":       meta.sourceRaw,
-			"current_ko":       meta.curText,
+			"id":                   id,
+			"en":                   meta.enText,
+			"source_raw":           meta.sourceRaw,
+			"current_ko":           currentKO,
+			"fresh_ko":             meta.sourceRaw,
+			"prev_en":              meta.prevEN,
+			"next_en":              meta.nextEN,
+			"prev_ko":              meta.prevKO,
+			"next_ko":              meta.nextKO,
+			"text_role":            meta.textRole,
+			"speaker_hint":         meta.speakerHint,
+			"retry_reason":         meta.retryReason,
+			"translation_policy":   meta.translationPolicy,
+			"source_type":          meta.sourceType,
+			"source_file":          meta.sourceFile,
+			"resource_key":         meta.resourceKey,
+			"meta_path_label":      meta.metaPathLabel,
+			"scene_hint":           meta.sceneHint,
+			"segment_id":           meta.segmentID,
+			"choice_block_id":      meta.choiceBlockID,
+			"prev_line_id":         meta.prevLineID,
+			"next_line_id":         meta.nextLineID,
+			"stat_check":           meta.statCheck,
+			"choice_mode":          meta.choiceMode,
+			"is_stat_check":        meta.isStatCheck,
 			"proposed_ko_restored": meta.sourceRaw,
-			"risk":             "low",
-			"notes":            "passthrough control token",
-			"pipeline_version": rt.cfg.PipelineVersion,
+			"risk":                 "low",
+			"notes":                "passthrough control token",
+			"pipeline_version":     rt.cfg.PipelineVersion,
+		}
+		if meta.segmentPos != nil {
+			packObj["segment_pos"] = *meta.segmentPos
 		}
 		doneMu.Lock()
 		done[id] = base
@@ -158,6 +207,15 @@ func persistResults(
 	}
 
 	return out
+}
+
+func checkpointCurrentKO(meta itemMeta) string {
+	if meta.curObj != nil {
+		if text, _ := meta.curObj["Text"].(string); strings.TrimSpace(text) != "" {
+			return text
+		}
+	}
+	return meta.curText
 }
 
 func restoreWithRecovery(rt translationRuntime, slotKey, id string, p proposal, meta itemMeta) (string, error) {

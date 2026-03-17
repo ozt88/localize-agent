@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type Segment struct {
+type segment struct {
 	SegmentID     string   `json:"segment_id"`
 	SourceFile    string   `json:"source_file"`
 	SceneHint     string   `json:"scene_hint"`
@@ -22,7 +22,7 @@ type Segment struct {
 	MetaPathLabel string   `json:"meta_path_label"`
 }
 
-type Chunk struct {
+type chunk struct {
 	ChunkID         string   `json:"chunk_id"`
 	ParentSegmentID string   `json:"parent_segment_id"`
 	ChunkPos        int      `json:"chunk_pos"`
@@ -41,18 +41,18 @@ type Chunk struct {
 
 type TranslatorPackage struct {
 	Format       string              `json:"format"`
-	Instructions PackageInstructions `json:"instructions"`
-	Segments     []PackageSegment    `json:"segments"`
+	Instructions packageInstructions `json:"instructions"`
+	Segments     []packageSegment    `json:"segments"`
 }
 
-type PackageInstructions struct {
+type packageInstructions struct {
 	TranslateUnit       string `json:"translate_unit"`
 	ReturnUnit          string `json:"return_unit"`
 	RequiredOutputShape any    `json:"required_output_shape,omitempty"`
 	Rules               []string `json:"rules,omitempty"`
 }
 
-type PackageSegment struct {
+type packageSegment struct {
 	SegmentID     string        `json:"segment_id"`
 	SourceFile    string        `json:"source_file"`
 	SceneHint     string        `json:"scene_hint"`
@@ -60,10 +60,10 @@ type PackageSegment struct {
 	ChoiceBlockID *string       `json:"choice_block_id"`
 	SegmentSize   int           `json:"segment_size"`
 	SourceText    string        `json:"source_text"`
-	Lines         []PackageLine `json:"lines"`
+	Lines         []packageLine `json:"lines"`
 }
 
-type PackageLine struct {
+type packageLine struct {
 	LineID                      string   `json:"line_id"`
 	SegmentPos                  int      `json:"segment_pos"`
 	SourceText                  string   `json:"source_text"`
@@ -79,11 +79,11 @@ type PackageLine struct {
 
 type ChunkedTranslatorPackage struct {
 	Format       string              `json:"format"`
-	Instructions PackageInstructions `json:"instructions"`
-	Chunks       []PackageChunk      `json:"chunks"`
+	Instructions packageInstructions `json:"instructions"`
+	Chunks       []packageChunk      `json:"chunks"`
 }
 
-type PackageChunk struct {
+type packageChunk struct {
 	ChunkID         string        `json:"chunk_id"`
 	ParentSegmentID string        `json:"parent_segment_id"`
 	ChunkPos        int           `json:"chunk_pos"`
@@ -93,37 +93,37 @@ type PackageChunk struct {
 	BlockKind       string        `json:"block_kind"`
 	ChoiceBlockID   *string       `json:"choice_block_id"`
 	SourceText      string        `json:"source_text"`
-	Lines           []PackageLine `json:"lines"`
+	Lines           []packageLine `json:"lines"`
 }
 
-type Config struct {
+type config struct {
 	MaxLines int
 	MinLines int
 }
 
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() config {
+	return config{
 		MaxLines: 5,
 		MinLines: 2,
 	}
 }
 
-func BuildChunks(segments []Segment, cfg Config) []Chunk {
+func buildChunks(segments []segment, cfg config) []chunk {
 	if cfg.MaxLines <= 0 {
 		cfg.MaxLines = 5
 	}
 	if cfg.MinLines <= 0 {
 		cfg.MinLines = 2
 	}
-	out := make([]Chunk, 0, len(segments))
+	out := make([]chunk, 0, len(segments))
 	for _, seg := range segments {
 		out = append(out, chunkSegment(seg, cfg)...)
 	}
 	return out
 }
 
-func BuildTranslatorPackageChunks(pkg TranslatorPackage, cfg Config) ChunkedTranslatorPackage {
-	chunks := make([]PackageChunk, 0, len(pkg.Segments))
+func BuildTranslatorPackageChunks(pkg TranslatorPackage, cfg config) ChunkedTranslatorPackage {
+	chunks := make([]packageChunk, 0, len(pkg.Segments))
 	for _, seg := range pkg.Segments {
 		chunks = append(chunks, chunkPackageSegment(seg, cfg)...)
 	}
@@ -140,12 +140,12 @@ func BuildTranslatorPackageChunks(pkg TranslatorPackage, cfg Config) ChunkedTran
 	}
 }
 
-func chunkSegment(seg Segment, cfg Config) []Chunk {
+func chunkSegment(seg segment, cfg config) []chunk {
 	if len(seg.SourceLines) == 0 || len(seg.LineIDs) == 0 {
 		return nil
 	}
 	if seg.BlockKind == "choice_block" || len(seg.SourceLines) <= cfg.MaxLines {
-		return []Chunk{makeChunk(seg, 0, len(seg.SourceLines), 1, 1)}
+		return []chunk{makeChunk(seg, 0, len(seg.SourceLines), 1, 1)}
 	}
 
 	ranges := make([][2]int, 0, (len(seg.SourceLines)+cfg.MaxLines-1)/cfg.MaxLines)
@@ -169,15 +169,15 @@ func chunkSegment(seg Segment, cfg Config) []Chunk {
 		ranges = append(ranges, [2]int{start, len(seg.SourceLines)})
 	}
 
-	chunks := make([]Chunk, 0, len(ranges))
+	chunks := make([]chunk, 0, len(ranges))
 	for idx, r := range ranges {
 		chunks = append(chunks, makeChunk(seg, r[0], r[1], idx+1, len(ranges)))
 	}
 	return chunks
 }
 
-func chunkPackageSegment(seg PackageSegment, cfg Config) []PackageChunk {
-	internal := Segment{
+func chunkPackageSegment(seg packageSegment, cfg config) []packageChunk {
+	internal := segment{
 		SegmentID:     seg.SegmentID,
 		SourceFile:    seg.SourceFile,
 		SceneHint:     seg.SceneHint,
@@ -190,7 +190,7 @@ func chunkPackageSegment(seg PackageSegment, cfg Config) []PackageChunk {
 		TextRoles:     make([]string, 0, len(seg.Lines)),
 		SpeakerHints:  make([]string, 0, len(seg.Lines)),
 	}
-	lineMap := make(map[string]PackageLine, len(seg.Lines))
+	lineMap := make(map[string]packageLine, len(seg.Lines))
 	for _, line := range seg.Lines {
 		internal.LineIDs = append(internal.LineIDs, line.LineID)
 		internal.SourceLines = append(internal.SourceLines, line.SourceText)
@@ -204,30 +204,30 @@ func chunkPackageSegment(seg PackageSegment, cfg Config) []PackageChunk {
 	}
 
 	baseChunks := chunkSegment(internal, cfg)
-	out := make([]PackageChunk, 0, len(baseChunks))
-	for _, chunk := range baseChunks {
-		lines := make([]PackageLine, 0, len(chunk.LineIDs))
-		for _, lineID := range chunk.LineIDs {
+	out := make([]packageChunk, 0, len(baseChunks))
+	for _, c := range baseChunks {
+		lines := make([]packageLine, 0, len(c.LineIDs))
+		for _, lineID := range c.LineIDs {
 			line := lineMap[lineID]
 			lines = append(lines, line)
 		}
-		out = append(out, PackageChunk{
-			ChunkID:         chunk.ChunkID,
-			ParentSegmentID: chunk.ParentSegmentID,
-			ChunkPos:        chunk.ChunkPos,
-			ChunkCount:      chunk.ChunkCount,
-			SourceFile:      chunk.SourceFile,
-			SceneHint:       chunk.SceneHint,
-			BlockKind:       chunk.BlockKind,
-			ChoiceBlockID:   chunk.ChoiceBlockID,
-			SourceText:      chunk.SourceText,
+		out = append(out, packageChunk{
+			ChunkID:         c.ChunkID,
+			ParentSegmentID: c.ParentSegmentID,
+			ChunkPos:        c.ChunkPos,
+			ChunkCount:      c.ChunkCount,
+			SourceFile:      c.SourceFile,
+			SceneHint:       c.SceneHint,
+			BlockKind:       c.BlockKind,
+			ChoiceBlockID:   c.ChoiceBlockID,
+			SourceText:      c.SourceText,
 			Lines:           lines,
 		})
 	}
 	return out
 }
 
-func shouldBreak(seg Segment, idx, curLen, maxLines int) bool {
+func shouldBreak(seg segment, idx, curLen, maxLines int) bool {
 	if curLen >= maxLines {
 		return true
 	}
@@ -248,12 +248,12 @@ func shouldBreak(seg Segment, idx, curLen, maxLines int) bool {
 	return false
 }
 
-func makeChunk(seg Segment, start, end, pos, count int) Chunk {
+func makeChunk(seg segment, start, end, pos, count int) chunk {
 	lines := append([]string(nil), seg.SourceLines[start:end]...)
 	lineIDs := append([]string(nil), seg.LineIDs[start:end]...)
 	roles := sliceOrNil(seg.TextRoles, start, end)
 	speakers := sliceOrNil(seg.SpeakerHints, start, end)
-	return Chunk{
+	return chunk{
 		ChunkID:         buildChunkID(seg.SegmentID, pos, lineIDs),
 		ParentSegmentID: seg.SegmentID,
 		ChunkPos:        pos,

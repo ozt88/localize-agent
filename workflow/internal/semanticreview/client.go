@@ -3,8 +3,8 @@ package semanticreview
 import (
 	"fmt"
 
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func newReviewClientAndProfile(cfg Config, traceSink platform.LLMTraceSink, warmup string, responseFormat any) (llmClient, platform.LLMProfile, string, error) {

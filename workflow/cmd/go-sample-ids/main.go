@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 type item struct {

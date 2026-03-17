@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"localize-agent/workflow/internal/evaluation"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func main() {

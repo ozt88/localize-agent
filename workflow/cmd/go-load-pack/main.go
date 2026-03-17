@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"localize-agent/workflow/internal/contracts"
-	"localize-agent/workflow/internal/platform"
+	"localize-agent/workflow/pkg/platform"
 )
 
 func main() {

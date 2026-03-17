@@ -4,7 +4,7 @@ import "testing"
 
 func TestBuildChunks_ChoiceBlockStaysWhole(t *testing.T) {
 	choiceID := "choice-1"
-	seg := Segment{
+	seg := segment{
 		SegmentID:     "seg-a",
 		BlockKind:     "choice_block",
 		ChoiceBlockID: &choiceID,
@@ -12,7 +12,7 @@ func TestBuildChunks_ChoiceBlockStaysWhole(t *testing.T) {
 		SourceLines:   []string{"(Look at Askan.)"},
 		TextRoles:     []string{"choice"},
 	}
-	chunks := BuildChunks([]Segment{seg}, DefaultConfig())
+	chunks := buildChunks([]segment{seg}, DefaultConfig())
 	if len(chunks) != 1 {
 		t.Fatalf("len=%d want 1", len(chunks))
 	}
@@ -22,7 +22,7 @@ func TestBuildChunks_ChoiceBlockStaysWhole(t *testing.T) {
 }
 
 func TestBuildChunks_SplitsLongSegmentOnRoleBoundary(t *testing.T) {
-	seg := Segment{
+	seg := segment{
 		SegmentID: "seg-b",
 		LineIDs:   []string{"l1", "l2", "l3", "l4", "l5", "l6"},
 		SourceLines: []string{
@@ -37,7 +37,7 @@ func TestBuildChunks_SplitsLongSegmentOnRoleBoundary(t *testing.T) {
 	}
 	cfg := DefaultConfig()
 	cfg.MaxLines = 4
-	chunks := BuildChunks([]Segment{seg}, cfg)
+	chunks := buildChunks([]segment{seg}, cfg)
 	if len(chunks) < 2 {
 		t.Fatalf("expected split, got %d chunk(s)", len(chunks))
 	}
@@ -47,7 +47,7 @@ func TestBuildChunks_SplitsLongSegmentOnRoleBoundary(t *testing.T) {
 }
 
 func TestBuildChunks_KeepsShortFragmentWithPrevious(t *testing.T) {
-	seg := Segment{
+	seg := segment{
 		SegmentID:   "seg-c",
 		LineIDs:     []string{"l1", "l2", "l3"},
 		SourceLines: []string{"You do so, seeing the four bands closest to you.", "Emotionally, at least.", "Another sentence."},
@@ -55,7 +55,7 @@ func TestBuildChunks_KeepsShortFragmentWithPrevious(t *testing.T) {
 	}
 	cfg := DefaultConfig()
 	cfg.MaxLines = 2
-	chunks := BuildChunks([]Segment{seg}, cfg)
+	chunks := buildChunks([]segment{seg}, cfg)
 	if len(chunks) != 2 {
 		t.Fatalf("len=%d want 2", len(chunks))
 	}
@@ -67,11 +67,11 @@ func TestBuildChunks_KeepsShortFragmentWithPrevious(t *testing.T) {
 func TestBuildTranslatorPackageChunks_PreservesLineAlignment(t *testing.T) {
 	pkg := TranslatorPackage{
 		Format: "esoteric-ebb-translator-package.v1",
-		Instructions: PackageInstructions{
+		Instructions: packageInstructions{
 			TranslateUnit: "segment",
 			ReturnUnit:    "line",
 		},
-		Segments: []PackageSegment{
+		Segments: []packageSegment{
 			{
 				SegmentID:   "seg-pkg",
 				SourceFile:  "AR_Test",
@@ -79,7 +79,7 @@ func TestBuildTranslatorPackageChunks_PreservesLineAlignment(t *testing.T) {
 				BlockKind:   "script_block",
 				SegmentSize: 6,
 				SourceText:  "A.\nB.\nC.\nD.\nE.\nF.",
-				Lines: []PackageLine{
+				Lines: []packageLine{
 					{LineID: "l1", SegmentPos: 0, SourceText: "A.", TextRole: "narration"},
 					{LineID: "l2", SegmentPos: 1, SourceText: "B.", TextRole: "narration"},
 					{LineID: "l3", SegmentPos: 2, SourceText: "C.", TextRole: "reaction"},

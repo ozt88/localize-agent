@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func buildEvalPrompt(unit map[string]any, shape string) string {
