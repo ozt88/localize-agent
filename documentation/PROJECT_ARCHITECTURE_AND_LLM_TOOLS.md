@@ -167,14 +167,15 @@ source/ → translation → evaluation → review → patch
 - long_discourse: 유창한 대화/내레이션 유지
 ```
 
-#### 3.2.2 평가 단계 (`go-evaluate`)
+#### 3.2.2 평가 단계 (파이프라인 내부)
 
 **역할:** 번역 품질 평가
 
 **처리 단계:**
-1. 체크포인트에서 번역 결과 로드
-2. 역번역(back-translation) 수행
-3. 품질 점수 계산
+- 평가 기능은 통합 파이프라인 `go-translation-pipeline` 내부에서 수행됩니다
+- 체크포인트에서 번역 결과 로드
+- 역번역(back-translation) 수행
+- 품질 점수 계산
 
 #### 3.2.3 점수 매기기 단계 (`go-semantic-review`)
 
@@ -329,6 +330,81 @@ state   TEXT  -- pending, working, done, failed
 ```
 
 #### 5.1.2 Live Batch (최신 설정)
+
+```json
+{
+  "translation": {
+    "llm_backend": "opencode",
+    "server_url": "http://127.0.0.1:4112",
+    "model": "openai/gpt-5.4",
+    "checkpoint_backend": "postgres",
+    "checkpoint_dsn": "postgres://postgres@127.0.0.1:5433/localize_agent?sslmode=disable"
+  },
+  "evaluation": {
+    "llm_backend": "ollama",
+    "server_url": "http://127.0.0.1:11434",
+    "trans_model": "TranslateGemma:latest",
+    "eval_model": "TranslateGemma:latest"
+  },
+  "pipeline": {
+    "low_llm": {
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.4",
+      "concurrency": 4,
+      "batch_size": 8,
+      "timeout_sec": 120
+    },
+    "high_llm": {
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.4",
+      "concurrency": 2,
+      "batch_size": 10,
+      "timeout_sec": 120
+    },
+    "score_llm": {
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.4",
+      "concurrency": 1,
+      "batch_size": 8,
+      "timeout_sec": 120,
+      "prompt_variant": "ultra"
+    }
+  }
+}
+```
+
+### 5.2 유틸티 및 데이터 관리 커맨드
+
+### 5.2.1 번역 적용 커맨드
+
+**go-esoteric-apply-out**
+- 역할: 체크포인트에서 완료된 번역을 게임 소스에 적용
+- 사용: `go run ./workflow/cmd/go-esoteric-apply-out --in --out --checkpoint-db`
+
+### 5.2.2 패키지 청크 빌드 커맨드
+
+**go-esoteric-build-translator-chunks**
+- 역할: 번역 패키지를 청크로 분할
+- 사용: `go run ./workflow/cmd/go-esoteric-build-translator-chunks --in --out`
+
+### 5.2.3 프래그먼트 적용 커맨드
+
+**go-apply-fragment-report**
+- 역할: 프래그먼트 리포트를 게임 텍스트에 적용
+- 사용: `go run ./workflow/cmd/go-apply-fragment-report --project-dir --report-path --backup-path`
+
+### 5.2.4 체크포인트 마이그레이션 커맨드
+
+**go-migrate-checkpoint**
+- 역할: SQLite 체크포인트를 PostgreSQL로 이전
+- 사용: `go run ./workflow/cmd/go-migrate-checkpoint --source-sqlite --dest-dsn`
+
+---
+
+## 6. 오케스트레이션
 
 ```json
 {
