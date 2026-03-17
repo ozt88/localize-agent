@@ -50,7 +50,7 @@ func formatPenalty(ko string) float64 {
 	return 0
 }
 
-func BuildReportItem(item ReviewItem, backEN string, semanticSimilarity float64) ReportItem {
+func buildReportItem(item ReviewItem, backEN string, semanticSimilarity float64) ReportItem {
 	scoreSemantic := 1 - semanticSimilarity
 	scoreLexical := 1 - lexicalSimilarity(item.SourceEN, backEN)
 	scorePrev := alignmentPenalty(item.SourceEN, item.PrevEN, backEN)
@@ -90,12 +90,21 @@ func BuildReportItem(item ReviewItem, backEN string, semanticSimilarity float64)
 	}
 }
 
-func BuildDirectScoreReportItem(item ReviewItem, score directScoreResult) ReportItem {
+func buildDirectScoreReportItem(item ReviewItem, score directScoreResult) ReportItem {
+	translatedKO := item.FreshKO
+	if translatedKO == "" {
+		translatedKO = item.TranslatedKO
+	}
+	if item.CurrentKO != "" && score.CurrentScore >= score.FreshScore {
+		translatedKO = item.CurrentKO
+	}
 	report := ReportItem{
 		ID:           item.ID,
 		SourceEN:     item.SourceEN,
-		TranslatedKO: item.TranslatedKO,
-		ScoreFinal:   round4(score.WeirdnessScore),
+		TranslatedKO: translatedKO,
+		ScoreFinal:   round4(maxFloat(score.CurrentScore, score.FreshScore)),
+		CurrentScore: round4(score.CurrentScore),
+		FreshScore:   round4(score.FreshScore),
 	}
 	if len(score.ReasonTags) > 0 {
 		report.ReasonTags = append([]string(nil), score.ReasonTags...)
@@ -108,6 +117,13 @@ func BuildDirectScoreReportItem(item ReviewItem, score directScoreResult) Report
 
 func round4(v float64) float64 {
 	return math.Round(v*10000) / 10000
+}
+
+func maxFloat(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func tokenSet(s string) map[string]struct{} {
