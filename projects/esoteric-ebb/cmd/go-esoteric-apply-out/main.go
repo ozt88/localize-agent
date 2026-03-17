@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"localize-agent/workflow/internal/platform"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/platform"
+	"localize-agent/workflow/pkg/shared"
 )
 
 var tokenRE = regexp.MustCompile(`(\$[A-Za-z0-9_]+|<[^>]+>|\{[^{}]+\})`)

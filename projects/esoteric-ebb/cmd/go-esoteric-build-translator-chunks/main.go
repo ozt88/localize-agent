@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"localize-agent/workflow/internal/segmentchunk"
-	"localize-agent/workflow/internal/shared"
+	"localize-agent/workflow/pkg/segmentchunk"
+	"localize-agent/workflow/pkg/shared"
 )
 
 func main() {
