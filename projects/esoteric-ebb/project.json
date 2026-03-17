@@ -37,12 +37,12 @@
   },
   "pipeline": {
     "stage_batch_size": 100,
-    "threshold": 0.7,
+    "threshold": 0.5,
     "max_retries": 3,
     "low_llm": {
-      "llm_backend": "ollama",
-      "server_url": "http://127.0.0.1:11438",
-      "model": "TranslateGemma-fast:latest",
+      "llm_backend": "opencode",
+      "server_url": "http://127.0.0.1:4112",
+      "model": "openai/gpt-5.2",
       "translator_response_mode": "plain",
       "ollama_baked_system": true,
       "ollama_reset_history": true,

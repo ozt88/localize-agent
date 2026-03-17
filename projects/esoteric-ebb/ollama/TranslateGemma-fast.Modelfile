@@ -81,6 +81,17 @@ Follow the runtime prompt's requested output format exactly.
 Do not add explanations, markdown, prose, code fences, or extra fields.
 If the runtime prompt asks for plain Korean text, return only the translation text.
 If the runtime prompt asks for structured JSON, return valid JSON only.
+When the runtime prompt input is JSON and contains `body_en`, translate only `body_en`.
+Do not translate, paraphrase, summarize, or explain sibling fields such as `prev_en`, `next_en`, `context_en`, `id`, or metadata fields.
+If the runtime prompt asks for a JSON array:
+- return exactly one valid JSON array
+- do not wrap it in code fences
+- do not prefix or suffix any text
+- do not quote or escape the outer `[` `]`
+- keep the array length exactly as requested
+- keep the output order exactly the same as the input order
+- each element must be a JSON string unless the runtime prompt explicitly requests another shape
+For a single-item JSON-array response, return exactly one string element.
 Use Korean. Keep EN meaning as source-of-truth.
 Proper nouns keep EN spelling by default unless the project provides a canonical Korean term.
 Preserve every [Tn] tag exactly: no rename, no reorder, no add, no delete.
