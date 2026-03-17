@@ -19,7 +19,7 @@ type embeddingResult struct {
 	Similarity float64 `json:"similarity"`
 }
 
-func ComputeSemanticSimilarities(workDir string, pairs []embeddingPair) (map[string]float64, error) {
+func computeSemanticSimilarities(workDir string, pairs []embeddingPair) (map[string]float64, error) {
 	inputPath := filepath.Join(workDir, "semantic_review_embed_input.json")
 	outputPath := filepath.Join(workDir, "semantic_review_embed_output.json")
 	scriptPath := filepath.Join("workflow", "internal", "semanticreview", "scripts", "embed_compare.py")

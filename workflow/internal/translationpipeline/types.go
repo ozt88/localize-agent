@@ -2,9 +2,15 @@ package translationpipeline
 
 const (
 	StatePendingTranslate   = "pending_translate"
+	StateBlockedTranslate   = "blocked_translate"
+	StatePendingFailedTranslate = "pending_failed_translate"
+	StatePendingOverlayTranslate = "pending_overlay_translate"
+	StateBlockedScore       = "blocked_score"
 	StatePendingScore       = "pending_score"
 	StatePendingRetranslate = "pending_retranslate"
 	StateWorkingTranslate   = "working_translate"
+	StateWorkingFailedTranslate = "working_failed_translate"
+	StateWorkingOverlayTranslate = "working_overlay_translate"
 	StateWorkingScore       = "working_score"
 	StateWorkingRetranslate = "working_retranslate"
 	StateDone               = "done"
@@ -14,9 +20,17 @@ const (
 type Config struct {
 	Project              string
 	ProjectDir           string
+	CheckpointBackend    string
 	CheckpointDB         string
+	CheckpointDSN        string
 	InitOnly             bool
+	CleanupStaleClaims   bool
+	RouteKnownFailedNoRow bool
+	RouteOverlayUI       bool
+	RepairBlockedTranslate bool
+	ResetScoring         bool
 	RequeueFailedNoRow   bool
+	RequeueTranslateNoRowAsRetranslate bool
 	RequeueLimit         int
 	Reset                bool
 	StageBatchSize       int
@@ -38,6 +52,7 @@ type Config struct {
 	ScoreServerURL       string
 	ScoreModel           string
 	ScoreAgent           string
+	ScorePromptVariant   string
 	ScoreConcurrency     int
 	ScoreBatchSize       int
 	ScoreTimeoutSec      int
@@ -51,6 +66,7 @@ type Config struct {
 
 type PipelineItem struct {
 	ID         string
+	SortIndex  int
 	State      string
 	RetryCount int
 	ScoreFinal float64
@@ -68,4 +84,12 @@ type WorkerBatchStat struct {
 	ElapsedMs      int64
 	StartedAt      string
 	FinishedAt     string
+}
+
+type ScoreResult struct {
+	CurrentScore float64
+	FreshScore   float64
+	ScoreFinal   float64
+	ReasonTags   []string
+	ShortReason  string
 }

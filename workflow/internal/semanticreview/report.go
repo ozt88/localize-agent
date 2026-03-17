@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-func WriteReports(outputDir string, items []ReportItem) error {
+func writeReports(outputDir string, items []ReportItem) error {
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return err
 	}
