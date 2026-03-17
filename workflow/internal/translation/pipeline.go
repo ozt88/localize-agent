@@ -17,6 +17,9 @@ type translationRuntime struct {
 	lineContexts       map[string]lineContext
 	chunkBatches       [][]string
 	doneFromCheckpoint map[string]bool
+	retryReasons       map[string]string
+	checkpointMetas    map[string]checkpointPromptMeta
+	glossaryEntries    []glossaryEntry
 	client             *serverClient
 	highClient         *serverClient
 	skill              *translateSkill
@@ -271,13 +274,7 @@ func planChunkBatch(rt translationRuntime, ids []string) chunkBatchPlan {
 		if prepared.passthrough {
 			continue
 		}
-		textRole := ""
-		isShortContext := false
-		if ctx, ok := rt.lineContexts[id]; ok {
-			textRole = ctx.TextRole
-			isShortContext = ctx.LineIsShortContextDependent
-		}
-		itemKey := decideTranslationLane(enText, profile, textRole, isShortContext) + "::" + profileGroupKey(profile)
+		itemKey := profileGroupKey(profile)
 		if key == "" {
 			key = itemKey
 		} else if key != itemKey {

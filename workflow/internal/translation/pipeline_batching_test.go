@@ -121,3 +121,33 @@ func TestBuildJobBatches_DoesNotCoalesceDifferentGroupKeys(t *testing.T) {
 		t.Fatalf("batches=%v, want=%v", got, want)
 	}
 }
+
+func TestBuildJobBatches_CoalescesDifferentLanesWhenBatchGroupMatches(t *testing.T) {
+	rt := translationRuntime{
+		cfg: Config{BatchSize: 4},
+		ids: []string{"a", "b"},
+		sourceStrings: map[string]map[string]any{
+			"a": {"Text": "Tell him to leave."},
+			"b": {"Text": "That is foolish."},
+		},
+		currentStrings: map[string]map[string]any{
+			"a": {"Text": ""},
+			"b": {"Text": ""},
+		},
+		lineContexts: map[string]lineContext{
+			"a": {TextRole: "reaction"},
+			"b": {TextRole: "dialogue"},
+		},
+		chunkBatches: [][]string{
+			{"a"},
+			{"b"},
+		},
+	}
+	got := buildJobBatches(rt)
+	want := [][]string{
+		{"a", "b"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("batches=%v, want=%v", got, want)
+	}
+}
