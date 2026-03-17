@@ -13,3 +13,8 @@ plans/
 *.db-wal
 *.jsonl
 *.log
+*.exe
+workflow/.bin/
+workflow/bin/
+.sisyphus/
+temp/
