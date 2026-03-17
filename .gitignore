@@ -4,8 +4,10 @@ workflow/output/
 workflow/output/_tmp_batches/
 projects/*/output/
 projects/*/.bin/
+projects/*/extract/
 projects/*/source/prepared/
 plan.md
+plans/
 *.db
 *.db-shm
 *.db-wal

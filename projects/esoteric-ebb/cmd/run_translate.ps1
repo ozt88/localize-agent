@@ -1,4 +1,0 @@
-go run ./workflow/cmd/go-translate `
-  --project esoteric-ebb `
-  --batch-size 6 `
-  --concurrency 1
