@@ -30,6 +30,8 @@ type Config struct {
 	ContextFiles                shared.MultiFlag
 	RulesFile                   string
 	GlossaryFile                string
+	LoreFile                    string
+	LoreMaxHints                int
 	CheckpointDB                string
 	TraceOut                    string
 	ReviewExportOut             string
@@ -45,6 +47,7 @@ type Config struct {
 	TranslatorResponseMode      string
 	PipelineVersion             string
 	UseCheckpointCurrent        bool
+	OverlayMode                 bool
 }
 
 const (
@@ -132,10 +135,12 @@ type translationTask struct {
 	SpeakerHint  string
 	RetryReason  string
 	Glossary     []glossaryEntry
+	LoreHints    []loreEntry
 	SourceType   string
 	SourceFile   string
 	ResourceKey  string
 	MetaPath     string
+	SceneHint    string
 	SegmentID    string
 	SegmentPos   *int
 	ChoiceBlock  string

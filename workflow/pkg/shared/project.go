@@ -53,6 +53,8 @@ type ProjectTranslation struct {
 	CheckpointDB            string   `json:"checkpoint_db"`
 	ContextFiles            []string `json:"context_files"`
 	RulesFile               string   `json:"rules_file"`
+	LoreFile                string   `json:"lore_file"`
+	LoreMaxHints            int      `json:"lore_max_hints"`
 	ServerURL               string   `json:"server_url"`
 	Model                   string   `json:"model"`
 	LLMBackend              string   `json:"llm_backend"`
@@ -125,6 +127,7 @@ func resolveProjectPaths(cfg *ProjectConfig, base string) {
 		cfg.Translation.CheckpointBackend = "sqlite"
 	}
 	cfg.Translation.RulesFile = resolvePath(base, cfg.Translation.RulesFile)
+	cfg.Translation.LoreFile = resolvePath(base, cfg.Translation.LoreFile)
 	for i := range cfg.Translation.ContextFiles {
 		cfg.Translation.ContextFiles[i] = resolvePath(base, cfg.Translation.ContextFiles[i])
 	}

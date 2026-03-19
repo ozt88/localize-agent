@@ -41,6 +41,8 @@ func main() {
 	fs.IntVar(&cfg.PlaceholderRecoveryAttempts, "placeholder-recovery-attempts", cfg.PlaceholderRecoveryAttempts, "")
 	fs.Var(&cfg.ContextFiles, "context-file", "context file(s) to load; prefer single workflow/context/agent_context.md")
 	fs.StringVar(&cfg.RulesFile, "rules-file", "", "optional: external static rules file (default: built-in rules)")
+	fs.StringVar(&cfg.LoreFile, "lore-file", "", "optional: lore termbank JSON for wiki-based context enrichment")
+	fs.IntVar(&cfg.LoreMaxHints, "lore-max-hints", 3, "max lore hints per translation item (default: 3)")
 	fs.StringVar(&cfg.CheckpointDB, "checkpoint-db", cfg.CheckpointDB, "")
 	fs.StringVar(&cfg.TraceOut, "trace-out", "", "optional JSONL trace output path for prompt/response tuning")
 	fs.StringVar(&cfg.ReviewExportOut, "review-export-out", "", "export translated results from checkpoint DB as JSONL")
@@ -87,6 +89,12 @@ func main() {
 			}
 			if !explicit["rules-file"] && cfg.RulesFile == "" && t.RulesFile != "" {
 				cfg.RulesFile = t.RulesFile
+			}
+			if !explicit["lore-file"] && cfg.LoreFile == "" && t.LoreFile != "" {
+				cfg.LoreFile = t.LoreFile
+			}
+			if !explicit["lore-max-hints"] && cfg.LoreMaxHints == 3 && t.LoreMaxHints > 0 {
+				cfg.LoreMaxHints = t.LoreMaxHints
 			}
 			if !explicit["context-file"] && len(cfg.ContextFiles) == 0 && len(t.ContextFiles) > 0 {
 				cfg.ContextFiles = append(cfg.ContextFiles, t.ContextFiles...)

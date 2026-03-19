@@ -1,0 +1,109 @@
+{
+  "stats": {
+    "total": 283,
+    "skipped_meta": 7,
+    "skipped_short": 22,
+    "new": 254,
+    "existing_enriched": 0
+  },
+  "categories": {
+    "item": 60,
+    "character": 59,
+    "location": 24,
+    "lore": 19,
+    "quest": 18,
+    "spell": 15,
+    "mechanic": 9,
+    "pages with quotes": 8,
+    "deity": 7,
+    "feat": 7,
+    "era": 5,
+    "faction": 5,
+    "groups": 3,
+    "magocratic families": 3,
+    "race": 3,
+    "monsters": 2,
+    "cities": 1,
+    "events": 1,
+    "goblins": 1,
+    "history": 1,
+    "lawful": 1,
+    "pages with broken file links": 1,
+    "terminology": 1
+  },
+  "total_entries": 254,
+  "sample_entries": {
+    "Abacus": {
+      "lore": "Abacus was a gnome of legend of the Gate Era. He, along with the Mist Titan Kha-Ymor, was credited with slaying the dragon Esuth, as told in the book Folk Tales found in Visken's Lair.",
+      "category": "character",
+      "wiki_url": "https://esotericebb.wiki.gg/wiki/Abacus",
+      "related": [
+        "Askan",
+        "Esuth",
+        "Gate Era",
+        "Kha-Ymor",
+        "Visken"
+      ],
+      "status": "new"
+    },
+    "Agent Viira": {
+      "lore": "Viira is an orc from Bloodcity Bay in the employ of Askanii-Reeds Trading Company, a Freestrider organization. She is found outside of Visken's Lair, south of Alfoz.",
+      "category": "character",
+      "wiki_url": "https://esotericebb.wiki.gg/wiki/Agent_Viira",
+      "related": [
+        "Alfoz",
+        "Askanii",
+        "Askanii-Reeds Trading Company",
+        "Askanii-Reeds Trading Company Building",
+        "Bloodcity Bay",
+        "Freestriders",
+        "Quest",
+        "Reeds",
+        "Revolutionary Freestriders",
+        "Strength"
+      ],
+      "status": "new"
+    },
+    "Akzel Mâddson": {
+      "lore": "Akzel Mâddson is a Dwarf archeologist.",
+      "category": "character",
+      "wiki_url": "https://esotericebb.wiki.gg/wiki/Akzel_M%C3%A2ddson",
+      "related": [
+        "Dexterity"
+      ],
+      "status": "new"
+    },
+    "Alfoz": {
+      "lore": "Alfoz B.E. is a dwarf and a leading figure in Tolstad's Azgalist movement.",
+      "category": "character",
+      "wiki_url": "https://esotericebb.wiki.gg/wiki/Alfoz",
+      "related": [
+        "Alfoz B.E.",
+        "Azgalists",
+        "Constitution",
+        "PPG Documents",
+        "Strength",
+        "Tolstad",
+        "Visken"
+      ],
+      "status": "new"
+    },
+    "Ambassador Ivcx Liuvben": {
+      "lore": "Ambassador Ivcx is a Celestial of the Golden Horde. He can temporarily be found in the Askanii-Reeds Trading Company Building as part of the Freestrider quest Capital Dominion.",
+      "category": "character",
+      "wiki_url": "https://esotericebb.wiki.gg/wiki/Ambassador_Ivcx_Liuvben",
+      "aliases": [
+        "Ivcx"
+      ],
+      "related": [
+        "Askanii",
+        "Askanii-Reeds Trading Company",
+        "Askanii-Reeds Trading Company Building",
+        "Dexterity",
+        "Quest",
+        "Reeds"
+      ],
+      "status": "new"
+    }
+  }
+}

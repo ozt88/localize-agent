@@ -1,0 +1,3416 @@
+{
+  "Abacus": {
+    "lore": "Abacus was a gnome of legend of the Gate Era. He, along with the Mist Titan Kha-Ymor, was credited with slaying the dragon Esuth, as told in the book Folk Tales found in Visken's Lair.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Abacus",
+    "related": [
+      "Askan",
+      "Esuth",
+      "Gate Era",
+      "Kha-Ymor",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Agent Viira": {
+    "lore": "Viira is an orc from Bloodcity Bay in the employ of Askanii-Reeds Trading Company, a Freestrider organization. She is found outside of Visken's Lair, south of Alfoz.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Agent_Viira",
+    "related": [
+      "Alfoz",
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Askanii-Reeds Trading Company Building",
+      "Bloodcity Bay",
+      "Freestriders",
+      "Quest",
+      "Reeds",
+      "Revolutionary Freestriders",
+      "Strength"
+    ],
+    "status": "new"
+  },
+  "Akzel Mâddson": {
+    "lore": "Akzel Mâddson is a Dwarf archeologist.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Akzel_M%C3%A2ddson",
+    "related": [
+      "Dexterity"
+    ],
+    "status": "new"
+  },
+  "Alfoz": {
+    "lore": "Alfoz B.E. is a dwarf and a leading figure in Tolstad's Azgalist movement.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Alfoz",
+    "related": [
+      "Alfoz B.E.",
+      "Azgalists",
+      "Constitution",
+      "PPG Documents",
+      "Strength",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Ambassador Ivcx Liuvben": {
+    "lore": "Ambassador Ivcx is a Celestial of the Golden Horde. He can temporarily be found in the Askanii-Reeds Trading Company Building as part of the Freestrider quest Capital Dominion.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ambassador_Ivcx_Liuvben",
+    "aliases": [
+      "Ivcx"
+    ],
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Askanii-Reeds Trading Company Building",
+      "Dexterity",
+      "Quest",
+      "Reeds"
+    ],
+    "status": "new"
+  },
+  "Arn": {
+    "lore": "Arn is a human child working at the Pillar Kiosk next to the Pillar of Jor in Tolstad. He sells equipable newspapers and magazines.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Arn",
+    "aliases": [
+      "Kiosk Kid"
+    ],
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Hex Weekly",
+      "Jor",
+      "Norvik",
+      "Thalassos",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Big Leader Gourgalash": {
+    "lore": "Big Leader Gourgalash is a Frost Troll that can be found in the Undercoast Path. He is first encountered while asleep, and will not wake up unless the Cleric approaches or attacks him.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Big_Leader_Gourgalash",
+    "related": [
+      "Cleric",
+      "Strength",
+      "The Cleric",
+      "The Conquest",
+      "Toulin'catl",
+      "Undercoast",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Borgo Darrow": {
+    "lore": "Borgo Darrow was the first of the noblemen House Darrow and the first paladin of the god Urth. He founded the Urthguard, and was said to be brave and invulnerable in battle.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Borgo_Darrow",
+    "related": [
+      "Urth",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Braxo": {
+    "lore": "Braxo is an imp legal scribe in Tolstad, and a minor but helpful character in the demo. He sits on a pillar south-west of Visken's Lair.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Braxo",
+    "aliases": [
+      "Pencilwing"
+    ],
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Freestriders",
+      "Norvik",
+      "Party Of Norvik",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Brrr": {
+    "lore": "Brrr is a sentient mushroom encountered in the Undercoast Path. He is first encountered while frozen in an Esoteric Pocket created by a frost troll.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Brrr",
+    "related": [
+      "Comprehend Languages",
+      "Undercoast",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Caelum Diminorii": {
+    "lore": "Caelum Diminorii was a member of the Diminorii and a legendary figure. He was known as the First Arcanist.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Caelum_Diminorii",
+    "related": [
+      "Arcanist",
+      "Diminorii"
+    ],
+    "status": "new"
+  },
+  "Doug Doulin Dim": {
+    "lore": "Doug Doulin Dim, the Drake Slayer King, was the first human emperor on the Coast. He got his title from his tendency to slay dragons and liberate their human slaves.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Doug_Doulin_Dim",
+    "related": [
+      "Diminorii",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Esuth": {
+    "lore": "Esuth was an ancient dragon of historical importance. He was discussed most prominently in the book Folk Tales found in Visken's Lair.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esuth",
+    "related": [
+      "Abacus",
+      "Gate Era",
+      "Kha-Ymor",
+      "Piece of Paper",
+      "The Coast",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Ettir": {
+    "lore": "Ettir is a city-sworn angel of Tolstad, in service of Magister Darrow. She can be found in front of his house, highest part of Tolstad North.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ettir",
+    "aliases": [
+      "City-sworn Angel"
+    ],
+    "related": [
+      "Cleric",
+      "Esoteric Ebb",
+      "Goblin",
+      "Intelligence",
+      "Snell",
+      "Strength",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Ever-Glad": {
+    "lore": "Ever-Glad is a Trifler. He can be found in the Old Prison far below Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ever-Glad",
+    "related": [
+      "Cleric",
+      "Divine Hex",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Fillius Prax": {
+    "lore": "Fillius Prax was a leading figure of Arcanist ideology, a mage and an author of Autobiography Prax. His descendant Rubrick Prax is the head of The Arcane Circle.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Fillius_Prax",
+    "related": [
+      "Arcanist",
+      "Rubrick Prax"
+    ],
+    "status": "new"
+  },
+  "Fourth Apprentice of Jor": {
+    "lore": "The Fourth Apprentice of Jor, or the Nameless Apprentice, was one of Jor's original apprentices.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Fourth_Apprentice_of_Jor",
+    "related": [
+      "Coast War",
+      "Jor",
+      "Thazen",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Frank, Son of Frank": {
+    "lore": "A name that's mentioned as a witness for the case of The Tea Shop that Blew Up, injured during the explosion. Learning the name starts the quest The Star Witness.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Frank%2C_Son_of_Frank",
+    "related": [
+      "Dexterity",
+      "Quest",
+      "The Tea Shop that Blew Up"
+    ],
+    "status": "new"
+  },
+  "Freydis": {
+    "lore": "Freydis is a character with a short role in the demo. She can be found in The Holes.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Freydis",
+    "related": [
+      "Crowns",
+      "Lady Chamar",
+      "Strength",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Geesus": {
+    "lore": "Geesus was a titan who lived in Askan during the Fade Era. He resembled a giant goose.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Geesus",
+    "related": [
+      "Askan",
+      "Fade Era",
+      "Vyz-Kha"
+    ],
+    "status": "new"
+  },
+  "Gods": {
+    "lore": "Walking gods (or demi-gods) of The Coast are ascended mortals who carried divinity of the original gods residing outside of The Coast.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Gods",
+    "related": [
+      "Arcane Era",
+      "Azgal Ashmask",
+      "Divine Era",
+      "Illym",
+      "Jor",
+      "Lady Fair",
+      "Realm of Jor",
+      "Shadow Lord",
+      "The Coast",
+      "Tokig"
+    ],
+    "status": "new"
+  },
+  "Gorgorian": {
+    "lore": "Gorgorian was a Archdevil of the Gate Era.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Gorgorian",
+    "related": [
+      "Bloodcity Bay",
+      "Gate Era",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Gorm Skaldeman": {
+    "lore": "Gorm Skaldeman is the last appointed paladin of Urth. He became the face of the Party Of Norvik, but went missing months prior to the events of the game.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Gorm_Skaldeman",
+    "related": [
+      "Charm Person",
+      "Elves",
+      "Ever-Glad",
+      "Freestriders",
+      "Illym",
+      "Jor",
+      "Lord Patriarch Âkesam",
+      "Missing Paladin",
+      "Necklace of Fireballs",
+      "Norvik"
+    ],
+    "status": "new"
+  },
+  "Haelon Bondavol": {
+    "lore": "Haelon Bondavol is a demi-lich residing in the Doom below Tolstad. Through a successful DC 24 Intelligence check, the spell Speak with Dead can be learned from him.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Haelon_Bondavol",
+    "related": [
+      "Doom",
+      "Intelligence",
+      "Speak With Dead",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Hierophant Ohpidana": {
+    "lore": "Hierophant Ohpidana is a powerful archdruid in the Undercoast. Ohpidana's chief concern is of \"keeping balance\" in the Undersea by stopping any powers from developing a hold of the region, both dominant powers of The Coast and civilizations in the Undercoast.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Hierophant_Ohpidana",
+    "related": [
+      "Nessan",
+      "The Coast",
+      "Undercoast"
+    ],
+    "status": "new"
+  },
+  "Kha-Ymor": {
+    "lore": "Kha-Ymor was a Mist Titan with historical importance during the Gate Era. He was discussed most prominently in the book Folk Tales found in Visken's Lair.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Kha-Ymor",
+    "related": [
+      "Abacus",
+      "Esuth",
+      "Gate Era",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Kraaid": {
+    "lore": "Kraaid is a crocoliskfolk who lives in The Sewers. He is a cook and hunter, and sells Slogdogs, sausages made of a meat with unknown origin.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Kraaid",
+    "aliases": [
+      "Rage of Askan"
+    ],
+    "related": [
+      "Constitution",
+      "The Sewers",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Lord Patriarch Âkesam": {
+    "lore": "Lord Âkesam is the current Lord Patriarch of Norvik, the commander of city forces and highest-ranking cleric of Urth. He is the leader of the Party Of Norvik.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lord_Patriarch_%C3%82kesam",
+    "related": [
+      "Cleric",
+      "Gods",
+      "Norvik",
+      "Party Of Norvik",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Miska Sageleaf": {
+    "lore": "Miska Sageleaf (often referred to as Lady Sageleaf) is the leader of the Halfway Bridge Tribe and administrator of Lower Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Miska_Sageleaf",
+    "aliases": [
+      "Dragon of Tolstad",
+      "Lady Sageleaf",
+      "The Lady"
+    ],
+    "related": [
+      "Cleric",
+      "Constitution",
+      "Goblin",
+      "Goblins",
+      "Lady Sageleaf",
+      "Norvik",
+      "Quest",
+      "Snell",
+      "The Cleric",
+      "The Tea Shop that Blew Up"
+    ],
+    "status": "new"
+  },
+  "Miss Nearly": {
+    "lore": "Miss Nearly is a goblin bard.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Miss_Nearly",
+    "related": [
+      "Crowns",
+      "Goblin",
+      "Goblins",
+      "Quest",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Modissa": {
+    "lore": "Modissa is a human and a member of the Azgalian Worker's Party in Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Modissa",
+    "aliases": [
+      "Youth Azgal"
+    ],
+    "related": [
+      "Azgalian Worker's Party",
+      "Strength",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Moongore": {
+    "lore": "Moongore is a bugbear enforcer of Miska Sageleaf. Nessan instructs The Cleric to find her to get the Goodapple spell.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Moongore",
+    "related": [
+      "Cleric",
+      "Miska Sageleaf",
+      "Nessan",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Nessan": {
+    "lore": "Nes'Wikkala (also known as Nessan) is a Pimeä Elves druid that came to Tolstad from the Undercoast. She resides in the Goblin Garden",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Nessan",
+    "aliases": [
+      "'Nessan' of the Green"
+    ],
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Elves",
+      "Goblin",
+      "Hierophant Ohpidana",
+      "Moongore",
+      "Nes'Wikkala",
+      "The Cleric",
+      "Tolstad",
+      "Undercoast"
+    ],
+    "status": "new"
+  },
+  "Nicholas Darrow": {
+    "lore": "Nicholas Darrow is the Coinlord of Norvik and the magistrate of Tolstad. As a Coinlord, he handles minting, trade, financing of public works, and tithes.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Nicholas_Darrow",
+    "aliases": [
+      "Magister Nicholas Darrow"
+    ],
+    "related": [
+      "Borgo Darrow",
+      "Charisma",
+      "Charm Person",
+      "Ettir",
+      "Norvik",
+      "Tolstad",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Olzis": {
+    "lore": "Olzis is a Gynosphinx who lives in the Drunk Sphinx tavern. She is the tavern's namesake.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Olzis",
+    "aliases": [
+      "Vault Guardian"
+    ],
+    "related": [
+      "Fade Era",
+      "Gods",
+      "Jor",
+      "Realm of Jor",
+      "Tolstad",
+      "Toulin'catl",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Oyugüi": {
+    "lore": "Oyugüi is a Kargameshian Halfling Vendor found outside the Temple of Urth.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Oyug%C3%BCi",
+    "aliases": [
+      "Kargameshian Vendor"
+    ],
+    "related": [
+      "Dexterity",
+      "Temple of Urth",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Pinja": {
+    "lore": "Pínja'Athena is an enigmatic elf found behind a house in Tolstad North, silently looking at River Torna. Pinja speaks in cryptic, wistful phrases, and as such it is hard to characterize her.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Pinja",
+    "aliases": [
+      "Pinja of the Mend"
+    ],
+    "related": [
+      "Elves",
+      "Gorm Skaldeman",
+      "Illym",
+      "River Torna",
+      "Strength",
+      "Tolstad",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Razz": {
+    "lore": "Razz is a goblin mercenary. He is a goblin supremacist, and will not talk to you unless you have Snell as a companion.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Razz",
+    "aliases": [
+      "Bow for Hire"
+    ],
+    "related": [
+      "Charisma",
+      "Goblin",
+      "Goblins",
+      "Snell"
+    ],
+    "status": "new"
+  },
+  "Rixbiter": {
+    "lore": "Rixbiter is the Tiefling proprietor of the Drunk Sphinx, a tavern in Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Rixbiter",
+    "aliases": [
+      "Local Taverner"
+    ],
+    "related": [
+      "Dexterity",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Rollo Malach": {
+    "lore": "Stenbusken is the leader of the Norvikian Resistance. He can usually be found in the Rollermill or Tavern with his friends.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Rollo_Malach",
+    "aliases": [
+      "Rollo"
+    ],
+    "related": [
+      "Azgalian Worker's Party",
+      "Cleric",
+      "Hammer and Zeal",
+      "Modissa",
+      "Norvikian Resistance",
+      "Quest",
+      "Stenbusken",
+      "The Cleric",
+      "Three Hundred Pieces"
+    ],
+    "status": "new"
+  },
+  "Rubrick Prax": {
+    "lore": "Rubrick Prax of House Prax is according to Intellgence the last living member of the magocratic family. He is the leader of The Arcane Circle, an Arcanist political group.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Rubrick_Prax",
+    "related": [
+      "Arcanist",
+      "House Prax"
+    ],
+    "status": "new"
+  },
+  "Seagull": {
+    "lore": "A giant seagull can be found in the northernmost bridge of Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Seagull",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Jor",
+      "The Cleric",
+      "The Tea Shop that Blew Up",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Simii": {
+    "lore": "Simii is a dwarf from Tolstad, part of the Azgalists and seen with Alfoz during Circle Square Conflict. His title says \"son of Strokeback\".",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Simii",
+    "related": [
+      "Alfoz",
+      "Azgalists",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Sir Triban": {
+    "lore": "Sir Triban is a black cat located in South Tolstad near Our Lady's Apartments.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Sir_Triban",
+    "related": [
+      "Cleric",
+      "The Cleric",
+      "Tolstad",
+      "Undercoast"
+    ],
+    "status": "new"
+  },
+  "Snell": {
+    "lore": "Snell is Cleric's goblin companion investigating the tea shop explosion on behalf of the HWBT. He is a possible party member, and the one most likely to be encountered first.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Snell",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Dexterity",
+      "Encounters",
+      "Ettir",
+      "Goblin",
+      "Goblins",
+      "Lady Sageleaf",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Snurre Appledent": {
+    "lore": "Snurre Appledent is a halfling scholar in Waterlane. He is a Scholar of the Fordnip University, specializing in the field of AIS(Alignment Intent Studies).",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Snurre_Appledent",
+    "aliases": [
+      "Sch. Snurre Appledent"
+    ],
+    "related": [
+      "Appledent",
+      "Azgalian Worker's Party",
+      "Intelligence"
+    ],
+    "status": "new"
+  },
+  "Stenbusken": {
+    "lore": "Stenbusken is a member of the Norvikian Resistance. He can usually be found in the Rollermill or Tavern with his friends.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Stenbusken",
+    "related": [
+      "Norvikian Resistance",
+      "Strength"
+    ],
+    "status": "new"
+  },
+  "The Cleric": {
+    "lore": "The Cleric is Esoteric Ebb's player character. His full name is Ragn Hemlin, though most of the narration in the game refers to him as The Cleric.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Cleric",
+    "aliases": [
+      "C.L. Eric",
+      "Dick-ass Rogue",
+      "Ragn Hemlin"
+    ],
+    "related": [
+      "'Helm'",
+      "Abilities",
+      "Ability Score",
+      "Askanii",
+      "Azgalists",
+      "Charisma",
+      "Cleric",
+      "Constitution",
+      "Democratic Herald",
+      "Dexterity"
+    ],
+    "status": "new"
+  },
+  "The Duck": {
+    "lore": "The Duck is a solemn armored warrior found in the Temple of Urth.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Duck",
+    "aliases": [
+      "Duck"
+    ],
+    "related": [
+      "Ability Check",
+      "Cleric",
+      "Constitution",
+      "Inflict Wounds",
+      "Norvik",
+      "Strength",
+      "Temple of Urth",
+      "The Cleric",
+      "Urth",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Thomas Darrow": {
+    "lore": "Thomas Darrow was a nobleman of House Darrow and the uncle of Nicholas Darrow. He was a vampire.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Thomas_Darrow",
+    "related": [
+      "Nicholas Darrow"
+    ],
+    "status": "new"
+  },
+  "Tinnitul": {
+    "lore": "Tinnitul is a Smoke Mephit in the employ of the Askanii-Reeds Trading Company. He is bound to the fireplace of the Akanii-Reeds Trading Company Building in Waterlane.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tinnitul",
+    "aliases": [
+      "Hired Smoke Mephit"
+    ],
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Constitution",
+      "Druidcraft",
+      "Reeds"
+    ],
+    "status": "new"
+  },
+  "Tisereldanour": {
+    "lore": "Tisereldanour was a \"great\" Green Dragon and a draconic ruler. She ruled the area of the Illym Forest.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tisereldanour",
+    "related": [
+      "Arcanist",
+      "Diminor",
+      "Doug Doulin Dim",
+      "Illym",
+      "Reeds"
+    ],
+    "status": "new"
+  },
+  "Tol": {
+    "lore": "Tol was the brother of god Urth. He was a mythical explorer of Askan who founded several towns along the River Torna, including Tolstad.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tol",
+    "related": [
+      "Askan",
+      "River Torna",
+      "Tol's Sword",
+      "Tolstad",
+      "Urth",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Toli Tolpare": {
+    "lore": "Toli Tolpare is a member of the Norvikian Resistance. He can usually be found in the Rollermill or Tavern with his friends.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Toli_Tolpare",
+    "related": [
+      "Charisma",
+      "Norvikian Resistance"
+    ],
+    "status": "new"
+  },
+  "Visken": {
+    "lore": "Visken is Tolstad's mortician and former dentist and surgeon. He is the intended first character that the player talks to, and provides useful information about the main quest, Cleric's immediate past and items, information about the city, and starts quests associated with him.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Visken",
+    "aliases": [
+      "Local Mortician"
+    ],
+    "related": [
+      "Askan",
+      "Charm Person",
+      "Cleric",
+      "Intelligence",
+      "Lichhouse Blues",
+      "Norvik",
+      "Party Of Norvik",
+      "Quest",
+      "Reeds",
+      "Snell"
+    ],
+    "status": "new"
+  },
+  "Warden Kullervo'Lämäläinen": {
+    "lore": "Kullervo is an Elf and a representative of Illym.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Warden_Kullervo%27L%C3%A4m%C3%A4l%C3%A4inen",
+    "related": [
+      "Constitution",
+      "Elven Connection",
+      "Illym",
+      "Pinja",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Xerba": {
+    "lore": "Xerba B.E. is a Dwarf.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Xerba",
+    "related": [
+      "Constitution",
+      "Intelligence",
+      "Modissa",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Ôst": {
+    "lore": "Ôst is a kobold in employment of the mortician Visken, for whom he acts as a guard. He can be found sitting at the exit from the upper lair of Visken's Lair.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/%C3%94st",
+    "aliases": [
+      "Chief of Security"
+    ],
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Norvik",
+      "Party Of Norvik",
+      "Strength",
+      "The Cleric",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Ûrth-Nisse": {
+    "lore": "Ûrth-Nisse is a member of the Norvikian Resistance. He can usually be found in the Rollermill or Tavern with his friends.",
+    "category": "character",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/%C3%9Brth-Nisse",
+    "related": [
+      "Cleric",
+      "Norvikian Resistance",
+      "The Cleric",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Bloodcity Bay": {
+    "lore": "Blodcity Bay is the largest city of Fell Tire. From the little information in the game, it seems to be home of Evil-aligned people such as Devils or Orcs.",
+    "category": "cities",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Bloodcity_Bay",
+    "related": [
+      "Brimmarks",
+      "Gorgorian"
+    ],
+    "status": "new"
+  },
+  "Azgal Ashmask": {
+    "lore": "Azgal Ashmask was a low caste dwarf born in the tunnels of Lekm-Muraz. In 443 AE, he became the God of exiles and egalitarianism after starting a workers' revolution.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Azgal_Ashmask",
+    "related": [
+      "Gods",
+      "Jor",
+      "Journal",
+      "Undercoast",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Illym": {
+    "lore": "Illym The Mender is an Elven goddess who established the Illym Empire. The Illym Forest is also named after her.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Illym",
+    "related": [
+      "Arcane Era",
+      "Gods",
+      "Norvik",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Lady Fair": {
+    "lore": "Lady Fair was a god, and an ascended halfling.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lady_Fair",
+    "related": [
+      "Fordnip Commonwealth",
+      "Gods",
+      "Journal",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Shadow Lord": {
+    "lore": "A walking god who lived early in the Divine Era. He was most well known for his legion of Death Knights, and for their almost century long reign over Old Diminor.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Shadow_Lord",
+    "related": [
+      "Arcane Era",
+      "Diminor",
+      "Divine Era",
+      "Gods",
+      "House Hagginshags",
+      "Journal",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Tokig": {
+    "lore": "Tokig the Gambler was a trickster god and an ascended goblin.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tokig",
+    "related": [
+      "Askan",
+      "Askanii",
+      "Divine Era",
+      "Goblin",
+      "Goblins",
+      "Gods",
+      "Journal",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Urth": {
+    "lore": "Urth was the state god of Norvik, known by his epithet as the Father Of Norvik. He is The Cleric's god after whom the Urthguard are named, as well as the human ethnicity Urthfolk.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Urth",
+    "related": [
+      "Arcane Era",
+      "Cleric",
+      "Gods",
+      "Great Perch",
+      "Journal",
+      "Norvik",
+      "River Torna",
+      "Strength",
+      "The Cleric",
+      "Tol"
+    ],
+    "status": "new"
+  },
+  "Yggeria": {
+    "lore": "Yggeria was the god of the Ym Elves.",
+    "category": "deity",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Yggeria",
+    "related": [
+      "Coast War",
+      "Elves",
+      "Gods",
+      "Intelligence",
+      "Journal",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Arcane Era": {
+    "lore": "The Fourth Era. It lasted for 511 years, ending 27 years prior to the events of the game.",
+    "category": "era",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Arcane_Era",
+    "related": [
+      "Arcanists",
+      "Azgal Ashmask",
+      "Coast War",
+      "Diminor",
+      "Divine Era",
+      "Goblin",
+      "Norvik",
+      "Postwar Era",
+      "Thazen",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Divine Era": {
+    "lore": "The Third Era. It lasted for 379 years.",
+    "category": "era",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Divine_Era",
+    "related": [
+      "Arcane Era",
+      "Fade Era",
+      "Gods"
+    ],
+    "status": "new"
+  },
+  "Fade Era": {
+    "lore": "The Second Era. It was also known as the Fall Era.",
+    "category": "era",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Fade_Era",
+    "related": [
+      "Divine Era",
+      "Gate Era",
+      "Jor"
+    ],
+    "status": "new"
+  },
+  "Gate Era": {
+    "lore": "The first of the five eras, when Jor crafted Jor's Realm, and the gods fought to bring order. Succeeded by the Fade Era.",
+    "category": "era",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Gate_Era",
+    "related": [
+      "Fade Era",
+      "Gods",
+      "Jor",
+      "Jor's Realm"
+    ],
+    "status": "new"
+  },
+  "Postwar Era": {
+    "lore": "The current era, which has lasted twenty-seven years. It succeeds the Arcane Era.",
+    "category": "era",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Postwar_Era",
+    "related": [
+      "Arcane Era",
+      "Reeds"
+    ],
+    "status": "new"
+  },
+  "Coast War": {
+    "lore": "A nearly century spanning conflict fought between the great nations of the Arcane Era. It was unimaginably destructive, with around a half of humankind perishing during it.",
+    "category": "events",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Coast_War",
+    "related": [
+      "Arcane Era",
+      "Arcanists",
+      "Journal",
+      "Reeds",
+      "Strength",
+      "Thazen",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Arcanists": {
+    "lore": "Arcanists are a magocratic (i.e. autocracy of mages) political ideology, movement, and party that centers around anti-democratic rule of the most powerful wizards.",
+    "category": "faction",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Arcanists",
+    "related": [
+      "Arcanist",
+      "Charisma",
+      "Cleric",
+      "Coast War",
+      "Fillius Prax",
+      "House Prax",
+      "Intelligence",
+      "Political Parties",
+      "Reeds",
+      "Rubrick Prax"
+    ],
+    "status": "new"
+  },
+  "Azgalian Worker's Party": {
+    "lore": "Azgalian Worker's Party are a political party in Norvik, part of the Azgalist movement. They are labor-oriented and base their ideology in the ideas of its founder Azgal Ashmask.",
+    "category": "faction",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Azgalian_Worker%27s_Party",
+    "related": [
+      "Alfoz",
+      "Appledent",
+      "Askan",
+      "Azgal Ashmask",
+      "Azgalists",
+      "Cleric",
+      "Freestriders",
+      "Gods",
+      "Magocracy",
+      "Modissa"
+    ],
+    "status": "new"
+  },
+  "Party Of Norvik": {
+    "lore": "Party Of Norvik (also known as The Nationalists) are a Norvikian political party and the current ruling party of the city.",
+    "category": "faction",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Party_Of_Norvik",
+    "related": [
+      "Arcane Era",
+      "Charisma",
+      "Coast War",
+      "Lord Patriarch Âkesam",
+      "Magocracy",
+      "Nationalists",
+      "Norvik",
+      "Political Parties",
+      "Postwar Era",
+      "Strength"
+    ],
+    "status": "new"
+  },
+  "Political Parties": {
+    "lore": "Esoteric Ebb features several political parties that struggle for influence in the newly democratic city of Norvik.",
+    "category": "faction",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Political_Parties",
+    "related": [
+      "Arcanist",
+      "Arcanists",
+      "Azgalists",
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Esoteric Ebb",
+      "Freestriders",
+      "Intelligence",
+      "Magocracy"
+    ],
+    "status": "new"
+  },
+  "Revolutionary Freestriders": {
+    "lore": "Revolutionary Freestriders are a Norvikian political party and a wider ideology promoting electoral democracy and laissez-faire capitalism.",
+    "category": "faction",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Revolutionary_Freestriders",
+    "related": [
+      "Agent Viira",
+      "Azgalian Worker's Party",
+      "Azgalists",
+      "Cleric",
+      "Coast War",
+      "Dexterity",
+      "Diminor",
+      "Freestriders",
+      "Gods",
+      "Jor"
+    ],
+    "status": "new"
+  },
+  "Arcanist": {
+    "lore": "Arcanist is one of six possible feats that can be obtained from the quest Election Week. It is related to the Arcanist political party, and is associated with Intelligence.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Arcanist",
+    "related": [
+      "Cleric",
+      "Intelligence",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Azgalian Spirit": {
+    "lore": "Azgalian Spirit is one of two possible feats obtained from the quest Circle Square Conflict. It is ideologically related to the Azgalian Worker's Party.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Azgalian_Spirit",
+    "related": [
+      "Azgalian Worker's Party",
+      "Cleric",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Democratic Herald": {
+    "lore": "Democratic Herald is a feat obtained after completing the quest Democratization.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Democratic_Herald",
+    "related": [
+      "Cleric",
+      "Hit points",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Future Patriarch": {
+    "lore": "Future Patriarch is one of two possible feats obtained from the quest Young & Dumb.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Future_Patriarch",
+    "related": [
+      "Cleric",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "God-Emperor Wizard": {
+    "lore": "God-Emperor Wizard is one of six possible feats obtained from the quest Class Conflict. It comes from repeating that you are a Wizard, and is associated with Intelligence.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/God-Emperor_Wizard",
+    "related": [
+      "Cleric",
+      "Intelligence",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Lady Fair (Feat)": {
+    "lore": "Lady Fair is one of two possible feats obtained from the quest Young & Dumb.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lady_Fair_%28Feat%29",
+    "related": [
+      "Cleric",
+      "Lady Fair",
+      "Quest",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Money Talks": {
+    "lore": "Money Talks is one of two possible Feats obtained from the quest Circle Square Conflict.",
+    "category": "feat",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Money_Talks",
+    "related": [
+      "Crowns",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Ironbrush": {
+    "lore": "Ironbrush is a character mentioned by Snell as the person who drew the green dragon graffiti on a wall of Visken's Lair, Tolstad South.",
+    "category": "goblins",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ironbrush",
+    "related": [
+      "Goblins",
+      "Snell",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Askanii-Reeds Trading Company": {
+    "lore": "Askanii-Reeds Trading Company is a Freestrider-aligned business and organization, one of many throughout The Coast with multiple branches. In Tolstad their head-quarters are located in Waterlane.",
+    "category": "groups",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Askanii-Reeds_Trading_Company",
+    "related": [
+      "Agent Viira",
+      "Askan",
+      "Askanii",
+      "Intelligence",
+      "Norvik",
+      "Reeds",
+      "The Coast",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Order of Arcane Clerics": {
+    "lore": "The Order of Arcane Clerics of Norvik (abbr. OACN, also known as The Towers) are a section of the Urthguard which specializes in spellcasting.",
+    "category": "groups",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Order_of_Arcane_Clerics",
+    "related": [
+      "Cleric",
+      "Norvik",
+      "The Cleric",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Urthguard": {
+    "lore": "Urthguard in Norvik are the main law-keeping organization; the guards of the city. They are linked to the religion of the god Urth.",
+    "category": "groups",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Urthguard",
+    "related": [
+      "Borgo Darrow",
+      "Cleric",
+      "Journal",
+      "Norvik",
+      "Order of Arcane Clerics",
+      "Strength",
+      "The Cleric",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Urth's Passing": {
+    "lore": "Urth's Passing is a religious observance related to the god Urth. It is a winter celebration where families feast together.",
+    "category": "history",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Urth%27s_Passing",
+    "related": [
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "'Helm'": {
+    "lore": "The 'Helm' (also Great Helm in the file name) is the default Helmet. It is found on the player when they first wake up in Visken's basement.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/%27Helm%27",
+    "related": [
+      "Helmet",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Amethyst": {
+    "lore": "The Amethyst is a Trinket given by the Hail Snail after freeing him.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Amethyst",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Emerald",
+      "Intelligence",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Aventail": {
+    "lore": "Aventail is a Helmet looted from the body of the Skeleton.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Aventail",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Constitution",
+      "Helmet",
+      "Intelligence",
+      "Norvik",
+      "The Cleric",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Basinet": {
+    "lore": "The Basinet is a Helmet found in the Secret Tunnel.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Basinet",
+    "related": [
+      "Cleric",
+      "Constitution",
+      "Dexterity",
+      "Helmet",
+      "Intelligence",
+      "Secret Tunnel",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Book of the Mind, Sixth Edition": {
+    "lore": "The Book of the Mind is a piece of Literature. It may be acquired during the quest The Lost 6th Edition.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Book_of_the_Mind%2C_Sixth_Edition",
+    "related": [
+      "Cleric",
+      "Constitution",
+      "Literature",
+      "Quest",
+      "The Cleric",
+      "The Lost 6th Edition",
+      "Voting Card"
+    ],
+    "status": "new"
+  },
+  "Bracers of Thievery": {
+    "lore": "The Bracers of Thievery are a Trinket found in Visken's Lair on a stone platform after the Burned Corpse is brought to it.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Bracers_of_Thievery",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Illym",
+      "The Cleric",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Broken Sword": {
+    "lore": "The Broken Sword is a Weapon found in the lower part of Visken's Lair, north-west of the room, on a barrel, after dealing with the Zombie (Visken's Lair).",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Broken_Sword",
+    "related": [
+      "Cleric",
+      "Strength",
+      "The Cleric",
+      "Urthguard",
+      "Visken",
+      "Wisdom",
+      "Zombie (Visken's Lair)"
+    ],
+    "status": "new"
+  },
+  "Bronze Shield": {
+    "lore": "The Bronze Shield is a Trinket that can be found in front of an abandoned hut in the Undercoast Path.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Bronze_Shield",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Norvik",
+      "The Cleric",
+      "Undercoast",
+      "Whitemane",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Bucket": {
+    "lore": "The Bucket is a Helmet. It can be found in Tolstad South, on a platform above the Imposing Tree.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Bucket",
+    "related": [
+      "Helmet",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Caretaker": {
+    "lore": "The Caretaker is a Weapon held by The Duck. It can be pickpocketed at DC 22, however, doing this will trigger an interaction where Caretaker resists and The Duck takes it back.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Caretaker",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Constitution",
+      "Strength",
+      "The Cleric",
+      "The Duck",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Collected Chants of Norvik": {
+    "lore": "The Collected Chants of Norvik is a work of Literature located in on a bookshelf in Visken's Lair. It can read while on the bookshelf.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Collected_Chants_of_Norvik",
+    "related": [
+      "Cleric",
+      "Literature",
+      "Norvik",
+      "Strength",
+      "The Cleric",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Concentrated Rhubarb Ale": {
+    "lore": "Concentrated Rhubarb Ale is a consumable that increases the Cleric's Charisma by +1 for a week. 2 bottle of Concentrated Rhubarb Ale can be found around Tolstad: one can be pickpocketed at DC 15 from Rixbiter, and one can be bought from the Potion Seller for 230 Crowns.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Concentrated_Rhubarb_Ale",
+    "related": [
+      "Askanii",
+      "Charisma",
+      "Cleric",
+      "Crowns",
+      "Rixbiter",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Crowns": {
+    "lore": "Urth Crowns. The official currency minted in Norvik's Riksbank.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Crowns",
+    "related": [
+      "Norvik",
+      "River Torna",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Docile Stress Cube": {
+    "lore": "The Docile Stress Cube is a Trinket obtained after defeating the Gelatinous Cube.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Docile_Stress_Cube",
+    "related": [
+      "Cleric",
+      "Stress Cube",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Emerald": {
+    "lore": "The Emerald is a Trinket pickpocketed from Haelon Bondavol at DC 15. Alternatively, you can convince him to give it to you by mentioning Olzis wants it in order to make a gate key.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Emerald",
+    "related": [
+      "Cleric",
+      "Haelon Bondavol",
+      "Intelligence",
+      "Olzis",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Esoteric Lockpick": {
+    "lore": "The Esoteric Lockpick is a Trinket located in the South Caverns. It is looted from the body of a headless rogue.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esoteric_Lockpick",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "South Caverns",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Esoteric Pocket Watch": {
+    "lore": "The Esoteric Pocket Watch is a Trinket found on Visken's desk in Visken's Lair. It is a pocket watch that is perpetually incorrect.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esoteric_Pocket_Watch",
+    "related": [
+      "Cleric",
+      "Goblin",
+      "Intelligence",
+      "Jor",
+      "The Cleric",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Flower Crown": {
+    "lore": "The Flower Crown is a Trinket obtained from Miss Nearly after completing the quest Essence of Inflorescence, or pickpocketed from her at DC 12.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Flower_Crown",
+    "related": [
+      "Cleric",
+      "Miss Nearly",
+      "Quest",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Frog-Mouth": {
+    "lore": "The Frog-Mouth is a Helmet found atop a dresser in Darrow's Nest.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Frog-Mouth",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Helmet",
+      "Nicholas Darrow",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Garden Apple": {
+    "lore": "Garden Apple is a healing consumable. It is the basic healing item, healing only 1 HP.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Garden_Apple",
+    "related": [
+      "Abilities",
+      "Ability Check",
+      "Cleric",
+      "Constitution",
+      "Nessan",
+      "Norvik",
+      "The Cleric",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Gauntlets of Ogre Power": {
+    "lore": "The Gauntlets of Ogre Power are a Trinket found in the Secret Tunnel.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Gauntlets_of_Ogre_Power",
+    "related": [
+      "Cleric",
+      "Esoteric Ebb",
+      "Secret Tunnel",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Hex Weekly": {
+    "lore": "Hex Weekly is a piece of Literature than can be purchased from Arn for 20 Crowns. It can also be pickpocketed from him at DC 10.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Hex_Weekly",
+    "related": [
+      "Arn",
+      "Cleric",
+      "Coast War",
+      "Crowns",
+      "Literature",
+      "Strength",
+      "The Cleric",
+      "The Coast",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Holy Symbol of Whitemane": {
+    "lore": "The Holy Symbol of Whitemane is a Trinket that is located in the Survey. It is hidden in the mouth of the large cat statue, and can be located by casting Detect Secrets.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Holy_Symbol_of_Whitemane",
+    "related": [
+      "Detect Secrets",
+      "Whitemane"
+    ],
+    "status": "new"
+  },
+  "Incense Bowl": {
+    "lore": "The Incense Bowl is a Trinket found in the City Below the City.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Incense_Bowl",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Constitution",
+      "Intelligence",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Ioun Stone, Insight": {
+    "lore": "The Ioun Stone, Insight is a Trinket given by a Brrr after saving him in the Undercoast Path.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ioun_Stone%2C_Insight",
+    "related": [
+      "Arcane Era",
+      "Brrr",
+      "Cleric",
+      "The Cleric",
+      "Undercoast",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Jacinth": {
+    "lore": "The Jacinth is a Trinket obtained after solving the 3 riddles of a Minotaur statue in the City Below the City.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Jacinth",
+    "related": [
+      "Cleric",
+      "Intelligence",
+      "South Caverns",
+      "Strength",
+      "The Cleric",
+      "Whitemane"
+    ],
+    "status": "new"
+  },
+  "Kattegatt": {
+    "lore": "Kattegatt is a Weapon found on the wall of the Askanii-Reeds Trading Company Building in Waterlane. It can be stolen with a DC 19 Dexterity check.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Kattegatt",
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Askanii-Reeds Trading Company Building",
+      "Cleric",
+      "Dexterity",
+      "Reeds",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Light Crossbow": {
+    "lore": "The Light Crossbow is a Weapon belonging to Ôst. It can be obtained by convincing the Kobold to give it to you, or by pickpocketing him.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Light_Crossbow",
+    "related": [
+      "Cleric",
+      "Coast War",
+      "Dexterity",
+      "The Cleric",
+      "The Coast",
+      "Wisdom",
+      "Ôst"
+    ],
+    "status": "new"
+  },
+  "Mace of Terror": {
+    "lore": "The Mace of Terror is a Weapon found in the Crypt, behind the Skeleton.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Mace_of_Terror",
+    "related": [
+      "Cleric",
+      "Constitution",
+      "Strength",
+      "The Cleric",
+      "Urthguard",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Orange Ledger": {
+    "lore": "The Orange Ledger is a work of Literature located in",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Orange_Ledger",
+    "related": [
+      "Cleric",
+      "Literature",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "PPG Documents": {
+    "lore": "PPG Documents are a piece of Literature. They can be taken from Alfoz by succeeding on an Intelligence check, or pickpocketed from him at DC 9.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/PPG_Documents",
+    "related": [
+      "Agent Viira",
+      "Alfoz",
+      "Cleric",
+      "Intelligence",
+      "Literature",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Petrified Longbow": {
+    "lore": "The Petrified Longbow is a Weapon found in the Roots. It is taken from the petrified body of a long-dead adventurer.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Petrified_Longbow",
+    "status": "new"
+  },
+  "Pickaxe of Secrets": {
+    "lore": "The Pickaxe of Secrets is a Weapon obtained by talking to Akzel Mâddson after completing the quest Lost Mines of Toul'Amon. It is an ordinary pickaxe which has been enchanted with the spell Detect Secret.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Pickaxe_of_Secrets",
+    "related": [
+      "Akzel Mâddson",
+      "Cleric",
+      "Intelligence",
+      "Jor",
+      "Quest",
+      "Strength",
+      "The Cleric",
+      "Visken",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Piece of Paper": {
+    "lore": "The Piece of Paper is a piece of Literature found on a corpse in the City Below the City.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Piece_of_Paper",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Intelligence",
+      "Literature",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Pixie Dust Slush": {
+    "lore": "Pixie Dust Slush is a consumable that increases the Cleric's Dexterity by +1 for a week. 4 Pixie Dust Slushes can be found around Tolstad: one can be stolen from a cupboard within the Askanii-Reeds Trading Company Building, one can be pickpocketed at DC 14 from Miska Sageleaf, one can be found in...",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Pixie_Dust_Slush",
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Askanii-Reeds Trading Company Building",
+      "Cleric",
+      "Crowns",
+      "Detect Secrets",
+      "Dexterity",
+      "Miska Sageleaf",
+      "Reeds",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Potion of Healing": {
+    "lore": "Potions of Healing are healing Consumables found in various places around Tolstad and the City Below. One Potion of Healing can be found in a crate of potions in The Sewers.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Potion_of_Healing",
+    "related": [
+      "The Sewers",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Resistance Note": {
+    "lore": "The Resistance Note is a piece of Literature. It can be found on the roof of the Rollermill.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Resistance_Note",
+    "related": [
+      "Cleric",
+      "Literature",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Ring of Protection": {
+    "lore": "The Ring of Protection is a Trinket that can be found in a birds nest in a tree in Southern Tolstad.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ring_of_Protection",
+    "related": [
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Sallet": {
+    "lore": "The Sallet is a Helmet found in the Askanii Reeds Trading Company Warehouse, in a crate of Mosquito Sand.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Sallet",
+    "related": [
+      "Askanii",
+      "Cleric",
+      "Dexterity",
+      "Helmet",
+      "Reeds",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Sending Pebble": {
+    "lore": "The Sending Pebble is a Trinket found in the dark room on the ground floor of the Rollermill. It can be used to send short messages to various other characters.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Sending_Pebble",
+    "related": [
+      "Arcanist",
+      "Charisma",
+      "Cleric",
+      "Coast War",
+      "Sending",
+      "The Cleric",
+      "The Coast",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Simple Hammer": {
+    "lore": "The Simple Hammer is a Weapon. It can be found on the floor outside of Visken's Lair after resolving Circle Square Conflict.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Simple_Hammer",
+    "related": [
+      "Cleric",
+      "Constitution",
+      "The Cleric",
+      "Urth",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Sloshy Stress Cube": {
+    "lore": "The Sloshy Stress Cube is a Trinket.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Sloshy_Stress_Cube",
+    "related": [
+      "Cleric",
+      "Intelligence",
+      "Stress Cube",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Snell's Notepad": {
+    "lore": "Snell's Notepad is an equipable Key item held by Snell. It can be pickpocketed at DC 7.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Snell%27s_Notepad",
+    "related": [
+      "Cleric",
+      "Frank, Son of Frank",
+      "Freestriders",
+      "Lady Sageleaf",
+      "Literature",
+      "Nicholas Darrow",
+      "Snell"
+    ],
+    "status": "new"
+  },
+  "Spectral Halberd": {
+    "lore": "The Spectral Halberd is a Weapon obtained after inserting the Jacinth into the Whitemane Shrine in the South Caverns.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Spectral_Halberd",
+    "related": [
+      "Cleric",
+      "Intelligence",
+      "Jacinth",
+      "South Caverns",
+      "The Cleric",
+      "Whitemane",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Strange Mushroom Juice": {
+    "lore": "Strange Mushroom Juice is a consumable that increases the Cleric's Wisdom by +1 for a week. Two bottles of Strange Mushroom Juice can be found across Tolstad: one can be taken from a nature spirit beneath the Imposing Tree, provided the player has Druidcraft, and one can be bought from the Potion...",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Strange_Mushroom_Juice",
+    "related": [
+      "Cleric",
+      "Crowns",
+      "Druidcraft",
+      "The Cleric",
+      "Tolstad",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Stress Cube": {
+    "lore": "The Stress Cube is a Trinket obtained after passing a dexterity check in upper level of the Northwest Tolstad Rollermill.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Stress_Cube",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Strength",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Tavern Key": {
+    "lore": "They Tavern Key is an equipable Key Item given by Olzis in the Drunk Sphinx during dialogue.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tavern_Key",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Olzis",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "The Azgal Chant": {
+    "lore": "The Azgal Chant is a piece of Literature. It is a local Azgalian newspaper.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Azgal_Chant",
+    "related": [
+      "Cleric",
+      "Literature",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "The Mind Expansion": {
+    "lore": "The Mind Expansion is a consumable that increases the Cleric's Intelligence by +1 for a week. Two bottles of The Mind Expansion can be found across Tolstad: one can be pickpocketed at DC 15 from Visken, and one can be bought from the Potion Seller for 290 Crowns.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Mind_Expansion",
+    "related": [
+      "Cleric",
+      "Crowns",
+      "Intelligence",
+      "The Cleric",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "The Undercommon": {
+    "lore": "The Undercommon is an equippable piece of Literature. It can be found in the Tea Shop on a burnt bookshelf.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Undercommon",
+    "related": [
+      "Literature"
+    ],
+    "status": "new"
+  },
+  "Tiny Dictator": {
+    "lore": "The Tiny Dictator is a Trinket found in Snurre's Office.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tiny_Dictator",
+    "related": [
+      "Agent Viira",
+      "Ambassador Icvx Liuvben",
+      "Cleric",
+      "Haelon Bondavol",
+      "Intelligence",
+      "Snurre's Office",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Tol's Sword": {
+    "lore": "The Tol's Sword is a Weapon found after using the Deck of Many Things, and receiving permanent disadvantage on everything.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tol%27s_Sword",
+    "related": [
+      "Cleric",
+      "Deck of Many Things",
+      "Gods",
+      "Strength",
+      "The Cleric",
+      "Tol",
+      "Urth",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "Tower Key": {
+    "lore": "The Tower Key is an equipable Key Item given by Nicholas Darrow during dialogue. It can also be taken from him without talking to him.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tower_Key",
+    "related": [
+      "Cleric",
+      "Nicholas Darrow",
+      "Strength",
+      "The Cleric",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Troll Tooth": {
+    "lore": "The Troll Tooth is a Trinket left behind by Big Leader Gourgalash after he is defeated.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Troll_Tooth",
+    "related": [
+      "Askanii",
+      "Big Leader Gourgalash",
+      "Cleric",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Unluck Blade": {
+    "lore": "The Unluck Blade is a Weapon located in the Undercoast Path. It is dropped by the Assassin after they are defeated for the final time.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Unluck_Blade",
+    "related": [
+      "Cleric",
+      "Constitution",
+      "Dexterity",
+      "The Cleric",
+      "Undercoast"
+    ],
+    "status": "new"
+  },
+  "Voting Card": {
+    "lore": "The Voting Card is a Literature item. It can be found in the lower layer of Visken's Lair, next to the staircase leading up.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Voting_Card",
+    "related": [
+      "Askanii",
+      "Cleric",
+      "Intelligence",
+      "Literature",
+      "The Cleric",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Vourgeni River Droplets": {
+    "lore": "The Vourgeni River Droplets are a consumable that increases the Cleric's Strength by +1 for a week. 3 bottles of Vourgeni River Droplets can be found across Tolstad: one under a stone in Waterlane that can be detected by Find Secrets, one that can be bought from the Potion Seller for 220 Crowns, ...",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Vourgeni_River_Droplets",
+    "related": [
+      "Caelum's Mage Hand",
+      "Cleric",
+      "Crowns",
+      "Strength",
+      "The Cleric",
+      "Tolstad",
+      "Urthguard",
+      "Vourgeni"
+    ],
+    "status": "new"
+  },
+  "Vyz-Kha Ginger Drink": {
+    "lore": "The Vyz-Kha Ginger Drink is a consumable that increases the Cleric's Constitution by +1 for a week. 2 bottles of Vyz-Kha Ginger Drink can be found across Tolstad: one in a crate behind the Griffon near the Askanii-Reeds Trading Company Building, and one that can be bought from the Potion Seller f...",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Vyz-Kha_Ginger_Drink",
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Askanii-Reeds Trading Company Building",
+      "Cleric",
+      "Constitution",
+      "Crowns",
+      "Reeds",
+      "The Cleric",
+      "Tolstad",
+      "Vyz-Kha"
+    ],
+    "status": "new"
+  },
+  "Wisdom Tooth": {
+    "lore": "The Wisdom Tooth is a Trinket held by the Zombie that can be pickpocketed at DC 15, or looted after knocking the zombie out.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Wisdom_Tooth",
+    "related": [
+      "Cleric",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Wood Shield": {
+    "lore": "The Wood Shield is a Trinket that belongs to Moongore. It can be obtained by pickpocketing her.",
+    "category": "item",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Wood_Shield",
+    "related": [
+      "Charisma",
+      "Cleric",
+      "Lady Sageleaf",
+      "Moongore",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Lady Chamar": {
+    "lore": "Lady Chamăr is a human who came to Tolstad from the Holy Mountain. She doesn't play any major role in the demo, and her purpose is enigmatic.",
+    "category": "lawful",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lady_Chamar",
+    "aliases": [
+      "Chamăr",
+      "Mountain Lamb"
+    ],
+    "related": [
+      "Ettir",
+      "Freydis",
+      "Strength",
+      "Temple of Urth",
+      "Tolstad",
+      "Urth",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Askanii": {
+    "lore": "Askanii (sometimes Askan) is one of the eight bands along The Coast. It neighbors Reeds and Divinii Torum.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Askanii",
+    "related": [
+      "Askan",
+      "Bands",
+      "Fordnip Commonwealth",
+      "Norvik",
+      "Reeds",
+      "River Torna",
+      "The Coast",
+      "Vyz-Kha"
+    ],
+    "status": "new"
+  },
+  "Askanii-Reeds Trading Company Building": {
+    "lore": "The Askanii-Reeds Trading Company Building is a location in Waterlane. It is owned by the Askanii-Reeds Trading Company.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Askanii-Reeds_Trading_Company_Building",
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Reeds"
+    ],
+    "status": "new"
+  },
+  "Bands": {
+    "lore": "Eight esoterically divided geographical areas that makes up The Coast. Each band is distinct in both geography and inhabitants.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Bands",
+    "related": [
+      "Askanii",
+      "Hae'Xi",
+      "Intelligence",
+      "Jor",
+      "Journal",
+      "Reeds",
+      "The Coast",
+      "Vourgeni"
+    ],
+    "status": "new"
+  },
+  "Doom": {
+    "lore": "The Doom is a sub-area of the City Below the City. It can be accessed through a hidden door in the Crypt.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Doom",
+    "status": "new"
+  },
+  "Esoteric Pockets": {
+    "lore": "Pockets of space where various different Esoteric effects apply. They are rarely found around the Coast, but become increasingly prevalent the closer one gets to the Infinite Wastes.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esoteric_Pockets",
+    "related": [
+      "Intelligence",
+      "Journal",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Fordnip Commonwealth": {
+    "lore": "The Fordnip Commonwealth is one of the nations on the Askan, home of the halflings. Category:Locations",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Fordnip_Commonwealth",
+    "related": [
+      "Askan"
+    ],
+    "status": "new"
+  },
+  "Forge of the Furies": {
+    "lore": "The Forge of the Furies is an Esoteric Pocket containing a sliver of the elemental plane of fire.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Forge_of_the_Furies",
+    "status": "new"
+  },
+  "Hae'Xi": {
+    "lore": "Hae'Xi is one of the eight bands that makes up The Coast. Its name means \"Growing Maw\" or \"Into the Air\" in abyssal.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Hae%27Xi",
+    "related": [
+      "Bands",
+      "Elves",
+      "Intelligence",
+      "Journal",
+      "The Coast",
+      "Vourgeni"
+    ],
+    "status": "new"
+  },
+  "Lake Cujah": {
+    "lore": "A salt water lake located in Hae'Xi. It is connected with a similar body of water in the Undercoast, and is the only body of water aside from Jor's Sea to pass the Gravity Flip.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lake_Cujah",
+    "related": [
+      "Hae'Xi",
+      "Intelligence",
+      "Jor",
+      "Journal",
+      "Undercoast"
+    ],
+    "status": "new"
+  },
+  "Norvik": {
+    "lore": "The central city of Askanii.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Norvik",
+    "related": [
+      "Askanii",
+      "Coast War",
+      "Great Perch",
+      "Intelligence",
+      "Journal",
+      "Magocracy",
+      "Postwar Era",
+      "Strength",
+      "The Coast",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Reeds": {
+    "lore": "Reeds is one of the eight bands along The Coast. It is viewed as the homeland of Humans.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Reeds",
+    "related": [
+      "Arcane Era",
+      "Bands",
+      "Coast War",
+      "Dexterity",
+      "Diminor",
+      "Diminorii",
+      "Journal",
+      "Magocracy",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "River Torna": {
+    "lore": "A river in Askanii. It is the second longest known river on the Coast, and splits Askanii in half.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/River_Torna",
+    "related": [
+      "Askanii",
+      "The Coast",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Secret Tunnel": {
+    "lore": "The Secret Tunnel is a location in Tolstad North. It is a small tunnel that connects the Temple of Urth to the Tea Shop.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Secret_Tunnel",
+    "related": [
+      "Askanii",
+      "Askanii-Reeds Trading Company",
+      "Cleric",
+      "Freestriders",
+      "Reeds",
+      "Temple of Urth",
+      "The Cleric",
+      "Tolstad",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Snell's Pad": {
+    "lore": "Snell's Pad is a location in the Holes, a series of stacked underground apartments near Waterlane. It is where Snell lives.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Snell%27s_Pad",
+    "related": [
+      "Caelum's Mage Hand",
+      "Crowns",
+      "Snell"
+    ],
+    "status": "new"
+  },
+  "Snurre's Office": {
+    "lore": "Snurre's Office is a location in Waterlane. It is an office owned by Snurre Appledent, who can be found within it.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Snurre%27s_Office",
+    "related": [
+      "Appledent",
+      "Snurre Appledent",
+      "Temple of Urth",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "South Caverns": {
+    "lore": "The South Caverns are a sub-section of the City Below the City. They are inhabited by a Roper, and are located in the domain of the HWBT.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/South_Caverns",
+    "related": [
+      "Askanii",
+      "Esoteric Lockpick",
+      "Jacinth",
+      "Roper",
+      "Spectral Halberd",
+      "The Sewers",
+      "Toulin'catl",
+      "Whitemane"
+    ],
+    "status": "new"
+  },
+  "Temple of Urth": {
+    "lore": "Temple of Urth is a location in Tolstad North. It is a small religious site dedicated to the god Urth, now housing the upcoming elections and an entrance to The City Below.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Temple_of_Urth",
+    "related": [
+      "Cleric",
+      "Dexterity",
+      "Goblon",
+      "Great Perch",
+      "Jor",
+      "Norvik",
+      "Simple Hammer",
+      "The Cleric",
+      "The Duck",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Thazen": {
+    "lore": "Thazen was the greatest of the floating cities. During the Coast War, it was used as a center of operations by the Haagin-Dim Coalition.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Thazen",
+    "related": [
+      "Coast War",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "The Coast": {
+    "lore": "The Esoteric Coast (also known as Realm of Jor, Jor's Realm, or JOR) is the name of the dimension created by the wizard Jor. It is the world in which Esoteric Ebb takes place.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Coast",
+    "related": [
+      "Askan",
+      "Askanii",
+      "Bands",
+      "Bloodcity Bay",
+      "Chris Bodegard",
+      "Coast War",
+      "Diminor",
+      "Elves",
+      "Esoteric Ebb",
+      "Gods"
+    ],
+    "status": "new"
+  },
+  "The Sewers": {
+    "lore": "The Sewers are a sublocation of the City Below the City.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Sewers",
+    "status": "new"
+  },
+  "Tolstad": {
+    "lore": "Tolstad is the central district of Norvik, and the setting of the game. It is an island fortress on River Torna.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Tolstad",
+    "related": [
+      "Agent Viira",
+      "Alfoz",
+      "Arn",
+      "Askan",
+      "Braxo",
+      "Bucket",
+      "Crowns",
+      "Garden Apple",
+      "Goblin",
+      "Intelligence"
+    ],
+    "status": "new"
+  },
+  "Vourgeni": {
+    "lore": "Vourgeni is one of the eight bands along The Coast. It neighbors Hae'Xi and Reeds.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Vourgeni",
+    "related": [
+      "Bands",
+      "Coast War",
+      "Hae'Xi",
+      "Reeds",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Vyz-Kha": {
+    "lore": "The Vyz-Kha Kingdoms, or VK for short, are a collection of loose dwarven cities in northwestern Askanii.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Vyz-Kha",
+    "related": [
+      "Askanii"
+    ],
+    "status": "new"
+  },
+  "Ym": {
+    "lore": "Ym is one of the eight Bands that makes up The Coast. It is covered in artificial forests, and crags covered in eternal darkness.",
+    "category": "location",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ym",
+    "related": [
+      "Bands",
+      "Elves",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Ambassador Icvx Liuvben": {
+    "lore": "#REDIRECT Ambassador Ivcx Liuvben",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ambassador_Icvx_Liuvben",
+    "aliases": [
+      "Ambassador Ivcx Liuvben"
+    ],
+    "related": [
+      "Ambassador Ivcx Liuvben"
+    ],
+    "status": "new"
+  },
+  "Azgalists": {
+    "lore": "#REDIRECT Azgalian Worker's Party",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Azgalists",
+    "aliases": [
+      "Azgalian Worker's Party"
+    ],
+    "related": [
+      "Azgalian Worker's Party"
+    ],
+    "status": "new"
+  },
+  "Chris Bodegard": {
+    "lore": "#REDIRECT Esoteric_Ebb#Chris_Bodegård",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Chris_Bodegard",
+    "aliases": [
+      "Esoteric_Ebb#Chris_Bodegård"
+    ],
+    "status": "new"
+  },
+  "Cold Corpse": {
+    "lore": "Cold Corpse is an interactable corpse in the lower part of Visken's Lair. It starts the quest Three Hundred Pieces.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Cold_Corpse",
+    "related": [
+      "Askan",
+      "Crowns",
+      "Garden Apple",
+      "Intelligence",
+      "Quest",
+      "Three Hundred Pieces",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Croland": {
+    "lore": "Croland is mentioned by Visken as a bookbinder residing in Waterlane View of Tolstad, related to the quest Phoenix Folio. A poster can be find in South Tolstad:",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Croland",
+    "related": [
+      "Phoenix Folio",
+      "Quest",
+      "Tolstad",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Esoteric Ebb": {
+    "lore": "Esoteric Ebb is a narrative cRPG by Christoffer Bodegård (studio Sudden Snail) and collaborators including studios Gibbet Games and Speldosa Interactive, published by Raw Fury. Its game system is based on Dungeons & Dragons and heavily inspired by Disco Elysium and Planescape TormentC.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esoteric_Ebb",
+    "related": [
+      "Abilities",
+      "Caretaker",
+      "Cleric",
+      "Coast War",
+      "Goblin",
+      "Gods",
+      "Jor",
+      "Journal",
+      "Nessan",
+      "Norvik"
+    ],
+    "status": "new"
+  },
+  "Esoteric Ebb (Phenomenon)": {
+    "lore": "The name of a phenomenon causing high-level magic to slowly be drained from Jor's Realm. It can be learned about by speaking to Haeron Bondalov and passing a passive Intelligence check.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Esoteric_Ebb_%28Phenomenon%29",
+    "related": [
+      "Intelligence",
+      "Jor",
+      "Jor's Realm"
+    ],
+    "status": "new"
+  },
+  "Freestriders": {
+    "lore": "#REDIRECT Revolutionary Freestriders",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Freestriders",
+    "aliases": [
+      "Revolutionary Freestriders"
+    ],
+    "related": [
+      "Revolutionary Freestriders"
+    ],
+    "status": "new"
+  },
+  "Goblon": {
+    "lore": "Goblon is an elusive graffiti artist famous in Norvik.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Goblon",
+    "related": [
+      "Intelligence",
+      "Norvik",
+      "Temple of Urth",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Helmet": {
+    "lore": "Helmets are a type of equipable Item in Esoteric Ebb.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Helmet",
+    "related": [
+      "'Helm'",
+      "Aventail",
+      "Basinet",
+      "Bucket",
+      "Esoteric Ebb",
+      "Frog-Mouth",
+      "Sallet"
+    ],
+    "status": "new"
+  },
+  "Jor": {
+    "lore": "Jor was a powerful wizard who created the dimension of The Coast, which is why it's also called Jor's Realm or simply JOR.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Jor",
+    "related": [
+      "Cleric",
+      "Esoteric Ebb",
+      "Fade Era",
+      "Gate Era",
+      "Gods",
+      "Jor's Realm",
+      "The Cleric",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Literature": {
+    "lore": "Literature is a type of Equipable Item in Estoric Ebb.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Literature",
+    "related": [
+      "Cleric",
+      "Collected Chants of Norvik",
+      "Hex Weekly",
+      "Intelligence",
+      "Norvik",
+      "Orange Ledger",
+      "PPG Documents",
+      "Piece of Paper",
+      "Resistance Note",
+      "Snell"
+    ],
+    "status": "new"
+  },
+  "Necklace of Fireballs": {
+    "lore": "A magic item that was mass-produced during the Coast War. They were necklaces with a number of beads on them.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Necklace_of_Fireballs",
+    "related": [
+      "Coast War",
+      "Postwar Era",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Norvikian Resistance": {
+    "lore": "Norvikian Resistance is a major quest in Esoteric Ebb.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Norvikian_Resistance",
+    "related": [
+      "Ability Score",
+      "Dexterity",
+      "Esoteric Ebb",
+      "Hammer and Zeal",
+      "Nationalists",
+      "Quest",
+      "Strength",
+      "Young and Dumb"
+    ],
+    "status": "new"
+  },
+  "Quest": {
+    "lore": "Quests offer XP, rewards, and opportunities to explore and affect the world. Esoteric Ebb's main quest is The Tea Shop that Blew Up, but there are also dozens of side quests (some tracked, some not).",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Quest",
+    "related": [
+      "An Easy Riddle",
+      "Appledent",
+      "Askanii",
+      "Cleric",
+      "Coinlord's Meet",
+      "Copper Press Fever",
+      "Cult Hit",
+      "Dragon of Tolstad",
+      "Elven Connection",
+      "Esoteric Ebb"
+    ],
+    "status": "new"
+  },
+  "Thalassos": {
+    "lore": "Thalassos is a merman entrepreneur based in Tolstad. He is not present in the demo, only mentioned by Arn as the owner of his kiosk.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Thalassos",
+    "related": [
+      "Arn",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Toulin'catl": {
+    "lore": "The mollusca Toulin'catl were an ancient Askanii civilization of snailfolk. They disappeared during the Fade Era.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Toulin%27catl",
+    "related": [
+      "Askanii",
+      "Esuth",
+      "Fade Era",
+      "Gods",
+      "Intelligence",
+      "Jor",
+      "Journal",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Undercoast": {
+    "lore": "Undersea Coast is a part of the Jor's Realm that is found underneath its surface.",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Undercoast",
+    "related": [
+      "Jor",
+      "Jor's Realm"
+    ],
+    "status": "new"
+  },
+  "WikiChris Bodegård": {
+    "lore": "#REDIRECT Esoteric_Ebb#Chris_Bodegård",
+    "category": "lore",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/WikiChris_Bodeg%C3%A5rd",
+    "aliases": [
+      "Esoteric_Ebb#Chris_Bodegård"
+    ],
+    "status": "new"
+  },
+  "Diminorii": {
+    "lore": "The Diminorii are one of the most powerful magocratic families in Old Diminor. They were the descendants of Doug Doulin Dim, the Drake Slayer King.",
+    "category": "magocratic families",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Diminorii",
+    "related": [
+      "Arcanist",
+      "Coast War",
+      "Diminor",
+      "Doug Doulin Dim",
+      "House Hagginshags",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "House Hagginshags": {
+    "lore": "House Hagginshags was a powerful magocratic family in Old Diminor. They were the descendants of the Shadow Lord.",
+    "category": "magocratic families",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/House_Hagginshags",
+    "related": [
+      "Arcanist",
+      "Coast War",
+      "Diminor",
+      "Diminorii",
+      "Shadow Lord",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "House Prax": {
+    "lore": "House Prax is a magocractic family. The last living member of the family is Rubrick Prax, the head of The Arcane Circle, an Arcanist organization.",
+    "category": "magocratic families",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/House_Prax",
+    "related": [
+      "Arcanist",
+      "Rubrick Prax"
+    ],
+    "status": "new"
+  },
+  "Abilities": {
+    "lore": "Abilities are Esoteric Ebb's primary character statistics — six attributes which represent how good a character is at given tasks, namely by modifying values of a dice roll. This system is based on Dungeons & Dragons 5th Edition, although streamlined.",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Abilities",
+    "related": [
+      "Ability Check",
+      "Ability Modifier",
+      "Ability Score",
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Difficulty Class",
+      "Esoteric Ebb",
+      "Intelligence",
+      "Jor"
+    ],
+    "status": "new"
+  },
+  "Ability Check": {
+    "lore": "#REDIRECT Abilities#Ability_Check",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ability_Check",
+    "aliases": [
+      "Abilities#Ability_Check"
+    ],
+    "related": [
+      "Abilities"
+    ],
+    "status": "new"
+  },
+  "Ability Modifier": {
+    "lore": "#REDIRECT Abilities#Ability_Score_&_Modifier",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ability_Modifier",
+    "aliases": [
+      "Abilities#Ability_Score_&_Modifier"
+    ],
+    "related": [
+      "Abilities"
+    ],
+    "status": "new"
+  },
+  "Ability Score": {
+    "lore": "#REDIRECT Abilities#Ability_Score_&_Modifier",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Ability_Score",
+    "aliases": [
+      "Abilities#Ability_Score_&_Modifier"
+    ],
+    "related": [
+      "Abilities"
+    ],
+    "status": "new"
+  },
+  "Cantrip": {
+    "lore": "Cantrip in Esoteric Ebb and Dungeons & Dragons 5th Edition is a \"0th level\" spell available at first level. It does not consume a spell slot, so it can be cast freely, unlimited by spellcasting rules of resting.",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Cantrip",
+    "related": [
+      "Esoteric Ebb"
+    ],
+    "status": "new"
+  },
+  "Difficulty Class": {
+    "lore": "#REDIRECT Abilities#Ability Check",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Difficulty_Class",
+    "aliases": [
+      "Abilities#Ability Check"
+    ],
+    "related": [
+      "Abilities",
+      "Ability Check"
+    ],
+    "status": "new"
+  },
+  "Encounters": {
+    "lore": "Encounters are turn-based conflicts (not necessarily physical combat as in Dungeons & Dragons).",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Encounters",
+    "related": [
+      "Ability Check",
+      "Cleric",
+      "Dexterity",
+      "Hit points",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Hit points": {
+    "lore": "Hit Points (abbreviated to HP) is a representation of a character's health; i.e. points that decrease if taking damage (often also from social effects such as embarrassment), and which will trigger a Death Saving Throw when they run out.",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Hit_points",
+    "related": [
+      "Ability Check",
+      "Ability Modifier",
+      "Cleric",
+      "Constitution",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Journal": {
+    "lore": "The Journal is one of the tabs found to the left of the screen where, when clicked, the map of the present area is displayed and dicovered Glossary Entries are found. Category: Mechanics",
+    "category": "mechanic",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Journal",
+    "status": "new"
+  },
+  "Roper": {
+    "lore": "The Roper is a hostile monster located in the South Caverns. It is initially disguised as a stalagmite, but will awaken and attack the Cleric if they wander close to it.",
+    "category": "monsters",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Roper",
+    "related": [
+      "Cleric",
+      "South Caverns",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Zombie (Visken's Lair)": {
+    "lore": "In the lower half of Visken's Lair on day 1, a zombie is interacting with the pile of apples.",
+    "category": "monsters",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Zombie_%28Visken%27s_Lair%29",
+    "related": [
+      "Cleric",
+      "Lichhouse Blues",
+      "Quest",
+      "Snell",
+      "The Cleric",
+      "Visken",
+      "Wisdom",
+      "Wisdom Tooth"
+    ],
+    "status": "new"
+  },
+  "Deck of Many Things": {
+    "lore": "The Deck of Many Things is a canonically Legendary magic item in both Esoteric Ebb and Dungeons & Dragons 5th edition media. You can acquire the Deck of Many Things by solving the Gynosphinx's second riddle as part of the quest An Easy Riddle.",
+    "category": "pages with broken file links",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Deck_of_Many_Things",
+    "related": [
+      "An Easy Riddle",
+      "Braxo",
+      "Charisma",
+      "Cleric",
+      "Constitution",
+      "Crowns",
+      "Dexterity",
+      "Esoteric Ebb",
+      "Intelligence",
+      "Light Crossbow"
+    ],
+    "status": "new"
+  },
+  "Charisma": {
+    "lore": "Charisma (abbr. CHA) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Charisma",
+    "related": [
+      "Abilities",
+      "Cleric",
+      "Miss Nearly",
+      "Strength",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Constitution": {
+    "lore": "Constitution (abbr. CON) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Constitution",
+    "related": [
+      "Abilities",
+      "Ability Modifier",
+      "Azgalian Worker's Party",
+      "Cleric",
+      "Encounters",
+      "Hit points",
+      "The Cleric",
+      "Voting Card"
+    ],
+    "status": "new"
+  },
+  "Dexterity": {
+    "lore": "Dexterity (abbr. DEX) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Dexterity",
+    "related": [
+      "Abilities",
+      "Ability Check",
+      "Charisma",
+      "Cleric",
+      "Esoteric Ebb",
+      "Freestriders",
+      "Revolutionary Freestriders",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Great Perch": {
+    "lore": "The Great Perch is a drake-like animal that, due to its association with Urth, is used as a symbol of Norvik. Category:Animals",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Great_Perch",
+    "related": [
+      "Norvik",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Intelligence": {
+    "lore": "Intelligence (abbr. INT) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Intelligence",
+    "related": [
+      "Abilities",
+      "Arcanist",
+      "Cleric",
+      "Literature",
+      "Magocracy",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "Strength": {
+    "lore": "Strength (abbr. STR) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Strength",
+    "related": [
+      "Abilities",
+      "Ability Score",
+      "Cleric",
+      "Encounters",
+      "Esoteric Ebb",
+      "Norvik",
+      "Party Of Norvik",
+      "The Cleric",
+      "Urth",
+      "Urthguard"
+    ],
+    "status": "new"
+  },
+  "The Conquest": {
+    "lore": "The term for the human founding of the city-state of Norvik, in 468 AE. Category:History",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Conquest",
+    "related": [
+      "Norvik"
+    ],
+    "status": "new"
+  },
+  "Wisdom": {
+    "lore": "Wisdom (abbr. WIS) is a character statistic, and a character in The Cleric's mind.",
+    "category": "pages with quotes",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Wisdom",
+    "related": [
+      "Abilities",
+      "Cleric",
+      "Dexterity",
+      "Esoteric Ebb",
+      "Intelligence",
+      "Strength",
+      "The Cleric"
+    ],
+    "status": "new"
+  },
+  "An Easy Riddle": {
+    "lore": "An Easy Riddle is a major quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/An_Easy_Riddle",
+    "related": [
+      "Deck of Many Things",
+      "Esoteric Ebb",
+      "Gods",
+      "Olzis",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Coinlord's Meet": {
+    "lore": "Coinlord's Meet is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Coinlord%27s_Meet",
+    "related": [
+      "Esoteric Ebb",
+      "Quest",
+      "The Tea Shop that Blew Up",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Copper Press Fever": {
+    "lore": "Copper Press Fever is a major quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Copper_Press_Fever",
+    "related": [
+      "Ability Score",
+      "Esoteric Ebb",
+      "Hammer and Zeal",
+      "Quest",
+      "Tolstad",
+      "Young and Dumb"
+    ],
+    "status": "new"
+  },
+  "Cult Hit": {
+    "lore": "Cult Hit is minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Cult_Hit",
+    "related": [
+      "Esoteric Ebb",
+      "Lichhouse Blues",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Dragon of Tolstad": {
+    "lore": "Dragon of Tolstad is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Dragon_of_Tolstad",
+    "related": [
+      "Esoteric Ebb",
+      "Goblin",
+      "Quest",
+      "The Tea Shop that Blew Up",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Elven Connection": {
+    "lore": "Elven Connection is a major quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Elven_Connection",
+    "related": [
+      "Esoteric Ebb",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Golden Line": {
+    "lore": "Golden Line is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Golden_Line",
+    "related": [
+      "Askanii",
+      "Copper Press Fever",
+      "Esoteric Ebb",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Hammer and Zeal": {
+    "lore": "Hammer and Zeal is minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Hammer_and_Zeal",
+    "related": [
+      "Copper Press Fever",
+      "Esoteric Ebb",
+      "Freestriders",
+      "Modissa",
+      "Norvikian Resistance",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Lichhouse Blues": {
+    "lore": "Lichhouse Blues is  major quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Lichhouse_Blues",
+    "related": [
+      "Cult Hit",
+      "Esoteric Ebb",
+      "Quest",
+      "River Take Ye",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Missing Paladin": {
+    "lore": "Missing Paladin is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Missing_Paladin",
+    "related": [
+      "Esoteric Ebb",
+      "Norvik",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Phoenix Folio": {
+    "lore": "Phoenix Folio is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Phoenix_Folio",
+    "related": [
+      "Appledent",
+      "Charisma",
+      "Crowns",
+      "Esoteric Ebb",
+      "Intelligence",
+      "Quest",
+      "Snurre Appledent",
+      "Visken",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "River Take Ye": {
+    "lore": "River Take Ye is minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/River_Take_Ye",
+    "related": [
+      "Esoteric Ebb",
+      "Lichhouse Blues",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Safe & Secure": {
+    "lore": "Safe & Secure is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Safe_%26_Secure",
+    "related": [
+      "Esoteric Ebb",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "The Lost 6th Edition": {
+    "lore": "The Lost 6th Edition is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Lost_6th_Edition",
+    "related": [
+      "Appledent",
+      "Esoteric Ebb",
+      "Quest",
+      "Snurre Appledent"
+    ],
+    "status": "new"
+  },
+  "The Tea Shop that Blew Up": {
+    "lore": "The Tea Shop that Blew Up is the first and main quest of the game.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/The_Tea_Shop_that_Blew_Up",
+    "related": [
+      "Dragon of Tolstad",
+      "Quest",
+      "Tolstad"
+    ],
+    "status": "new"
+  },
+  "Three Hundred Pieces": {
+    "lore": "Three Hundred Pieces Ye is minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Three_Hundred_Pieces",
+    "related": [
+      "Esoteric Ebb",
+      "Quest",
+      "Revivify"
+    ],
+    "status": "new"
+  },
+  "Valkyrie": {
+    "lore": "Valkyrie is a minor quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Valkyrie",
+    "related": [
+      "Coinlord's Meet",
+      "Esoteric Ebb",
+      "Ettir",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Young and Dumb": {
+    "lore": "Young and Dumb is a major quest in Esoteric Ebb.",
+    "category": "quest",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Young_and_Dumb",
+    "related": [
+      "Copper Press Fever",
+      "Esoteric Ebb",
+      "Norvikian Resistance",
+      "Quest"
+    ],
+    "status": "new"
+  },
+  "Elves": {
+    "lore": "Elves is one of the races populating Jor's Realm. There are several sorts of elves, like Illym Elves or Pimeä Elves, but they are all characterised by their pointed ears.",
+    "category": "race",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Elves",
+    "related": [
+      "Illym",
+      "Jor",
+      "Jor's Realm"
+    ],
+    "status": "new"
+  },
+  "Goblins": {
+    "lore": "Goblins are a short humanoid species found in large number in Tolstad's southern quarter and underground.",
+    "category": "race",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Goblins",
+    "related": [
+      "Arcane Era",
+      "Askan",
+      "Askanii",
+      "Charisma",
+      "Esoteric Ebb",
+      "Ettir",
+      "Goblin",
+      "Goblon",
+      "Miska Sageleaf",
+      "Miss Nearly"
+    ],
+    "status": "new"
+  },
+  "Whitemane": {
+    "lore": "A tribe of feline-folk who ruled portions of Askanii during the Divine Era.",
+    "category": "race",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Whitemane",
+    "related": [
+      "Askanii",
+      "Divine Era",
+      "Norvik"
+    ],
+    "status": "new"
+  },
+  "Aura of Vitality": {
+    "lore": "Aura of Vitality is a 3rd-level, Primal spell.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Aura_of_Vitality",
+    "related": [
+      "Hit points"
+    ],
+    "status": "new"
+  },
+  "Caelum's Mage Hand": {
+    "lore": "Caelum's Mage Hand is a cantrip that can be obtained from using Comprehend Languages on a spell tome within the upper level of the Visken's Lair. It is a modified version of Mage Hand that has been created by Caelum Diminorii.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Caelum%27s_Mage_Hand",
+    "related": [
+      "Caelum Diminorii",
+      "Cantrip",
+      "Cleric",
+      "Comprehend Languages",
+      "Crowns",
+      "Dexterity",
+      "Diminorii",
+      "Intelligence",
+      "Snell",
+      "Snell's Pad"
+    ],
+    "status": "new"
+  },
+  "Charm Person": {
+    "lore": "Charm Person is a utility spell. It is given by Visken during dialogue with him, or can be pickpocketed from him.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Charm_Person",
+    "related": [
+      "Visken",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Comprehend Languages": {
+    "lore": "Comprehend Languages is a utility spell. It can be purchased from the Storm Gnome vendor for 100 Crowns.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Comprehend_Languages",
+    "related": [
+      "Brrr",
+      "Caelum's Mage Hand",
+      "Crowns",
+      "Tolstad",
+      "Toulin'catl",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Crusader's Mantle": {
+    "lore": "Crusader's Mantle is an Evocation spell. It can be found in the City Below, buried under some rocks that can be noticed by Detect Secret.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Crusader%27s_Mantle",
+    "status": "new"
+  },
+  "Cure Wounds": {
+    "lore": "Cure Wounds is a basic healing spell. It is the earliest and easiest spell to acquire, found sticking out of the pile of apples in Visken's Lair where The Cleric first wakes up.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Cure_Wounds",
+    "related": [
+      "Ability Modifier",
+      "Cleric",
+      "Hit points",
+      "The Cleric",
+      "The Coast",
+      "Visken",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Dancing Light": {
+    "lore": "Dancing Light is a cantrip that can be obtained from",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Dancing_Light",
+    "related": [
+      "Cantrip"
+    ],
+    "status": "new"
+  },
+  "Detect Secrets": {
+    "lore": "Detect Secrets is a utility spell. It can be extracted from the Pickaxe of Secrets with a DC 14 Intelligence check.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Detect_Secrets",
+    "related": [
+      "Crowns",
+      "Holy Symbol of Whitemane",
+      "Intelligence",
+      "Pickaxe of Secrets",
+      "Pixie Dust Slush",
+      "Revivify",
+      "Secret Tunnel",
+      "Temple of Urth",
+      "Tolstad",
+      "Urth"
+    ],
+    "status": "new"
+  },
+  "Divine Hex": {
+    "lore": "Divine Hex is a Spell. It is obtained by forming a Warlock Pact with Ever-Glad.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Divine_Hex",
+    "related": [
+      "Ever-Glad",
+      "Hit points"
+    ],
+    "status": "new"
+  },
+  "Druidcraft": {
+    "lore": "Druidcraft is a cantrip that can be obtained from Nessan after passing a DC 20 Wisdom check. The DC is lowered by 5 when Nessan \"Finds you reasonable\" (based on the answer to her question of sustainability) and by 5 when \"She pities you and your hungry stomach\" (based on an answer where The Cleri...",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Druidcraft",
+    "related": [
+      "Cantrip",
+      "Cleric",
+      "Nessan",
+      "The Cleric",
+      "Wisdom"
+    ],
+    "status": "new"
+  },
+  "Inflict Wounds": {
+    "lore": "Inflict Wounds is a basic damaging spell. It is given by The Duck during dialogue, or can be pickpocketed from him at DC 10.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Inflict_Wounds",
+    "related": [
+      "The Duck"
+    ],
+    "status": "new"
+  },
+  "Revivify": {
+    "lore": "Revivify is a necromantic spell. It can be found in Visken's Lair, behind an illusory wall that can be detected by Detect Secrets.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Revivify",
+    "related": [
+      "Detect Secrets",
+      "Visken"
+    ],
+    "status": "new"
+  },
+  "Sending": {
+    "lore": "Sending is a third level Evocation spell. A weakened version of it can be cast using the Trinket Sending Pebble.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Sending",
+    "related": [
+      "Arcanists",
+      "Sending Pebble",
+      "The Coast"
+    ],
+    "status": "new"
+  },
+  "Speak With Dead": {
+    "lore": "Speak With Dead is a necromantic spell. It can be taught to you by Haelon Bondavol.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Speak_With_Dead",
+    "related": [
+      "Haelon Bondavol",
+      "Intelligence"
+    ],
+    "status": "new"
+  },
+  "Thaumaturgy": {
+    "lore": "Thaumaturgy is a cantrip. It can be taken off of The Duck in the Crypt at Night after defeating the Skeleton.",
+    "category": "spell",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Thaumaturgy",
+    "related": [
+      "Cantrip",
+      "The Duck"
+    ],
+    "status": "new"
+  },
+  "Antesepalian": {
+    "lore": "\"Antesepalian\" means \"before the closing of the gates\", used to describe civilization during the Gate Era, before Jor closed the portals to The Coast, 2027 years before the events of the game.",
+    "category": "terminology",
+    "wiki_url": "https://esotericebb.wiki.gg/wiki/Antesepalian",
+    "related": [
+      "Gate Era",
+      "Jor",
+      "The Coast"
+    ],
+    "status": "new"
+  }
+}

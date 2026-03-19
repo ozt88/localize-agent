@@ -9,11 +9,42 @@ import (
 	"localize-agent/workflow/pkg/shared"
 )
 
+func batchHasLoreContext(tasks []translationTask) bool {
+	for _, t := range tasks {
+		if len(t.LoreHints) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func batchNeedsFragmentRules(tasks []translationTask) bool {
+	for _, t := range tasks {
+		fp, _, _ := deriveFragmentHints(t)
+		sp, _, _ := deriveStructureHints(t)
+		if fp != "" || sp != "" {
+			return true
+		}
+	}
+	return false
+}
+
 func buildBatchPrompt(tasks []translationTask, shapeHint string, plain bool) string {
 	payload := normalizeBatchPrompt(tasks)
 	b, _ := json.Marshal(payload)
 	_ = shapeHint
-	rules := "Translate each items[*].en into Korean without repairing or completing broken source fragments. If the English is truncated, open-ended, or has an unbalanced quote, translate only the visible fragment naturally. Preserve gameplay prefixes, action markers, narration cues, and mixed action-plus-dialogue structure as meaningful source content. If a source span is clearly a non-English phrase, chant, or foreign-language fragment, preserve that span unchanged and translate only the surrounding English. If glossary is present for an item, treat each glossary mapping as mandatory terminology for that item. Use the provided target exactly for translate mappings and preserve the source exactly for preserve mappings. If fragment_pattern is present, use action_cue_en and spoken_fragment_en as reference-only structure hints for the same source line; keep the spoken part fragmentary when the source is fragmentary, and do not invent missing continuation or a closing quote. If structure_pattern is present, use lead_term_en and definition_body_en as reference-only structure hints; translate the line as Korean explanatory text rather than copying the English term-definition wording literally. If structure_pattern is expository_entry, render the whole line as fluent Korean explanatory prose and do not preserve the English wording verbatim. If structure_pattern is long_discourse, render the whole line as fluent Korean long-form dialogue or narration, preserving speaker tone while avoiding clause-by-clause literalism. If [PLAYER OPTION] appears inside context, it is a reference-only anchor and must not be copied into output. Return ONLY one JSON array of exactly the requested number of Korean strings."
+	base := "Translate each items[*].en into Korean without repairing or completing broken source fragments. If the English is truncated, open-ended, or has an unbalanced quote, translate only the visible fragment naturally. Preserve gameplay prefixes, action markers, narration cues, and mixed action-plus-dialogue structure as meaningful source content. If a source span is clearly a non-English phrase, chant, or foreign-language fragment, preserve that span unchanged and translate only the surrounding English. If glossary is present for an item, treat each glossary mapping as mandatory terminology for that item. Use the provided target exactly for translate mappings and preserve the source exactly for preserve mappings."
+	fragmentRules := " If fragment_pattern is present, use action_cue_en and spoken_fragment_en as reference-only structure hints for the same source line; keep the spoken part fragmentary when the source is fragmentary, and do not invent missing continuation or a closing quote. If structure_pattern is present, use lead_term_en and definition_body_en as reference-only structure hints; translate the line as Korean explanatory text rather than copying the English term-definition wording literally. If structure_pattern is expository_entry, render the whole line as fluent Korean explanatory prose and do not preserve the English wording verbatim. If structure_pattern is long_discourse, render the whole line as fluent Korean long-form dialogue or narration, preserving speaker tone while avoiding clause-by-clause literalism."
+	loreRules := " If lore_context is present for an item, use it as background knowledge to inform tone, register, and contextual accuracy of the translation. Do not include lore_context text in the output."
+	tail := " If [PLAYER OPTION] appears inside context, it is a reference-only anchor and must not be copied into output. Return ONLY one JSON array of exactly the requested number of Korean strings."
+	rules := base
+	if batchNeedsFragmentRules(tasks) {
+		rules += fragmentRules
+	}
+	if batchHasLoreContext(tasks) {
+		rules += loreRules
+	}
+	rules += tail
 	if plain {
 		return fmt.Sprintf(
 			"%s Each item uses items[*].en as the source text and items[*].ctx/items[*].line as a reference anchor in contexts. Do not add prose before or after the JSON array. Input JSON: %s",
@@ -28,7 +59,20 @@ func buildSinglePrompt(task translationTask, shapeHint string, plain bool) strin
 	payload := normalizePromptInput(task)
 	b, _ := json.Marshal(payload)
 	_ = shapeHint
-	rules := "Translate the single `en` field into Korean without repairing or completing broken source fragments. If the English is truncated, open-ended, or has an unbalanced quote, translate only the visible fragment naturally. Preserve gameplay prefixes, action markers, narration cues, and mixed action-plus-dialogue structure as meaningful source content. If a source span is clearly a non-English phrase, chant, or foreign-language fragment, preserve that span unchanged and translate only the surrounding English. If glossary is present, treat each glossary mapping as mandatory terminology for this item. Use the provided target exactly for translate mappings and preserve the source exactly for preserve mappings. If fragment_pattern is present, use action_cue_en and spoken_fragment_en as reference-only structure hints for the same source line; keep the spoken part fragmentary when the source is fragmentary, and do not invent missing continuation or a closing quote. If structure_pattern is present, use lead_term_en and definition_body_en as reference-only structure hints; translate the line as Korean explanatory text rather than copying the English term-definition wording literally. If structure_pattern is expository_entry, render the whole line as fluent Korean explanatory prose and do not preserve the English wording verbatim. If structure_pattern is long_discourse, render the whole line as fluent Korean long-form dialogue or narration, preserving speaker tone while avoiding clause-by-clause literalism. If [PLAYER OPTION] appears inside context, it is a reference-only anchor and must not be copied into output."
+	base := "Translate the single `en` field into Korean without repairing or completing broken source fragments. If the English is truncated, open-ended, or has an unbalanced quote, translate only the visible fragment naturally. Preserve gameplay prefixes, action markers, narration cues, and mixed action-plus-dialogue structure as meaningful source content. If a source span is clearly a non-English phrase, chant, or foreign-language fragment, preserve that span unchanged and translate only the surrounding English. If glossary is present, treat each glossary mapping as mandatory terminology for this item. Use the provided target exactly for translate mappings and preserve the source exactly for preserve mappings."
+	fragmentRules := " If fragment_pattern is present, use action_cue_en and spoken_fragment_en as reference-only structure hints for the same source line; keep the spoken part fragmentary when the source is fragmentary, and do not invent missing continuation or a closing quote. If structure_pattern is present, use lead_term_en and definition_body_en as reference-only structure hints; translate the line as Korean explanatory text rather than copying the English term-definition wording literally. If structure_pattern is expository_entry, render the whole line as fluent Korean explanatory prose and do not preserve the English wording verbatim. If structure_pattern is long_discourse, render the whole line as fluent Korean long-form dialogue or narration, preserving speaker tone while avoiding clause-by-clause literalism."
+	loreRules := " If lore_context is present, use it as background knowledge to inform tone, register, and contextual accuracy of the translation. Do not include lore_context text in the output."
+	tail := " If [PLAYER OPTION] appears inside context, it is a reference-only anchor and must not be copied into output."
+	rules := base
+	fp, _, _ := deriveFragmentHints(task)
+	sp, _, _ := deriveStructureHints(task)
+	if fp != "" || sp != "" {
+		rules += fragmentRules
+	}
+	if len(task.LoreHints) > 0 {
+		rules += loreRules
+	}
+	rules += tail
 	if plain {
 		return fmt.Sprintf("%s Return one valid JSON array with exactly 1 Korean string and nothing else. Do not add prose before or after the JSON array. Input JSON: %s", rules, string(b))
 	}

@@ -757,6 +757,10 @@ func buildTranslationConfig(projectCfg *shared.ProjectConfig, checkpointDB strin
 		"projects/esoteric-ebb/patch/output/source_overlay_analysis/esoteric_ebb_glossary_curated_20260316.json",
 		"projects/esoteric-ebb/patch/output/source_overlay_analysis/spell_item_glossary_curated_20260315.json",
 	)
+	cfg.LoreFile = t.LoreFile
+	if t.LoreMaxHints > 0 {
+		cfg.LoreMaxHints = t.LoreMaxHints
+	}
 	cfg.ServerURL = t.ServerURL
 	cfg.Model = t.Model
 	cfg.LLMBackend = t.LLMBackend
@@ -820,9 +824,10 @@ func buildFailedRemediationTranslationConfig(projectCfg *shared.ProjectConfig, c
 func buildOverlayTranslationConfig(projectCfg *shared.ProjectConfig, cfg Config, checkpointDB string) translation.Config {
 	out := buildTranslationConfig(projectCfg, checkpointDB)
 	out.UseCheckpointCurrent = false
+	out.OverlayMode = true
 	applyLLMProfileToTranslationConfig(&out, projectCfg.Pipeline.HighLLM)
-	out.Concurrency = 1
-	out.BatchSize = 1
+	out.Concurrency = 2
+	out.BatchSize = 8
 	if out.MaxPlainLen < 700 {
 		out.MaxPlainLen = 700
 	}

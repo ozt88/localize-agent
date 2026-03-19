@@ -9,6 +9,7 @@ type normalizedPromptInput struct {
 	ID               string `json:"id"`
 	EN               string `json:"en"`
 	Glossary         []glossaryEntry `json:"glossary,omitempty"`
+	LoreContext      string          `json:"lore_context,omitempty"`
 	ContextEN        string `json:"context_en,omitempty"`
 	FocusedContextEN string `json:"focused_context_en,omitempty"`
 	FragmentPattern  string `json:"fragment_pattern,omitempty"`
@@ -28,6 +29,7 @@ type normalizedPromptInput struct {
 	RetryReason      string `json:"retry_reason,omitempty"`
 	SourceFile       string `json:"source_file,omitempty"`
 	ResourceKey      string `json:"resource_key,omitempty"`
+	SceneHint        string `json:"scene_hint,omitempty"`
 }
 
 type normalizedBatchPromptItem struct {
@@ -36,6 +38,7 @@ type normalizedBatchPromptItem struct {
 	Line        int    `json:"line"`
 	EN          string `json:"en"`
 	Glossary    []glossaryEntry `json:"glossary,omitempty"`
+	LoreContext string          `json:"lore_context,omitempty"`
 	FragmentPattern  string `json:"fragment_pattern,omitempty"`
 	ActionCueEN      string `json:"action_cue_en,omitempty"`
 	SpokenFragmentEN string `json:"spoken_fragment_en,omitempty"`
@@ -51,6 +54,7 @@ type normalizedBatchPromptItem struct {
 	RetryReason string `json:"retry_reason,omitempty"`
 	SourceFile  string `json:"source_file,omitempty"`
 	ResourceKey string `json:"resource_key,omitempty"`
+	SceneHint   string `json:"scene_hint,omitempty"`
 }
 
 type normalizedBatchPromptPayload struct {
@@ -67,6 +71,7 @@ func normalizePromptInput(task translationTask) normalizedPromptInput {
 		ID:               task.ID,
 		EN:               promptEN,
 		Glossary:         task.Glossary,
+		LoreContext:      formatLoreHints(task.LoreHints),
 		ContextEN:        promptContextEN,
 		FocusedContextEN: buildFocusedContextEN(promptContextEN, promptEN),
 		FragmentPattern:  fragmentPattern,
@@ -90,6 +95,9 @@ func normalizePromptInput(task translationTask) normalizedPromptInput {
 	}
 	if shouldIncludePromptResourceKey(task) {
 		out.ResourceKey = task.ResourceKey
+	}
+	if task.SceneHint != "" {
+		out.SceneHint = task.SceneHint
 	}
 	return out
 }
@@ -126,6 +134,7 @@ func normalizeBatchPrompt(tasks []translationTask) normalizedBatchPromptPayload 
 			Line:             lineIndex,
 			EN:               promptEN,
 			Glossary:         task.Glossary,
+			LoreContext:      formatLoreHints(task.LoreHints),
 			FragmentPattern:  fragmentPattern,
 			ActionCueEN:      actionCueEN,
 			SpokenFragmentEN: spokenFragmentEN,
@@ -145,6 +154,9 @@ func normalizeBatchPrompt(tasks []translationTask) normalizedBatchPromptPayload 
 		}
 		if shouldIncludePromptResourceKey(task) {
 			item.ResourceKey = task.ResourceKey
+		}
+		if task.SceneHint != "" {
+			item.SceneHint = task.SceneHint
 		}
 		payload.Items = append(payload.Items, item)
 	}

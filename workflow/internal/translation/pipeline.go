@@ -20,6 +20,7 @@ type translationRuntime struct {
 	retryReasons       map[string]string
 	checkpointMetas    map[string]checkpointPromptMeta
 	glossaryEntries    []glossaryEntry
+	loreEntries        []loreEntry
 	client             *serverClient
 	highClient         *serverClient
 	skill              *translateSkill

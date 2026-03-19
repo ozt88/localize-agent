@@ -71,6 +71,14 @@ func Run(c Config) int {
 		fmt.Fprintf(os.Stderr, "error loading glossary: %v\n", err)
 		return 1
 	}
+	loreEntries, err := loadLoreEntries(c.LoreFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: lore file not loaded: %v\n", err)
+		loreEntries = nil // non-fatal: proceed without lore
+	}
+	if len(loreEntries) > 0 {
+		fmt.Printf("Lore: loaded %d entries from %s\n", len(loreEntries), c.LoreFile)
+	}
 
 	doneFromCheckpoint := map[string]bool{}
 	if c.Resume && checkpoint.IsEnabled() {
@@ -82,7 +90,12 @@ func Run(c Config) int {
 		fmt.Printf("Resume: loaded %d done items from checkpoint\n", len(doneFromCheckpoint))
 	}
 
-	skill := newTranslateSkill(shared.LoadContext(c.ContextFiles), shared.LoadRules(c.RulesFile))
+	var skill *translateSkill
+	if c.OverlayMode {
+		skill = newOverlayTranslateSkill(shared.LoadContext(c.ContextFiles), shared.LoadRules(c.RulesFile))
+	} else {
+		skill = newTranslateSkill(shared.LoadContext(c.ContextFiles), shared.LoadRules(c.RulesFile))
+	}
 	metrics := &shared.MetricCollector{}
 	traceSink, err := platform.NewJSONLTraceSink(c.TraceOut)
 	if err != nil {
@@ -133,6 +146,7 @@ func Run(c Config) int {
 		retryReasons:       c.RetryReasons,
 		checkpointMetas:    checkpointMetas,
 		glossaryEntries:    glossaryEntries,
+		loreEntries:        loreEntries,
 		client:             client,
 		highClient:         highClient,
 		skill:              skill,

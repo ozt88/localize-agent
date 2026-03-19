@@ -18,3 +18,5 @@ workflow/.bin/
 workflow/bin/
 .sisyphus/
 temp/
+projects/esoteric-ebb/rag/wiki_pages/
+projects/esoteric-ebb/rag/chroma_db/
