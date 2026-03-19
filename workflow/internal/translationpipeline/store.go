@@ -970,7 +970,9 @@ func (s *Store) ResolveAfterOverlayTranslate(ids []string, sourceTextByID map[st
 				return err
 			}
 		default:
-			if _, err := stmtFail.Exec(StateFailed, "overlay translator produced no done row", now, id, StateWorkingOverlayTranslate, workerID); err != nil {
+			// Escalate to retranslate instead of permanent failure,
+			// giving the HighLLM retranslate worker a chance to recover.
+			if _, err := stmtFail.Exec(StatePendingRetranslate, "overlay translator produced no done row", now, id, StateWorkingOverlayTranslate, workerID); err != nil {
 				return err
 			}
 		}
