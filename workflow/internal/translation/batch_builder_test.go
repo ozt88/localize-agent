@@ -114,7 +114,7 @@ func TestBuildBatch_GameplayPrefixChoiceIsNotOverriddenByFragmentRole(t *testing
 	if item.Profile.Kind != textKindChoice {
 		t.Fatalf("kind=%q, want choice", item.Profile.Kind)
 	}
-	if item.BodyEN != `"I'm definitely a cleric.` {
+	if item.BodyEN != `I'm definitely a cleric.` {
 		t.Fatalf("body=%q", item.BodyEN)
 	}
 	meta := batch.metas["id_target"]
@@ -477,7 +477,7 @@ func TestBuildBatch_ControlQuotedTailSplitsPrefix(t *testing.T) {
 		t.Fatalf("runItems len=%d, want 1", len(batch.runItems))
 	}
 	item := batch.runItems[0]
-	if item.BodyEN != `"You ever hang out in a cozy little hag hut before?` {
+	if item.BodyEN != `You ever hang out in a cozy little hag hut before?` {
 		t.Fatalf("body=%q", item.BodyEN)
 	}
 	meta := batch.metas["id_control_quote"]

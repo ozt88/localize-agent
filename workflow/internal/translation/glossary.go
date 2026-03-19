@@ -70,7 +70,11 @@ func containsGlossaryTerm(en, term string) bool {
 	if strings.EqualFold(en, term) {
 		return true
 	}
-	pattern := `(?i)(^|[^A-Za-z0-9])` + regexp.QuoteMeta(term) + `([^A-Za-z0-9]|$)`
+	// Allow common English suffixes (s, 's, ed, ing, ism, ist, ic, ally, ian, ians)
+	// so that a glossary entry "Freestrider" also matches "Freestriders",
+	// "Azgalist" matches "Azgalists", "Esoteric" matches "Esoterically", etc.
+	suffixPattern := `(?:s|'s|ed|ing|ism|ist|ic|ally|ians?)?`
+	pattern := `(?i)(^|[^A-Za-z0-9])` + regexp.QuoteMeta(term) + suffixPattern + `([^A-Za-z0-9]|$)`
 	re := regexp.MustCompile(pattern)
 	return re.FindStringIndex(en) != nil
 }

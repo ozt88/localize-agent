@@ -58,6 +58,12 @@ func preparePromptText(sourceRaw, currentRaw string, profile textProfile) prepar
 		}
 	}
 
+	// Strip straight double-quote characters before sending to LLM.
+	// The game UI already frames dialogue visually, and unbalanced quotes
+	// in fragment text confuse both translator and scorer models.
+	source = strings.ReplaceAll(source, "\"", "")
+	current = strings.ReplaceAll(current, "\"", "")
+
 	maskedSource, tagMaps := maskTags(source)
 	maskedCurrent, _ := maskTags(current)
 	return preparedPromptText{

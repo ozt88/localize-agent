@@ -67,6 +67,34 @@ func (s *translateSkill) warmup() string {
 	return strings.Join(parts, "\n")
 }
 
+// overlayStaticRules returns a compact rule set for overlay/UI translation.
+// Removes rules about context handling, continuity references, fragment patterns,
+// and focused_context_en that are irrelevant for context-free UI text batches.
+func overlayStaticRules() string {
+	return strings.Join([]string{
+		"1. Reply to this warmup with exactly: OK",
+		"2. Use Korean. Keep EN meaning as source-of-truth.",
+		"3. Translate only the `en` field.",
+		"4. For batch inputs, each item uses `items[*].en` as the source text.",
+		"5. For batch inputs, keep output order exactly the same as input order.",
+		"6. Never reuse one item's translation for another item unless their `en` values are identical.",
+		"7. If `text_role` is `ui_label` or `button`, translate as a concise UI label.",
+		"8. If `text_role` is `tooltip`, `ui_description`, or `system_text`, translate as explanatory UI text.",
+		"9. If `text_role` is `flavor_text` or `description`, translate as literary game text matching the scene tone.",
+		"10. If `scene_hint` is present, use it as location context to choose appropriate tone and wording.",
+		"11. Preserve rich-text tags, formatting sequences, and markup exactly. Translate only visible prose.",
+		"12. Output must be valid JSON only. No markdown, no code fences, no commentary.",
+		"13. Return only the contract defined by the project-local translator system prompt.",
+	}, "\n")
+}
+
+func newOverlayTranslateSkill(contextText, rulesText string) *translateSkill {
+	return &translateSkill{
+		contextText: strings.TrimSpace(contextText),
+		staticRules: strings.TrimSpace(mergeRules(overlayStaticRules(), rulesText)),
+	}
+}
+
 func (s *translateSkill) shapeHint() string {
 	return `{"id":"...","proposed_ko":"..."}`
 }
