@@ -121,12 +121,13 @@ func buildMinimalDirectScorePrompt(items []ReviewItem, variant string) string {
 	}
 	payload := make([]payloadItem, 0, len(items))
 	ultra := strings.EqualFold(strings.TrimSpace(variant), "ultra")
+	stripQuotes := func(s string) string { return strings.ReplaceAll(s, "\"", "") }
 	for _, item := range items {
 		row := payloadItem{
 			ID:        item.ID,
-			SourceEN:  item.SourceEN,
-			CurrentKO: item.CurrentKO,
-			FreshKO:   item.FreshKO,
+			SourceEN:  stripQuotes(item.SourceEN),
+			CurrentKO: stripQuotes(item.CurrentKO),
+			FreshKO:   stripQuotes(item.FreshKO),
 		}
 		if !ultra {
 			row.TextRole = item.TextRole
@@ -138,16 +139,19 @@ func buildMinimalDirectScorePrompt(items []ReviewItem, variant string) string {
 	prompt += "Return exactly one JSON array.\n"
 	prompt += "Each output entry must be [current_score, fresh_score].\n"
 	prompt += "Rules:\n"
-	prompt += "- integers 0 to 100\n"
-	prompt += "- higher is better\n"
-	prompt += "- score meaning preservation and natural Korean\n"
+	prompt += "- integers 0 to 100, use the full rubric range from warmup\n"
+	prompt += "- 90+: meaning preserved + natural Korean + correct tone\n"
+	prompt += "- 80-89: meaning preserved + natural, minor issues\n"
+	prompt += "- 70-79: meaning OK but awkward, or natural but meaning drifts\n"
+	prompt += "- <70: meaning loss, mistranslation, or broken output\n"
+	prompt += "- fragmentary source → fragmentary Korean is CORRECT, score the fragment fairly\n"
+	prompt += "- short valid translations (1-5 words) deserve 85+ if meaning is preserved\n"
 	if !ultra {
 		prompt += "- if text_role is choice, prefer concise actionable option wording\n"
 	}
 	prompt += "- return exactly N entries for N input items\n"
 	prompt += "- preserve input order exactly\n"
-	prompt += "- no explanation\n"
-	prompt += "- no extra text\n"
+	prompt += "- no explanation, no extra text\n"
 	prompt += "Example output:\n"
 	prompt += "[[91,84],[70,88]]\n"
 	return prompt + "Input items: " + string(b)
