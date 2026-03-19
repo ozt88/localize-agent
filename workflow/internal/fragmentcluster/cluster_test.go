@@ -18,7 +18,7 @@ func TestBuildPromptIncludesLineAlignedRules(t *testing.T) {
 		},
 	})
 	for _, want := range []string{
-		"return one Korean line per input line",
+		"Return one Korean line per input line.",
 		"Keep the same number of output lines as input lines.",
 		"Do not merge lines.",
 		"Do not add honorifics or extra politeness",

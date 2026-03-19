@@ -33,13 +33,15 @@ func main() {
 	var idsCSV string
 	var clusterName string
 	var tier string
+	var targetsFile string
 	var limit int
 	fs := flag.NewFlagSet("go-fragment-cluster-retranslate", flag.ExitOnError)
 	fs.StringVar(&projectDir, "project-dir", "", "project directory containing project.json")
 	fs.StringVar(&idsCSV, "ids", "", "comma-separated line ids in cluster order")
 	fs.StringVar(&clusterName, "cluster-name", "", "optional cluster label")
 	fs.StringVar(&tier, "tier", "", "optional tier from workflow/output/cluster_tier_report.json")
-	fs.IntVar(&limit, "limit", 0, "optional number of tier clusters to run")
+	fs.StringVar(&targetsFile, "targets-file", "", "context_cluster_targets.json for generalized context clusters")
+	fs.IntVar(&limit, "limit", 0, "optional number of clusters to run")
 	fs.Parse(os.Args[1:])
 
 	if strings.TrimSpace(projectDir) == "" {
@@ -100,6 +102,36 @@ func main() {
 		os.Exit(1)
 	}
 
+	if strings.TrimSpace(targetsFile) != "" {
+		batches, err := loadContextClusterTargets(targetsFile, limit)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "targets load error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "Loaded %d context clusters from %s\n", len(batches), targetsFile)
+		out := make([]map[string]any, 0, len(batches))
+		for idx, batch := range batches {
+			rows, err := loadRows(db, projectCfg.Translation.CheckpointBackend, batch.IDs)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "cluster %s load error: %v\n", batch.Name, err)
+				continue
+			}
+			result, err := executeClusterWithPatterns(client, profile, batch.Name, rows, batch.Patterns, idx)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "cluster %s prompt error: %v\n", batch.Name, err)
+				continue
+			}
+			out = append(out, result)
+			if (idx+1)%10 == 0 {
+				fmt.Fprintf(os.Stderr, "  progress: %d/%d\n", idx+1, len(batches))
+			}
+		}
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		_ = enc.Encode(out)
+		return
+	}
+
 	if strings.TrimSpace(tier) != "" {
 		reportPath := filepath.Join("workflow", "output", "cluster_tier_report.json")
 		batches, err := loadTierClusters(reportPath, tier, limit)
@@ -129,7 +161,7 @@ func main() {
 
 	ids := splitCSV(idsCSV)
 	if len(ids) == 0 {
-		fmt.Fprintln(os.Stderr, "either --ids or --tier is required")
+		fmt.Fprintln(os.Stderr, "either --ids, --tier, or --targets-file is required")
 		os.Exit(1)
 	}
 	rows, err := loadRows(db, projectCfg.Translation.CheckpointBackend, ids)
@@ -274,8 +306,9 @@ type tierEntry struct {
 }
 
 type namedCluster struct {
-	Name string
-	IDs  []string
+	Name     string
+	IDs      []string
+	Patterns []string
 }
 
 func loadTierClusters(path string, tier string, limit int) ([]namedCluster, error) {
@@ -302,6 +335,78 @@ func loadTierClusters(path string, tier string, limit int) ([]namedCluster, erro
 		})
 	}
 	return out, nil
+}
+
+type contextClusterTarget struct {
+	ClusterID string   `json:"cluster_id"`
+	Patterns  []string `json:"patterns"`
+	IDs       []string `json:"ids"`
+}
+
+func loadContextClusterTargets(path string, limit int) ([]namedCluster, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var targets []contextClusterTarget
+	if err := json.Unmarshal(raw, &targets); err != nil {
+		return nil, err
+	}
+	if limit > 0 && limit < len(targets) {
+		targets = targets[:limit]
+	}
+	out := make([]namedCluster, 0, len(targets))
+	for _, t := range targets {
+		out = append(out, namedCluster{
+			Name:     t.ClusterID,
+			IDs:      t.IDs,
+			Patterns: t.Patterns,
+		})
+	}
+	return out, nil
+}
+
+func executeClusterWithPatterns(client interface {
+	SendPrompt(key string, profile platform.LLMProfile, prompt string) (string, error)
+}, profile platform.LLMProfile, clusterName string, rows []rowData, patterns []string, idx int) (map[string]any, error) {
+	input := fragmentcluster.PromptInput{
+		ClusterID:       clusterName,
+		Lines:           make([]fragmentcluster.Line, 0, len(rows)),
+		ContextBeforeEN: rows[0].PrevEN,
+		ContextAfterEN:  rows[len(rows)-1].NextEN,
+		ClusterPatterns: patterns,
+		SegmentID:       rows[0].SegmentID,
+		SourceFile:      rows[0].SourceFile,
+	}
+	for _, row := range rows {
+		input.Lines = append(input.Lines, fragmentcluster.Line{
+			ID:        row.ID,
+			EN:        row.EN,
+			CurrentKO: row.CurrentKO,
+			TextRole:  row.TextRole,
+		})
+	}
+	raw, err := client.SendPrompt(fmt.Sprintf("context-cluster-retranslate-%d", idx), profile, fragmentcluster.BuildPrompt(input))
+	if err != nil {
+		return nil, err
+	}
+	lines, err := fragmentcluster.ParseOutput(raw, len(input.Lines))
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w raw: %s", err, raw)
+	}
+	lines, err = fragmentcluster.NormalizeOutputLines(lines, input.Lines)
+	if err != nil {
+		return nil, fmt.Errorf("normalize error: %w raw: %s", err, raw)
+	}
+	return map[string]any{
+		"cluster_id":        input.ClusterID,
+		"patterns":          patterns,
+		"context_before_en": input.ContextBeforeEN,
+		"context_after_en":  input.ContextAfterEN,
+		"before_en":         collectBeforeEN(rows),
+		"before_ko":         collectBeforeKO(rows),
+		"after_ko":          lines,
+	}, nil
 }
 
 func executeCluster(client interface {

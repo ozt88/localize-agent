@@ -25,20 +25,22 @@ var (
 )
 
 type PromptInput struct {
-	ClusterID       string `json:"cluster_id,omitempty"`
-	SourceFile      string `json:"source_file,omitempty"`
-	SegmentID       string `json:"segment_id,omitempty"`
-	ContextBeforeEN string `json:"context_before_en,omitempty"`
-	ContextAfterEN  string `json:"context_after_en,omitempty"`
-	ClusterJoinHint string `json:"cluster_join_hint,omitempty"`
-	Lines           []Line `json:"lines"`
+	ClusterID       string   `json:"cluster_id,omitempty"`
+	SourceFile      string   `json:"source_file,omitempty"`
+	SegmentID       string   `json:"segment_id,omitempty"`
+	ContextBeforeEN string   `json:"context_before_en,omitempty"`
+	ContextAfterEN  string   `json:"context_after_en,omitempty"`
+	ClusterJoinHint string   `json:"cluster_join_hint,omitempty"`
+	ClusterPatterns []string `json:"cluster_patterns,omitempty"`
+	Lines           []Line   `json:"lines"`
 }
 
 func BuildPrompt(in PromptInput) string {
 	b, _ := json.Marshal(in)
-	return strings.TrimSpace(strings.Join([]string{
-		"You are improving Korean localization for a fragment cluster.",
-		"Read all lines together for meaning, but return one Korean line per input line.",
+	parts := []string{
+		"You are improving Korean localization for a context cluster.",
+		"Read ALL lines together as one meaning unit before translating any individual line.",
+		"Return one Korean line per input line.",
 		"Keep the same number of output lines as input lines.",
 		"Preserve input order exactly.",
 		"Do not merge lines.",
@@ -48,9 +50,44 @@ func BuildPrompt(in PromptInput) string {
 		"Keep each line's Korean speech level and register aligned with current_ko when current_ko already sounds natural.",
 		"Do not add honorifics or extra politeness unless the source or current_ko clearly requires it.",
 		"If a line already carries emphasis in current_ko, preserve that emphasis unless there is a strong reason not to.",
+	}
+	// Pattern-specific hints
+	for _, hint := range patternHints(in.ClusterPatterns) {
+		parts = append(parts, hint)
+	}
+	parts = append(parts,
 		"Return only one JSON array of Korean strings.",
-		"Input cluster JSON: " + string(b),
-	}, "\n"))
+		"Input cluster JSON: "+string(b),
+	)
+	return strings.TrimSpace(strings.Join(parts, "\n"))
+}
+
+// patternHints returns extra prompt instructions based on cluster patterns.
+func patternHints(patterns []string) []string {
+	if len(patterns) == 0 {
+		return nil
+	}
+	set := map[string]bool{}
+	for _, p := range patterns {
+		set[p] = true
+	}
+	var hints []string
+	if set["pronoun_ref"] {
+		hints = append(hints, "Some lines contain pronouns (he, she, it, they, etc.) whose antecedent is in a neighboring line. Resolve pronoun references using surrounding context to choose the correct Korean subject/object.")
+	}
+	if set["speaker_change"] {
+		hints = append(hints, "This cluster has dialogue from multiple speakers. Match tone, register, and speech level to each speaker's character. Short responses should reflect the responding speaker's personality.")
+	}
+	if set["incomplete"] {
+		hints = append(hints, "Some lines are incomplete (trailing ..., -, or unfinished quotes). Understand the full intent from surrounding lines before translating. Keep the Korean equally incomplete where the English is intentionally cut off.")
+	}
+	if set["action_reaction"] {
+		hints = append(hints, "This cluster pairs a narration/action line with a short emotional reaction. Use the action context to inform the correct emotional tone and nuance of the reaction line.")
+	}
+	if set["fragment_chain"] {
+		hints = append(hints, "These lines form a fragment chain where a single thought or action spans multiple short lines. Translate them as parts of one coherent meaning unit.")
+	}
+	return hints
 }
 
 func ParseOutput(raw string, expected int) ([]string, error) {
