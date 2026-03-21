@@ -82,39 +82,39 @@
 
 | 요구사항 | 페이즈 | 상태 |
 |----------|--------|------|
-| PREP-01 | — | Pending |
-| PARSE-01 | — | Pending |
-| PARSE-02 | — | Pending |
-| PARSE-03 | — | Pending |
-| PARSE-04 | — | Pending |
-| PARSE-05 | — | Pending |
-| PARSE-06 | — | Pending |
-| PARSE-07 | — | Pending |
-| TRANS-01 | — | Pending |
-| TRANS-02 | — | Pending |
-| TRANS-03 | — | Pending |
-| TRANS-04 | — | Pending |
-| TRANS-05 | — | Pending |
-| TRANS-06 | — | Pending |
-| TRANS-07 | — | Pending |
-| TRANS-08 | — | Pending |
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| PATCH-01 | — | Pending |
-| PATCH-02 | — | Pending |
-| PATCH-03 | — | Pending |
-| PLUGIN-01 | — | Pending |
-| PLUGIN-02 | — | Pending |
-| PLUGIN-03 | — | Pending |
-| VERIFY-01 | — | Pending |
-| VERIFY-02 | — | Pending |
+| PREP-01 | Phase 1 | Pending |
+| PARSE-01 | Phase 1 | Pending |
+| PARSE-02 | Phase 1 | Pending |
+| PARSE-03 | Phase 1 | Pending |
+| PARSE-04 | Phase 1 | Pending |
+| PARSE-05 | Phase 1 | Pending |
+| PARSE-06 | Phase 1 | Pending |
+| PARSE-07 | Phase 1 | Pending |
+| TRANS-01 | Phase 2 | Pending |
+| TRANS-02 | Phase 2 | Pending |
+| TRANS-03 | Phase 2 | Pending |
+| TRANS-04 | Phase 2 | Pending |
+| TRANS-05 | Phase 2 | Pending |
+| TRANS-06 | Phase 2 | Pending |
+| TRANS-07 | Phase 2 | Pending |
+| TRANS-08 | Phase 2 | Pending |
+| INFRA-01 | Phase 2 | Pending |
+| INFRA-02 | Phase 2 | Pending |
+| INFRA-03 | Phase 2 | Pending |
+| PATCH-01 | Phase 3 | Pending |
+| PATCH-02 | Phase 3 | Pending |
+| PATCH-03 | Phase 3 | Pending |
+| PLUGIN-01 | Phase 4 | Pending |
+| PLUGIN-02 | Phase 4 | Pending |
+| PLUGIN-03 | Phase 4 | Pending |
+| VERIFY-01 | Phase 3 | Pending |
+| VERIFY-02 | Phase 4 | Pending |
 
 **Coverage:**
 - 필수 요구사항: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 after roadmap creation*
