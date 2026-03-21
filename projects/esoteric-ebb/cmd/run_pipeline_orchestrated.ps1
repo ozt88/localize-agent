@@ -29,6 +29,7 @@ $pidDir = Join-Path $projectDirAbs "run_logs\worker_pids"
 $binDir = Join-Path $repoRoot "workflow\bin"
 $pipelineExe = Join-Path $binDir "go-translation-pipeline.exe"
 $projectConfigPath = Join-Path $projectDirAbs "project.json"
+$opencodePidPath = Join-Path $pidDir "opencode-server.json"
 
 $projectDirMatches = New-Object System.Collections.Generic.List[string]
 $projectDirMatches.Add($projectDirAbs) | Out-Null
@@ -669,6 +670,118 @@ limit 5;
   return $summary
 }
 
+function Get-OpenCodeServerLoad {
+  <#
+  .SYNOPSIS
+    Queries the OpenCode SQLite DB for recent LLM request metrics.
+    Returns avg latency, requests/min, and a load level (low/medium/high).
+  #>
+  $load = [ordered]@{
+    avg_latency_sec = 0.0
+    max_latency_sec = 0.0
+    requests_last_5min = 0
+    rpm = 0.0
+    level = "unknown"
+    error = $null
+  }
+  try {
+    $raw = & opencode db "
+      SELECT
+        COALESCE(ROUND(AVG(time_updated - time_created) / 1000.0, 1), 0) as avg_lat,
+        COALESCE(ROUND(MAX(time_updated - time_created) / 1000.0, 1), 0) as max_lat,
+        COUNT(*) as cnt
+      FROM message
+      WHERE time_created > (strftime('%s','now') - 300) * 1000
+        AND json_extract(data, '$.role') = 'assistant'
+    " --format json 2>&1
+    $parsed = $raw | ConvertFrom-Json
+    if ($parsed -and $parsed.Count -gt 0) {
+      $row = $parsed[0]
+      $load.avg_latency_sec = [double]$row.avg_lat
+      $load.max_latency_sec = [double]$row.max_lat
+      $load.requests_last_5min = [int]$row.cnt
+      $load.rpm = [math]::Round($load.requests_last_5min / 5.0, 1)
+    }
+    # Classify load level based on avg latency and RPM
+    if ($load.avg_latency_sec -le 0 -and $load.requests_last_5min -eq 0) {
+      $load.level = "idle"
+    }
+    elseif ($load.avg_latency_sec -le 10 -and $load.rpm -lt 40) {
+      $load.level = "low"
+    }
+    elseif ($load.avg_latency_sec -le 25 -or $load.rpm -lt 60) {
+      $load.level = "medium"
+    }
+    else {
+      $load.level = "high"
+    }
+  }
+  catch {
+    $load.error = $_.Exception.Message
+    $load.level = "unknown"
+  }
+  return $load
+}
+
+function Get-DesiredWorkersByLoad {
+  <#
+  .SYNOPSIS
+    Determines worker counts based on backlog pressure + OpenCode server load.
+    Scales workers up when server load is low/medium and backlog is deep.
+    Scales workers down when server load is high.
+  #>
+  param(
+    [hashtable]$Metrics,
+    [hashtable]$ServerLoad,
+    [hashtable]$BaseWorkers
+  )
+  $desired = [ordered]@{
+    translate        = [int]$BaseWorkers.translate
+    failed_translate = [int]$BaseWorkers.failed_translate
+    overlay_translate = [int]$BaseWorkers.overlay_translate
+    score            = [int]$BaseWorkers.score
+    retranslate      = [int]$BaseWorkers.retranslate
+  }
+  $loadLevel = if ($null -ne $ServerLoad) { $ServerLoad.level } else { "unknown" }
+
+  # --- Scale-out: server has capacity, backlog is deep ---
+  if ($loadLevel -eq "idle" -or $loadLevel -eq "low") {
+    if ($Metrics.pending_score -ge 500) {
+      $desired.score = [math]::Max($desired.score, 4)
+    }
+    if ($Metrics.pending_score -ge 2000) {
+      $desired.score = [math]::Max($desired.score, 6)
+    }
+    if ($Metrics.pending_retranslate -ge 500) {
+      $desired.retranslate = [math]::Max($desired.retranslate, 3)
+    }
+    if ($Metrics.pending_retranslate -ge 2000) {
+      $desired.retranslate = [math]::Max($desired.retranslate, 4)
+    }
+    if ($Metrics.pending_translate -ge 500 -or ($Metrics.pending_failed_translate -ge 200)) {
+      $desired.translate = [math]::Max($desired.translate, 3)
+    }
+  }
+  # --- Moderate: server under moderate pressure, allow mild scale-out ---
+  elseif ($loadLevel -eq "medium") {
+    if ($Metrics.pending_score -ge 2000) {
+      $desired.score = [math]::Max($desired.score, 4)
+    }
+    if ($Metrics.pending_retranslate -ge 2000) {
+      $desired.retranslate = [math]::Max($desired.retranslate, 3)
+    }
+  }
+  # --- Scale-in: server under heavy load, reduce workers ---
+  elseif ($loadLevel -eq "high") {
+    $desired.score = [math]::Min($desired.score, 2)
+    $desired.retranslate = [math]::Min($desired.retranslate, 1)
+    $desired.translate = [math]::Min($desired.translate, 1)
+  }
+  # unknown: keep base workers as-is
+
+  return $desired
+}
+
 function Get-RecommendedProfile {
   $metrics = Get-BacklogMetrics
   $reason = New-Object System.Collections.Generic.List[string]
@@ -717,13 +830,17 @@ function Show-SupervisorStatus {
   $scoreSettings = Get-ScoreSettings
   $recommendation = Get-RecommendedProfile
   $failedSummary = Get-FailedSummary
+  $serverLoad = Get-OpenCodeServerLoad
   $counts.failed_translate = Get-DesiredFailedTranslateWorkers -Metrics $recommendation.metrics -FailedSummary $failedSummary
+  $desiredByLoad = Get-DesiredWorkersByLoad -Metrics $recommendation.metrics -ServerLoad $serverLoad -BaseWorkers $counts
   Write-Output ("ProjectDir: " + $projectDirAbs)
   Write-Output ("Profile: " + $Profile)
   Write-Output ("Desired workers: translate={0} failed-translate={1} overlay-translate={2} score={3} retranslate={4}" -f $counts.translate, $counts.failed_translate, $counts.overlay_translate, $counts.score, $counts.retranslate)
+  Write-Output ("Load-adjusted: translate={0} failed-translate={1} overlay-translate={2} score={3} retranslate={4}" -f $desiredByLoad.translate, $desiredByLoad.failed_translate, $desiredByLoad.overlay_translate, $desiredByLoad.score, $desiredByLoad.retranslate)
   Write-Output ("PID records restored from manifest: " + $restoredPidRecords)
   Write-Output ("PID record health: total={0} stale_or_broken={1}" -f @($pidRecordStatus).Count, $staleCount)
   Write-Output ("Score settings: model={0} prompt_variant={1} batch={2} concurrency={3} backend={4}" -f $scoreSettings.model, $scoreSettings.prompt_variant, $scoreSettings.batch_size, $scoreSettings.concurrency, $scoreSettings.backend)
+  Write-Output ("OpenCode server: level={0} avg_latency={1}s rpm={2} reqs_5min={3}" -f $serverLoad.level, $serverLoad.avg_latency_sec, $serverLoad.rpm, $serverLoad.requests_last_5min)
   Write-Output ("Recommended profile now: {0}" -f $recommendation.profile)
   Write-Output ("Recommendation reason: {0}" -f $recommendation.reason)
   Write-Output ("Failed summary: total={0} translator_no_row={1} low_score_max_retry={2} missing_score={3}" -f $failedSummary.total, $failedSummary.translator_no_row, $failedSummary.low_score_max_retry, $failedSummary.missing_score)
@@ -829,6 +946,10 @@ function Invoke-SupervisorAction {
     "-ProjectDir", $ProjectDir,
     "-Action", $SupervisorAction,
     "-Profile", $SupervisorProfile,
+    "-TranslateWorkers", "$TranslateWorkers",
+    "-FailedTranslateWorkers", "$FailedTranslateWorkers",
+    "-ScoreWorkers", "$ScoreWorkers",
+    "-RetranslateWorkers", "$RetranslateWorkers",
     "-StageBatchSize", "$StageBatchSize",
     "-LeaseSec", "$LeaseSec",
     "-IdleSleepSec", "$IdleSleepSec"
@@ -837,8 +958,140 @@ function Invoke-SupervisorAction {
   return $LASTEXITCODE
 }
 
+function Get-OpenCodeConfig {
+  $cfg = Get-ProjectConfigObject
+  if ($null -eq $cfg) { return $null }
+  $urls = @()
+  foreach ($section in @($cfg.translation, $cfg.pipeline.low_llm, $cfg.pipeline.high_llm, $cfg.pipeline.score_llm)) {
+    if ($null -ne $section -and [string]$section.llm_backend -eq "opencode" -and -not [string]::IsNullOrWhiteSpace([string]$section.server_url)) {
+      $urls += [string]$section.server_url
+    }
+  }
+  if ($urls.Count -eq 0) { return $null }
+  $url = $urls | Select-Object -First 1
+  try {
+    $uri = [System.Uri]::new($url)
+    return [ordered]@{ url = $url; port = $uri.Port; hostname = $uri.Host }
+  } catch {
+    return $null
+  }
+}
+
+function Test-OpenCodeReachable {
+  param([string]$Url)
+  try {
+    $response = Invoke-WebRequest -Uri "$Url/v1/models" -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
+    return $response.StatusCode -eq 200
+  } catch {
+    return $false
+  }
+}
+
+function Start-OpenCodeServer {
+  param([int]$Port, [string]$Hostname = "127.0.0.1")
+  New-Item -ItemType Directory -Force -Path $pidDir | Out-Null
+  $ocLogDir = Join-Path $projectDirAbs "run_logs\opencode"
+  New-Item -ItemType Directory -Force -Path $ocLogDir | Out-Null
+  $ts = Get-Date -Format "yyyyMMdd_HHmmss"
+  $stdoutLog = Join-Path $ocLogDir ("opencode_$ts.stdout.log")
+  $stderrLog = Join-Path $ocLogDir ("opencode_$ts.stderr.log")
+  $proc = Start-Process -FilePath "opencode" -ArgumentList @("serve", "--port", "$Port", "--hostname", $Hostname) `
+    -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog -WindowStyle Hidden -PassThru -WorkingDirectory $repoRoot
+  $record = [ordered]@{
+    pid = $proc.Id
+    port = $Port
+    hostname = $Hostname
+    started_at = (Get-Date).ToString("o")
+    stdout_log = $stdoutLog
+    stderr_log = $stderrLog
+  }
+  $record | ConvertTo-Json -Depth 4 | Set-Content -Path $opencodePidPath -Encoding utf8
+  return $proc
+}
+
+function Stop-OpenCodeServer {
+  if (-not (Test-Path $opencodePidPath)) { return }
+  try {
+    $record = Get-Content -Path $opencodePidPath -Raw | ConvertFrom-Json
+    $ocPid = [int]$record.pid
+    if ($ocPid -gt 0) {
+      Stop-Process -Id $ocPid -Force -ErrorAction SilentlyContinue
+      Start-Sleep -Milliseconds 500
+    }
+  } catch {}
+  Remove-Item -Path $opencodePidPath -Force -ErrorAction SilentlyContinue
+}
+
+function Ensure-OpenCodeServer {
+  $ocConfig = Get-OpenCodeConfig
+  if ($null -eq $ocConfig) { return }
+  if (Test-OpenCodeReachable -Url $ocConfig.url) {
+    Write-Output ("OpenCode server already running at " + $ocConfig.url)
+    return
+  }
+  Write-Output ("Starting OpenCode server on port " + $ocConfig.port + "...")
+  Stop-OpenCodeServer
+  $proc = Start-OpenCodeServer -Port $ocConfig.port -Hostname $ocConfig.hostname
+  $maxWait = 30
+  $waited = 0
+  while ($waited -lt $maxWait) {
+    Start-Sleep -Seconds 1
+    $waited++
+    if ($proc.HasExited) {
+      throw ("OpenCode server exited unexpectedly with code " + $proc.ExitCode)
+    }
+    if (Test-OpenCodeReachable -Url $ocConfig.url) {
+      Write-Output ("OpenCode server ready at " + $ocConfig.url + " (pid=" + $proc.Id + ", waited " + $waited + "s)")
+      return
+    }
+  }
+  throw "OpenCode server failed to become ready within ${maxWait}s"
+}
+
+function Test-PostgresDsnReady {
+  param([string]$Dsn)
+  try {
+    $result = & 'C:\Program Files\PostgreSQL\17\bin\psql.exe' $Dsn -At -c "SELECT 1;" 2>$null
+    return ($LASTEXITCODE -eq 0) -and ([string]::Join("", $result).Trim() -eq "1")
+  } catch {
+    return $false
+  }
+}
+
+function Ensure-PostgresServer {
+  $cfg = Get-ProjectConfigObject
+  if ($null -eq $cfg) { return }
+  $backend = [string]$cfg.translation.checkpoint_backend
+  if ($backend -ne "postgres") { return }
+  $dsn = [string]$cfg.translation.checkpoint_dsn
+  if ([string]::IsNullOrWhiteSpace($dsn)) { return }
+  Write-Output "Checking Postgres server..."
+  if (Test-PostgresDsnReady -Dsn $dsn) {
+    Write-Output "Postgres server already running and ready."
+    return
+  }
+  $manageScript = Join-Path $repoRoot "scripts\manage-postgres5433.ps1"
+  if (-not (Test-Path $manageScript)) {
+    throw "Postgres not reachable and manage-postgres5433.ps1 not found"
+  }
+  Write-Output "Starting Postgres server..."
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $manageScript -Action start 2>&1 | ForEach-Object { Write-Output ("  " + $_) }
+  for ($i = 0; $i -lt 20; $i++) {
+    Start-Sleep -Milliseconds 500
+    if (Test-PostgresDsnReady -Dsn $dsn) {
+      Write-Output "Postgres server ready."
+      return
+    }
+  }
+  throw "Postgres server failed to become ready within 10s"
+}
+
 Push-Location $repoRoot
 try {
+  if ($Action -ne "stop" -and -not $PrintOnly) {
+    Ensure-PostgresServer
+    Ensure-OpenCodeServer
+  }
   $resolvedCounts = Resolve-ProfileWorkerCounts -ProfileName $Profile -Translate $TranslateWorkers -Score $ScoreWorkers -Retranslate $RetranslateWorkers
   $startupMetrics = Get-BacklogMetrics
   $startupFailedSummary = Get-FailedSummary
@@ -855,7 +1108,8 @@ try {
     }
     "stop" {
       Stop-ProjectWorkers
-      Write-Output "Stopped project workers."
+      Stop-OpenCodeServer
+      Write-Output "Stopped project workers and OpenCode server."
       exit 0
     }
     "cleanup" {
@@ -871,25 +1125,35 @@ try {
       while ($true) {
         $recommendation = Get-RecommendedProfile
         $failedSummary = Get-FailedSummary
+        $serverLoad = Get-OpenCodeServerLoad
         $recommendedProfile = [string]$recommendation.profile
         $liveByRole = Get-LiveWorkerCounts
-        $desiredByRecommendation = Resolve-ProfileWorkerCounts -ProfileName $recommendedProfile -Translate $TranslateWorkers -Score $ScoreWorkers -Retranslate $RetranslateWorkers
-        $desiredByRecommendation.failed_translate = Get-DesiredFailedTranslateWorkers -Metrics $recommendation.metrics -FailedSummary $failedSummary
-        $matchesLive = ($liveByRole.translate -eq $desiredByRecommendation.translate) -and ($liveByRole.failed_translate -eq $desiredByRecommendation.failed_translate) -and ($liveByRole.overlay_translate -eq $desiredByRecommendation.overlay_translate) -and ($liveByRole.score -eq $desiredByRecommendation.score) -and ($liveByRole.retranslate -eq $desiredByRecommendation.retranslate)
-        Write-Output ("[{0}] autoscale recommendation={1} reason={2}" -f (Get-Date).ToString("o"), $recommendedProfile, $recommendation.reason)
+        $baseWorkers = Resolve-ProfileWorkerCounts -ProfileName $recommendedProfile -Translate $TranslateWorkers -Score $ScoreWorkers -Retranslate $RetranslateWorkers
+        $baseWorkers.failed_translate = Get-DesiredFailedTranslateWorkers -Metrics $recommendation.metrics -FailedSummary $failedSummary
+        $desiredByLoad = Get-DesiredWorkersByLoad -Metrics $recommendation.metrics -ServerLoad $serverLoad -BaseWorkers $baseWorkers
+        $matchesLive = ($liveByRole.translate -eq $desiredByLoad.translate) -and ($liveByRole.failed_translate -eq $desiredByLoad.failed_translate) -and ($liveByRole.overlay_translate -eq $desiredByLoad.overlay_translate) -and ($liveByRole.score -eq $desiredByLoad.score) -and ($liveByRole.retranslate -eq $desiredByLoad.retranslate)
+        Write-Output ("[{0}] autoscale profile={1} reason={2}" -f (Get-Date).ToString("o"), $recommendedProfile, $recommendation.reason)
+        Write-Output ("[{0}] server_load level={1} avg_latency={2}s rpm={3} reqs_5min={4}" -f (Get-Date).ToString("o"), $serverLoad.level, $serverLoad.avg_latency_sec, $serverLoad.rpm, $serverLoad.requests_last_5min)
+        Write-Output ("[{0}] desired workers: translate={1} failed_translate={2} overlay={3} score={4} retranslate={5}" -f (Get-Date).ToString("o"), $desiredByLoad.translate, $desiredByLoad.failed_translate, $desiredByLoad.overlay_translate, $desiredByLoad.score, $desiredByLoad.retranslate)
+        Write-Output ("[{0}] live    workers: translate={1} failed_translate={2} overlay={3} score={4} retranslate={5}" -f (Get-Date).ToString("o"), $liveByRole.translate, $liveByRole.failed_translate, $liveByRole.overlay_translate, $liveByRole.score, $liveByRole.retranslate)
         Write-Output ("[{0}] failed total={1} translator_no_row={2} low_score_max_retry={3} missing_score={4}" -f (Get-Date).ToString("o"), $failedSummary.total, $failedSummary.translator_no_row, $failedSummary.low_score_max_retry, $failedSummary.missing_score)
         if (-not $matchesLive) {
-          Write-Output ("[{0}] restarting to profile {1}" -f (Get-Date).ToString("o"), $recommendedProfile)
+          Write-Output ("[{0}] scaling workers to match desired counts" -f (Get-Date).ToString("o"))
+          # Override the global worker counts for restart
+          $TranslateWorkers = $desiredByLoad.translate
+          $FailedTranslateWorkers = $desiredByLoad.failed_translate
+          $ScoreWorkers = $desiredByLoad.score
+          $RetranslateWorkers = $desiredByLoad.retranslate
           if ($PrintOnly) {
-            Write-Output ("powershell -NoProfile -ExecutionPolicy Bypass -File {0} -ProjectDir {1} -Action restart -Profile {2}" -f (Join-Path $repoRoot "projects\esoteric-ebb\cmd\run_pipeline_orchestrated.ps1"), $ProjectDir, $recommendedProfile)
+            Write-Output ("powershell -NoProfile -ExecutionPolicy Bypass -File {0} -ProjectDir {1} -Action restart -Profile custom -TranslateWorkers {2} -ScoreWorkers {3} -RetranslateWorkers {4} -FailedTranslateWorkers {5}" -f (Join-Path $repoRoot "projects\esoteric-ebb\cmd\run_pipeline_orchestrated.ps1"), $ProjectDir, $TranslateWorkers, $ScoreWorkers, $RetranslateWorkers, $FailedTranslateWorkers)
           } else {
-            $restartExit = Invoke-SupervisorAction -SupervisorAction "restart" -SupervisorProfile $recommendedProfile
+            $restartExit = Invoke-SupervisorAction -SupervisorAction "restart" -SupervisorProfile "custom"
             if ($restartExit -ne 0) {
               throw "autoscale restart failed with exit code $restartExit"
             }
           }
         } else {
-          Write-Output ("[{0}] live worker counts already match recommended profile {1}" -f (Get-Date).ToString("o"), $recommendedProfile)
+          Write-Output ("[{0}] workers already at desired counts" -f (Get-Date).ToString("o"))
         }
 
         if ($failedSummary.translator_no_row -gt 0) {
