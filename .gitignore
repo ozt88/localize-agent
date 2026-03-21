@@ -20,3 +20,9 @@ workflow/bin/
 temp/
 projects/esoteric-ebb/rag/wiki_pages/
 projects/esoteric-ebb/rag/chroma_db/
+projects/esoteric-ebb/patch/
+projects/esoteric-ebb/source/*.sql
+projects/esoteric-ebb/source/*.json
+projects/esoteric-ebb/source/retry/
+__pycache__/
+github-docs/
