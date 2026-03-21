@@ -1,0 +1,5577 @@
+{
+  "format": "rogue-trader-scene-batches.v1",
+  "generated_at": "2026-03-14T09:53:50.069257+00:00",
+  "scene_batches": [
+    {
+      "scene_file": "abduction_achilleas_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-40279-0635df7f9e57"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "administratumpalace_dlc2_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-06357-cafdd64be16a",
+        "rt-canon-13648-ab160253c1ea",
+        "rt-canon-23257-8634e22ad6c2",
+        "rt-canon-44369-8aea33d36821",
+        "rt-canon-49311-8a2eb8074256"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "administratumpalace_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-35172-20927c98fa63",
+        "rt-canon-40289-11b0d5202b5f",
+        "rt-canon-42376-9f695d2180cc",
+        "rt-canon-44369-8aea33d36821",
+        "rt-canon-45810-7d3ebee80ced",
+        "rt-canon-47698-4c274fee3750",
+        "rt-canon-49311-8a2eb8074256",
+        "rt-canon-51188-4d713edf0ddd"
+      ],
+      "profiles": {
+        "scene_bound": 8
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "AdministratumPalaceAdministratumWorker"
+      ]
+    },
+    {
+      "scene_file": "agriworldjungle_defaultmechanics.scenes",
+      "unit_count": 28,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00395-25874ecbbee0",
+        "rt-canon-32324-24e50e58a397",
+        "rt-canon-33738-a71489d23832",
+        "rt-canon-35015-be3a1e176e11",
+        "rt-canon-40084-3c1444765554",
+        "rt-canon-40089-77eedfaef1b7",
+        "rt-canon-41962-b16a4b877acb",
+        "rt-canon-47139-160617489d18",
+        "rt-canon-48060-6c9be6cfaf3c",
+        "rt-canon-48116-bb631ae6aa81",
+        "rt-canon-48410-8d956e4553f3",
+        "rt-canon-48477-431832e08be5",
+        "rt-canon-48489-9f5b56430ca3",
+        "rt-canon-48584-a6c87d062155",
+        "rt-canon-48653-aada0f9c71e3",
+        "rt-canon-48654-311c4077bc31",
+        "rt-canon-48655-cb94d7176106",
+        "rt-canon-48814-24d84d7e7ac2",
+        "rt-canon-48859-a3e33bcc969a",
+        "rt-canon-49623-8df75c36433c",
+        "rt-canon-49724-72bece908f55",
+        "rt-canon-50466-828189ae9340",
+        "rt-canon-50525-da88a44e3cb0",
+        "rt-canon-50565-eb90a43c4306",
+        "rt-canon-50577-21b449611c95",
+        "rt-canon-50700-5a9b33212ff0"
+      ],
+      "profiles": {
+        "scene_bound": 28
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 5,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip",
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "GoToUpperLevel",
+        "JungleWorldRebelLeader",
+        "JungleWorldEldarSeer"
+      ]
+    },
+    {
+      "scene_file": "agriworldtown_afterrebelattackmechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-00240-4c1db9e500d0",
+        "rt-canon-05602-ed247c32794e",
+        "rt-canon-23156-8928d581ea4d",
+        "rt-canon-30796-834ea5f8c844",
+        "rt-canon-34424-35cdaffec861",
+        "rt-canon-44597-b092f981f49f",
+        "rt-canon-51665-c0707affc4b2"
+      ],
+      "profiles": {
+        "scene_bound": 6,
+        "dialogue": 1
+      },
+      "speaker_hints": [
+        "Yrliet"
+      ],
+      "blueprint_kinds": {
+        "generic_blueprint": 4,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "RangerEldarCompanion",
+        "Yrliet",
+        "GovernorSecretary",
+        "GovernorGuardCaptain",
+        "AgriWorldMagus"
+      ]
+    },
+    {
+      "scene_file": "agriworldtown_indoor_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00140-a4fd5d7736f9",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01352-6251b87a4640",
+        "rt-canon-44573-bc5731dfec7f",
+        "rt-canon-48111-452286f53097",
+        "rt-canon-51705-7ae9872cda96"
+      ],
+      "profiles": {
+        "scene_bound": 5,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 4,
+        "bark": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "APA_Mercenary",
+        "PlayerPresence_04",
+        "Servant",
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "SecretaryServitor_Name",
+        "AgriWorldGovernor"
+      ]
+    },
+    {
+      "scene_file": "agriworldtown_mechanics.scenes",
+      "unit_count": 14,
+      "unit_ids": [
+        "rt-canon-32254-c73dbd5ae15d",
+        "rt-canon-32407-065f58b12cee",
+        "rt-canon-33795-af95d10ce8d9",
+        "rt-canon-35538-f6b835b5278a",
+        "rt-canon-35539-9552cf1c1839",
+        "rt-canon-44531-2d1c0817ed64",
+        "rt-canon-47386-82e415659c58",
+        "rt-canon-47482-c76fae5675b6",
+        "rt-canon-48079-022cdcaa111a",
+        "rt-canon-48144-157cb0a1fe39",
+        "rt-canon-48145-dfe25443753d",
+        "rt-canon-48286-20893c779c79",
+        "rt-canon-48460-9deb7ee533b1",
+        "rt-canon-48641-91adc47b405e"
+      ],
+      "profiles": {
+        "scene_bound": 14
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "archeotechreactor_default_mechanics.scenes",
+      "unit_count": 32,
+      "unit_ids": [
+        "rt-canon-00992-39709581058b",
+        "rt-canon-08039-c2d099870d25",
+        "rt-canon-16340-41ca35df7b17",
+        "rt-canon-18105-30e1267e3db6",
+        "rt-canon-18235-4905d169862b",
+        "rt-canon-21676-e091046923ed",
+        "rt-canon-32136-d04a56e9a52f",
+        "rt-canon-32442-68e6e5b61f42",
+        "rt-canon-32459-ccbd1cf328c2",
+        "rt-canon-32460-f0e435bce876",
+        "rt-canon-32701-0a9d0b710bf1",
+        "rt-canon-35728-88a15629f379",
+        "rt-canon-36460-c1b8fb6da6f5",
+        "rt-canon-36824-f994046ec02b",
+        "rt-canon-40332-b6363095dd2f",
+        "rt-canon-40567-d2678cf70d93",
+        "rt-canon-41332-03f35f5e4d56",
+        "rt-canon-41840-bf32ba860670",
+        "rt-canon-44381-8aa2a30e57e4",
+        "rt-canon-46270-f7aab6ad87c3",
+        "rt-canon-46602-641b2bd28651",
+        "rt-canon-47276-889d361b336d",
+        "rt-canon-47713-d3b31195e289",
+        "rt-canon-48012-2bfbadbbed45",
+        "rt-canon-48173-f6122aaf6d96",
+        "rt-canon-48194-bf709cf9ce64",
+        "rt-canon-48195-516da5be033d",
+        "rt-canon-48469-a5c2308d46c6",
+        "rt-canon-49474-a2b36c0ef4d7",
+        "rt-canon-49968-533f6255b2e9",
+        "rt-canon-50060-fc9ee1fedae4",
+        "rt-canon-53194-5f17c6711491"
+      ],
+      "profiles": {
+        "scene_bound": 32
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "Cultists_Diversion_2"
+      ]
+    },
+    {
+      "scene_file": "archeotechreactor_outdoor_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-01253-09ce58569044",
+        "rt-canon-05334-074b90877906",
+        "rt-canon-26053-8cae6dcfa08a",
+        "rt-canon-40674-d5a9f8849554",
+        "rt-canon-40966-767a50051a85",
+        "rt-canon-47574-9c96f3ccf187",
+        "rt-canon-48628-362e7eb4bfeb",
+        "rt-canon-48868-a85eb8fecd6f",
+        "rt-canon-50061-8959e7b0866a"
+      ],
+      "profiles": {
+        "scene_bound": 8,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Sergeant_Landing"
+      ]
+    },
+    {
+      "scene_file": "arcship_default_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-47514-1a0d9b24479f",
+        "rt-canon-48171-9c694682aabc",
+        "rt-canon-48382-f0038835774c",
+        "rt-canon-49326-607ddb46b291",
+        "rt-canon-50134-3756a2d0c96d"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "astropathicchapel_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-50856-5e699d0d2486"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "ToShipMap"
+      ]
+    },
+    {
+      "scene_file": "astropathicchapel_weissquest_mechanics.scenes",
+      "unit_count": 16,
+      "unit_ids": [
+        "rt-canon-09519-76dc0155a21c",
+        "rt-canon-09826-0add6ad0d7d3",
+        "rt-canon-09862-adf48d081d41",
+        "rt-canon-10257-f5028add82d2",
+        "rt-canon-10663-6d2012a1a489",
+        "rt-canon-12861-015b55e06449",
+        "rt-canon-15445-6e0de13f7665",
+        "rt-canon-16261-60c112bc6940",
+        "rt-canon-17173-872d1526f2b9",
+        "rt-canon-17684-0ea24a2817cf",
+        "rt-canon-20532-10d63feaa098",
+        "rt-canon-21693-e9074d310c0a",
+        "rt-canon-27512-467333a30404",
+        "rt-canon-28769-2cfa82bd74dc",
+        "rt-canon-29536-dc15ebdd8286",
+        "rt-canon-50856-5e699d0d2486"
+      ],
+      "profiles": {
+        "scene_bound": 16
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "ToShipMap"
+      ]
+    },
+    {
+      "scene_file": "boardedship_bridge_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-32415-46491a2e01cf",
+        "rt-canon-38551-c96c1554ca0e",
+        "rt-canon-42798-0fe5caba1e61",
+        "rt-canon-45516-2104f6577b22",
+        "rt-canon-46369-b4f002d9444e",
+        "rt-canon-47505-734ffdd8ab08",
+        "rt-canon-47511-cc9f2fcb1540",
+        "rt-canon-48908-07af25065d04"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "boardedship_mechanics.scenes",
+      "unit_count": 39,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00856-17dc2f7363bd",
+        "rt-canon-00909-719ea396ad92",
+        "rt-canon-01254-f1ccde339738",
+        "rt-canon-08218-0db56ef525b2",
+        "rt-canon-15995-5b69320de236",
+        "rt-canon-26064-aacc9281ba9b",
+        "rt-canon-32208-a9842d0cc884",
+        "rt-canon-32403-49416d134ffb",
+        "rt-canon-32492-9ba8365b2a16",
+        "rt-canon-32979-1e2ff0120dc5",
+        "rt-canon-33464-68fea74031a3",
+        "rt-canon-34998-8b166ddbf6cd",
+        "rt-canon-35992-9de4a3fd7986",
+        "rt-canon-35993-122cbb31060f",
+        "rt-canon-37029-48de6b63348f",
+        "rt-canon-38414-301fc436a779",
+        "rt-canon-40683-a1f47525104f",
+        "rt-canon-40695-c3c35e45a805",
+        "rt-canon-42605-c8597c7acf88",
+        "rt-canon-43086-67bb51cdee4f",
+        "rt-canon-43426-053929e16eea",
+        "rt-canon-44655-d6c63b32a007",
+        "rt-canon-47121-2dea090a7ee9",
+        "rt-canon-47516-3b1c5fa242bf",
+        "rt-canon-47567-0383eec6c2df",
+        "rt-canon-47889-418e3e1527e3",
+        "rt-canon-47901-e3652efb6349",
+        "rt-canon-49115-81283f540543",
+        "rt-canon-49348-42267c257703",
+        "rt-canon-49349-7d915be9e864",
+        "rt-canon-49721-f5b91ce8e49f",
+        "rt-canon-49722-9c2913dc3eb3",
+        "rt-canon-50553-a07c3fad737b",
+        "rt-canon-50560-3183facb9491",
+        "rt-canon-50561-4b5bc819de91",
+        "rt-canon-51190-26563efc2a04",
+        "rt-canon-53335-cd47dd5fb8c0"
+      ],
+      "profiles": {
+        "scene_bound": 39
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 2,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName"
+      ]
+    },
+    {
+      "scene_file": "canteena_mechanics.scenes",
+      "unit_count": 14,
+      "unit_ids": [
+        "rt-canon-06816-ead370887b61",
+        "rt-canon-11293-b6e802047ec4",
+        "rt-canon-12852-269efb45aa94",
+        "rt-canon-37165-ded02bb58358",
+        "rt-canon-41063-0ddf03868d43",
+        "rt-canon-43169-7859f6b8f95f",
+        "rt-canon-45588-a105bb32d00a",
+        "rt-canon-47806-025697c937f5",
+        "rt-canon-47839-08d40f0f48c6",
+        "rt-canon-48426-83288c4b7b45",
+        "rt-canon-48427-484a71ed291a",
+        "rt-canon-49358-335b6f8b6bfc",
+        "rt-canon-51303-314b5fc1895d",
+        "rt-canon-51304-82bdf9932cc8"
+      ],
+      "profiles": {
+        "scene_bound": 14
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "Plates_Medicae_Success"
+      ]
+    },
+    {
+      "scene_file": "canteenachordaconfrontation_default_mechanics.scenes",
+      "unit_count": 19,
+      "unit_ids": [
+        "rt-canon-02759-6a5a54f32856",
+        "rt-canon-08059-c92415e88c13",
+        "rt-canon-11293-b6e802047ec4",
+        "rt-canon-27575-a82f8adfe6f1",
+        "rt-canon-33720-de83ef4940f8",
+        "rt-canon-37165-ded02bb58358",
+        "rt-canon-41063-0ddf03868d43",
+        "rt-canon-42639-067c968b8289",
+        "rt-canon-42641-1df03f6d640c",
+        "rt-canon-42645-0d041386c0fb",
+        "rt-canon-43169-7859f6b8f95f",
+        "rt-canon-45588-a105bb32d00a",
+        "rt-canon-47211-cf03e1fb756f",
+        "rt-canon-47806-025697c937f5",
+        "rt-canon-47839-08d40f0f48c6",
+        "rt-canon-48426-83288c4b7b45",
+        "rt-canon-48427-484a71ed291a",
+        "rt-canon-50622-0dc86dc7035c",
+        "rt-canon-53220-7d0f67bf34a3"
+      ],
+      "profiles": {
+        "scene_bound": 19
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "Plates_Medicae_Success"
+      ]
+    },
+    {
+      "scene_file": "commandcenter_mechanics.scenes",
+      "unit_count": 21,
+      "unit_ids": [
+        "rt-canon-02117-89fce201546b",
+        "rt-canon-02779-36d072faff87",
+        "rt-canon-03545-d0d853840774",
+        "rt-canon-03546-5dbb66588f7c",
+        "rt-canon-10856-fdd0a4f917ac",
+        "rt-canon-11615-0f311ac54fbb",
+        "rt-canon-11699-1935fe3c4f07",
+        "rt-canon-12983-19a9e886a93f",
+        "rt-canon-16721-f0ff9e579c1b",
+        "rt-canon-18691-0aca6f263caf",
+        "rt-canon-19351-f8b3396199e0",
+        "rt-canon-20268-9ce1ef481329",
+        "rt-canon-20441-9837362548e7",
+        "rt-canon-21762-3304055ffddf",
+        "rt-canon-22825-2462b09c535a",
+        "rt-canon-24097-24aad0a81b6f",
+        "rt-canon-30723-cc77d3b83f95",
+        "rt-canon-32647-be7088544948",
+        "rt-canon-48073-8aba5fe4cb54",
+        "rt-canon-48186-625f24d6c438",
+        "rt-canon-50071-77ac4d009c85"
+      ],
+      "profiles": {
+        "scene_bound": 17,
+        "dialogue": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 4
+      },
+      "conversation_groups": [
+        "RM_CommandCenterSolomorne",
+        "RM_CommandCenterArbites"
+      ]
+    },
+    {
+      "scene_file": "commorragharena_mechanics.scenes",
+      "unit_count": 14,
+      "unit_ids": [
+        "rt-canon-00890-99ab864aecb3",
+        "rt-canon-01021-ab49c3aee7b4",
+        "rt-canon-02279-00f126691c6f",
+        "rt-canon-09446-9c4b2c3aca95",
+        "rt-canon-12920-51cc87ceb92b",
+        "rt-canon-21553-5f45aa9ba50b",
+        "rt-canon-29917-735bdbcd571a",
+        "rt-canon-35928-0e09c2987fa7",
+        "rt-canon-43923-b382a28642ac",
+        "rt-canon-48659-bf7a448ddcbe",
+        "rt-canon-48694-7cca5551b505",
+        "rt-canon-50578-82c4e351450e",
+        "rt-canon-50579-75acd8cf09ea",
+        "rt-canon-52929-51eb3408ffe3"
+      ],
+      "profiles": {
+        "scene_bound": 14
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2
+      },
+      "conversation_groups": [
+        "Prison_.AreaName",
+        "ArenaPortal_action"
+      ]
+    },
+    {
+      "scene_file": "crashedship_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-00353-bdae0b45035a",
+        "rt-canon-37150-6a406dadde05",
+        "rt-canon-47317-bfffedca183c",
+        "rt-canon-48454-d4ce19cd9699",
+        "rt-canon-52981-96b33f8b2929"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "crownworld_mechanics.scenes",
+      "unit_count": 21,
+      "unit_ids": [
+        "rt-canon-00353-bdae0b45035a",
+        "rt-canon-00354-68efea000b9e",
+        "rt-canon-00428-76cdb9507216",
+        "rt-canon-20186-09bbaaf99c73",
+        "rt-canon-29509-7712a5dd2472",
+        "rt-canon-32719-dc6a4f65074b",
+        "rt-canon-32909-aa97894b9533",
+        "rt-canon-36453-f55494cdd382",
+        "rt-canon-40706-16826bab0f3c",
+        "rt-canon-45244-faa97c114e14",
+        "rt-canon-46090-944667ec9791",
+        "rt-canon-46095-6ae405a72fd8",
+        "rt-canon-46654-5c896b4e12b0",
+        "rt-canon-47238-d9ade5f18b6f",
+        "rt-canon-47821-36d68d3a8aaa",
+        "rt-canon-48181-3e09c346be08",
+        "rt-canon-48767-f662ca029d6b",
+        "rt-canon-48848-3c52ae03c3be",
+        "rt-canon-49989-fa05c6b8be5e",
+        "rt-canon-50543-f0fef77eb65c",
+        "rt-canon-50701-204e9950c891"
+      ],
+      "profiles": {
+        "scene_bound": 21
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "SplitWindow_MoveLabel",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "daringheirguttedship_defaultmechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-35051-8b3cf93a160c",
+        "rt-canon-35096-2c37e41d8297",
+        "rt-canon-35749-3d9c9342a373",
+        "rt-canon-46618-aa3644c422ad",
+        "rt-canon-47513-cf9e3576327e",
+        "rt-canon-49186-1208da806895",
+        "rt-canon-50552-060dec37814c"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "deadlygardens_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-32514-c2315f154366",
+        "rt-canon-40538-962a8746a2cf",
+        "rt-canon-45249-84d6ae355f48",
+        "rt-canon-47290-c620c03c501e",
+        "rt-canon-47612-a95ce1d0f172",
+        "rt-canon-47796-2c9e91712fb9",
+        "rt-canon-47798-0c16d9936834",
+        "rt-canon-47981-f0f9eacc05b9",
+        "rt-canon-48142-bb4c0a32c287"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "deathculttemple_mainstate_mechanics.scenes",
+      "unit_count": 17,
+      "unit_ids": [
+        "rt-canon-02572-868fccdf170e",
+        "rt-canon-09602-9c17c4896782",
+        "rt-canon-10324-4d2315fcf588",
+        "rt-canon-17854-5a88c6c13e81",
+        "rt-canon-19065-78a84888b8d3",
+        "rt-canon-20128-6207224d7dc4",
+        "rt-canon-23161-667aa8507082",
+        "rt-canon-24202-bca49d8a6ac7",
+        "rt-canon-24372-c030d2cebbb3",
+        "rt-canon-25528-809f252e8273",
+        "rt-canon-25818-a7c7cd5d7e2c",
+        "rt-canon-27910-8aab8e09ae86",
+        "rt-canon-32237-eb79937f6aa3",
+        "rt-canon-35816-dcaeadc0a38b",
+        "rt-canon-42852-a7f0eb70d52f",
+        "rt-canon-49095-ac79b4b7985b",
+        "rt-canon-49096-4cbc7a63592a"
+      ],
+      "profiles": {
+        "scene_bound": 17
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "deathculttemple_reactivity_distortion_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-23048-3246823d757f"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "deathculttemple_upperpathway_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-45869-1adbff58bbda",
+        "rt-canon-47057-cfa4a8aff43d",
+        "rt-canon-49963-c16e73fa6e33"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip"
+      ]
+    },
+    {
+      "scene_file": "dlc1_voidshipbridge_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-17517-007225c7a135"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [
+        "Kibellah"
+      ],
+      "blueprint_kinds": {
+        "dialogue": 1
+      },
+      "conversation_groups": [
+        "Kibellah_WontDialog"
+      ]
+    },
+    {
+      "scene_file": "dlc2_officerdeck_solomornedogevent_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-04143-f4eaadee5b40",
+        "rt-canon-07460-84cf5c641f93"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "GuardsSaluteToRT_1"
+      ]
+    },
+    {
+      "scene_file": "dlc3_oilplatform_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00002-99d72c7fc3e2"
+      ],
+      "profiles": {
+        "dialogue": 1
+      },
+      "speaker_hints": [
+        "Abelard",
+        "Heinrix",
+        "Idira",
+        "Marazhai",
+        "Yrliet"
+      ],
+      "blueprint_kinds": {
+        "bark": 1,
+        "dialogue_answer": 1,
+        "dialogue_line": 1,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "Command",
+        "FT_Enterance_1_1_Idira",
+        "FT_Enterance_1_2_Yrliet",
+        "FT_Enterance_1_3_Marazhai",
+        "FT_ExpiditionCamp_1_1_Abelard",
+        "FT_ExpiditionCamp_1_2_Heinrix"
+      ]
+    },
+    {
+      "scene_file": "drukhariattackonship_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-01147-600593f6d56b",
+        "rt-canon-36305-53e6bf0a4cc4",
+        "rt-canon-36745-e624ab95538d",
+        "rt-canon-37757-ce8840cbb659",
+        "rt-canon-37863-e93c6806565e",
+        "rt-canon-40671-82195732517e",
+        "rt-canon-40872-d05dd434ccb6",
+        "rt-canon-47478-c4c8e6520b68",
+        "rt-canon-50166-9eb7a419cf13"
+      ],
+      "profiles": {
+        "scene_bound": 7,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2
+      },
+      "conversation_groups": [
+        "ArcBombDemoCheckSuccess",
+        "ArcBombLoreCheckSuccess"
+      ]
+    },
+    {
+      "scene_file": "ee_ancienttrap_mechanics.scenes",
+      "unit_count": 18,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-33845-74d6f940f876",
+        "rt-canon-36956-4930a12c437e",
+        "rt-canon-37885-5134e440ad3f",
+        "rt-canon-40338-1fe0747f1de0",
+        "rt-canon-40376-046173838906",
+        "rt-canon-40501-65099854f968",
+        "rt-canon-41052-7911b9df9e0b",
+        "rt-canon-47298-0aa365e7df57",
+        "rt-canon-47977-c5c0bbff47cd",
+        "rt-canon-48465-201b1331c9ec",
+        "rt-canon-49083-dbac1fb60898",
+        "rt-canon-49322-8d7209e63119",
+        "rt-canon-49330-fc0fac8d154e",
+        "rt-canon-50020-41cdeb5517ee",
+        "rt-canon-50021-1103435232e4"
+      ],
+      "profiles": {
+        "scene_bound": 18
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "ee_ancienttrapbunker_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-35424-661af86647d3",
+        "rt-canon-50482-0904cdb96b5f",
+        "rt-canon-53221-ae01fbf246b3"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "ee_bottomlesspit_mechanics.scenes",
+      "unit_count": 15,
+      "unit_ids": [
+        "rt-canon-00970-b5696b32c937",
+        "rt-canon-01852-7e0428085084",
+        "rt-canon-34833-462b4ac3bad7",
+        "rt-canon-35459-8c63045aae3d",
+        "rt-canon-40320-9be51f96ff02",
+        "rt-canon-40324-8c5f2c1689ba",
+        "rt-canon-42319-f40fe24efd7e",
+        "rt-canon-44294-4ae53bacc33a",
+        "rt-canon-44327-ee0b0fbbc6b2",
+        "rt-canon-47208-2ac21c2db7ed",
+        "rt-canon-48362-34c2a0a04974",
+        "rt-canon-49171-57cb7f317ce8",
+        "rt-canon-49172-846c35deb6df",
+        "rt-canon-50044-16d3b33ad680",
+        "rt-canon-50828-d1e63c1e0802"
+      ],
+      "profiles": {
+        "scene_bound": 14,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Finds"
+      ]
+    },
+    {
+      "scene_file": "ee_destroyedblackship_mechanics.scenes",
+      "unit_count": 37,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00528-383006cf39eb",
+        "rt-canon-01979-6893cd27ed7f",
+        "rt-canon-07433-b93ecb501495",
+        "rt-canon-15344-466bf7af0f98",
+        "rt-canon-16123-eb2c631aed8a",
+        "rt-canon-27676-1a8d6eca7a98",
+        "rt-canon-32511-8c58ba1e9b11",
+        "rt-canon-32570-7aea24048140",
+        "rt-canon-32614-434cec5fa1e6",
+        "rt-canon-32615-904df2c515bd",
+        "rt-canon-32660-10e58b2a2efc",
+        "rt-canon-33171-4834139a1bf5",
+        "rt-canon-33721-e62817607a3b",
+        "rt-canon-35750-7f5969a49eee",
+        "rt-canon-36249-72a0921bb65b",
+        "rt-canon-38668-9d381f4e6a53",
+        "rt-canon-39984-cc99f84d0d06",
+        "rt-canon-40697-1eba140fdd9c",
+        "rt-canon-45128-4359fa13f1c4",
+        "rt-canon-45868-136d816567c4",
+        "rt-canon-47228-f61c85d8187a",
+        "rt-canon-47616-9349c7c8368f",
+        "rt-canon-47636-1ee5811b81db",
+        "rt-canon-47979-585c2e09a7f9",
+        "rt-canon-48053-d90cc597296e",
+        "rt-canon-48054-0904aec51122",
+        "rt-canon-48307-efcd2dceb1a0",
+        "rt-canon-48782-db25dc1a32b7",
+        "rt-canon-49446-26055fc5f2c3",
+        "rt-canon-49992-617f62ace88e",
+        "rt-canon-50081-20e8bb9ce000",
+        "rt-canon-50084-a40942073411",
+        "rt-canon-50085-9749bf0017e2",
+        "rt-canon-50664-14dabf425fea",
+        "rt-canon-50810-4735b9570663",
+        "rt-canon-53163-866ed8aa3880"
+      ],
+      "profiles": {
+        "scene_bound": 36,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "ee_frozenenclave_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-00001-da39a3ee5e6b",
+        "rt-canon-55705-04b6b1c975b0"
+      ],
+      "profiles": {
+        "dialogue": 1,
+        "scene_bound": 1
+      },
+      "speaker_hints": [
+        "Argenta",
+        "Heinrix",
+        "Marazhai",
+        "Ulfar"
+      ],
+      "blueprint_kinds": {
+        "ability_or_feature": 1,
+        "bark": 1,
+        "dialogue_answer": 1,
+        "generic_blueprint": 1,
+        "item": 1,
+        "quest": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "AeldariArmourUniqueCh2V2_Item_",
+        "AeldariArmourUniqueCh5_Feature_.Properties.Array.data[0]",
+        "Arbites_ch1_",
+        "AstartesPlasmaPistolT1_Item_",
+        "Commissar_InnateAbility_StatBuff_",
+        "Contract24_objective_",
+        "Contract24_objective_.Title",
+        "DjinBladeYremerissBonus_Buff_",
+        "DjinBladeYremerissPenalty_Buff_",
+        "Fleshbreaker_PowerArmor_Feature_.Properties.Array.data[0]",
+        "FlipZoneStrategist",
+        "FrostAxe_Item_",
+        "FusionGunT1_Item_",
+        "GenocideAstartesFlamer_Item_",
+        "Hope_Supply",
+        "KillingAttemptEnter",
+        "LasblasterT2_Item_",
+        "LongRifleUniqueCh3V1_Feature_.Properties.Array.data[0]",
+        "MA_Engine_Backing_",
+        "MapObjectKitten_Name"
+      ]
+    },
+    {
+      "scene_file": "ee_halodevice_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-01285-5937b978b2d4",
+        "rt-canon-34950-4e8fa040a616",
+        "rt-canon-35095-81d52ad00131",
+        "rt-canon-47818-d263ec9a2d20",
+        "rt-canon-48567-80ef560b4638",
+        "rt-canon-48961-227ef2bef524",
+        "rt-canon-48965-2694ebf9eb04",
+        "rt-canon-49089-40a0dfddf4a6",
+        "rt-canon-49755-a70c02f03521",
+        "rt-canon-49995-51c6e9bc3601"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "SignedOrder_name"
+      ]
+    },
+    {
+      "scene_file": "ee_khravexenosruins_mechanics.scenes",
+      "unit_count": 16,
+      "unit_ids": [
+        "rt-canon-32628-cfcd3e74c632",
+        "rt-canon-32985-ceb9768417e3",
+        "rt-canon-36771-9f25fcdb4ae0",
+        "rt-canon-37494-9a6dfa248cf5",
+        "rt-canon-42604-34ca3632c782",
+        "rt-canon-43020-34a3ca3f9201",
+        "rt-canon-43021-7a85b6b7c580",
+        "rt-canon-43833-5162b197aa74",
+        "rt-canon-45236-397fc68c133b",
+        "rt-canon-45257-739efb33a7d9",
+        "rt-canon-47224-4227792163ea",
+        "rt-canon-47960-b18f31386038",
+        "rt-canon-48815-53124f95461e",
+        "rt-canon-48852-7d4eb7acbcc4",
+        "rt-canon-50484-2c2d4873c989",
+        "rt-canon-51293-c5eef98c632c"
+      ],
+      "profiles": {
+        "scene_bound": 16
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "ee_spacescavengers_mechanics.scenes",
+      "unit_count": 24,
+      "unit_ids": [
+        "rt-canon-01371-9525ae1781bb",
+        "rt-canon-32244-2d71abf4db65",
+        "rt-canon-32271-3c6bee213e33",
+        "rt-canon-32644-7aa0911a3ecb",
+        "rt-canon-32781-b106f6dd9a34",
+        "rt-canon-33659-c62a748ca8bd",
+        "rt-canon-33805-fdd747a74f9c",
+        "rt-canon-35990-7de83f69aa4b",
+        "rt-canon-35994-2617ebc5e7e6",
+        "rt-canon-37879-eea32571a328",
+        "rt-canon-38249-d17322fd8e72",
+        "rt-canon-40129-2b975809c926",
+        "rt-canon-41228-9d42b832af71",
+        "rt-canon-42032-827dfcf38626",
+        "rt-canon-45260-f24b5ee7b42f",
+        "rt-canon-47166-c225c472a5f3",
+        "rt-canon-47508-69bd3fe9702d",
+        "rt-canon-47517-b024823142f6",
+        "rt-canon-48658-f4043bd58e78",
+        "rt-canon-49075-54e150dccb07",
+        "rt-canon-50014-6061f34f45a6",
+        "rt-canon-52949-ac9a9102fced",
+        "rt-canon-53067-831f4ec87954",
+        "rt-canon-53257-486e2fb4709c"
+      ],
+      "profiles": {
+        "scene_bound": 24
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 1
+      },
+      "conversation_groups": [
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "ee_warworldbunker_mechanics.scenes",
+      "unit_count": 19,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01353-5f60b1c2e605",
+        "rt-canon-32253-232baf3d5b90",
+        "rt-canon-32291-c83fffb3021e",
+        "rt-canon-32576-e3665d07e4b5",
+        "rt-canon-32744-e7f92d4919aa",
+        "rt-canon-33322-efe2b9adc59d",
+        "rt-canon-34922-a74fea0f6624",
+        "rt-canon-36097-9ab586d9433c",
+        "rt-canon-37121-d6f98ffdf084",
+        "rt-canon-40530-27962f69869a",
+        "rt-canon-44170-b8fd67e610ac",
+        "rt-canon-44790-5b25172fcdd7",
+        "rt-canon-45246-03616040245c",
+        "rt-canon-48470-1b78e62e9a55",
+        "rt-canon-49699-4ff6785e39ec",
+        "rt-canon-50019-35fdb787a999",
+        "rt-canon-51837-768462622ef6",
+        "rt-canon-52891-aa7327fbe1f1"
+      ],
+      "profiles": {
+        "scene_bound": 18,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 2,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName",
+        "MIssingValve",
+        "GoToTheShip"
+      ]
+    },
+    {
+      "scene_file": "epitaph_crypt_ctan_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-45807-a40720811451"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "epitaph_crypt_default_mechanics.scenes",
+      "unit_count": 16,
+      "unit_ids": [
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00428-76cdb9507216",
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-01147-600593f6d56b",
+        "rt-canon-34197-b2f7d543c414",
+        "rt-canon-35995-4fccabb1b5ec",
+        "rt-canon-38551-c96c1554ca0e",
+        "rt-canon-42545-9ae3bfa82f3c",
+        "rt-canon-42564-3a6742ead92f",
+        "rt-canon-44464-5f2bf6ebc15c",
+        "rt-canon-47521-12f38dccd6d4",
+        "rt-canon-47824-bc7a16b0903e",
+        "rt-canon-48847-7570b2c8fbc6",
+        "rt-canon-49264-fcf3d001f235",
+        "rt-canon-49749-db466e96661f",
+        "rt-canon-51403-9cc54dd9c93b"
+      ],
+      "profiles": {
+        "scene_bound": 16
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "SplitWindow_MoveLabel",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "epitaphcrypt_arena_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-19381-f71dc1c4cc22",
+        "rt-canon-21745-b06ae3de3f5d",
+        "rt-canon-28469-0dea6235d448",
+        "rt-canon-32402-68be44682a4c",
+        "rt-canon-47040-44c077fc31aa",
+        "rt-canon-47137-fc51c204606b",
+        "rt-canon-49281-4dbc89ea543d"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "epitaphentrance_mechanics.scenes",
+      "unit_count": 18,
+      "unit_ids": [
+        "rt-canon-32185-52fbde2bee9b",
+        "rt-canon-32186-72936281be85",
+        "rt-canon-33785-35f6d52caf78",
+        "rt-canon-37780-bd7c47677315",
+        "rt-canon-40678-5a6e8b0700e9",
+        "rt-canon-42763-b012c8100b7d",
+        "rt-canon-45211-1f462062b592",
+        "rt-canon-47303-b7947bd79d64",
+        "rt-canon-47890-f05a2a1d39c6",
+        "rt-canon-48008-030db68489c6",
+        "rt-canon-48246-113c113a838f",
+        "rt-canon-49174-5d640a131ba8",
+        "rt-canon-49181-3e4bdcb788b6",
+        "rt-canon-49265-a2531b57fb82",
+        "rt-canon-49738-2ad593b07718",
+        "rt-canon-49739-a41ee6ca29e4",
+        "rt-canon-50076-540740358b71",
+        "rt-canon-50440-4257c9446bf8"
+      ],
+      "profiles": {
+        "scene_bound": 18
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "feudalworld_early_state_mechanics.scenes",
+      "unit_count": 30,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00353-bdae0b45035a",
+        "rt-canon-00354-68efea000b9e",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-01253-09ce58569044",
+        "rt-canon-36834-1742e113305e",
+        "rt-canon-37861-b18c78e8fed2",
+        "rt-canon-37875-94d67775f661",
+        "rt-canon-38362-b70146eb0afd",
+        "rt-canon-38975-04f745ed13ea",
+        "rt-canon-40484-e6948d8def49",
+        "rt-canon-40668-955dda387ec2",
+        "rt-canon-40676-01e1f92f461f",
+        "rt-canon-40688-69d863509483",
+        "rt-canon-41423-348bf433e4a1",
+        "rt-canon-44393-8c5ee1694c2a",
+        "rt-canon-45129-fa72ec551408",
+        "rt-canon-45233-7ccc8c223393",
+        "rt-canon-47247-0c32e4a958bf",
+        "rt-canon-47705-8562d0c4ad13",
+        "rt-canon-47929-11f441d66391",
+        "rt-canon-48224-f2baa92383de",
+        "rt-canon-48225-574389286945",
+        "rt-canon-48294-74f4e3830e3c",
+        "rt-canon-48295-16445b36a44f",
+        "rt-canon-48860-801bbdef5f2a",
+        "rt-canon-49199-8103c48b1ee0",
+        "rt-canon-50005-423aa0bd8d59",
+        "rt-canon-50838-4ed1e6d71672",
+        "rt-canon-53197-99cdf779c607"
+      ],
+      "profiles": {
+        "scene_bound": 30
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "FW_FakeGovernor_Name"
+      ]
+    },
+    {
+      "scene_file": "feudalworld_late_state_mechanics.scenes",
+      "unit_count": 17,
+      "unit_ids": [
+        "rt-canon-01253-09ce58569044",
+        "rt-canon-08047-f68eda37bb5b",
+        "rt-canon-20454-e3daed01a431",
+        "rt-canon-24126-e50f3466b863",
+        "rt-canon-29970-c3e7678bd191",
+        "rt-canon-30334-d5e72caa3223",
+        "rt-canon-35094-7766b0d75822",
+        "rt-canon-35098-064bf726f394",
+        "rt-canon-35767-7f628750735a",
+        "rt-canon-39223-97e1deedd135",
+        "rt-canon-41939-cad23114a64b",
+        "rt-canon-44302-346f6d7f4f83",
+        "rt-canon-47744-9a60a47c9b28",
+        "rt-canon-47929-11f441d66391",
+        "rt-canon-47982-beba1c67a92b",
+        "rt-canon-49627-b034b4e517c3",
+        "rt-canon-50811-8e67fa846b74"
+      ],
+      "profiles": {
+        "scene_bound": 17
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "feudalworld_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-41257-6f72d2c8eec5"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "feudalworld_palace_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-07319-e71275293bb1",
+        "rt-canon-34222-077a0e3b57d9",
+        "rt-canon-35727-67b96f5d587a",
+        "rt-canon-47494-0624800a483b",
+        "rt-canon-49001-537b27a887ec"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfall_crematory_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-38856-fb5173c532ad",
+        "rt-canon-39366-0242fe734e75",
+        "rt-canon-40537-ac3cbc7afc42",
+        "rt-canon-45304-0d4b4ab2603e",
+        "rt-canon-50493-ebb0f9e9bc2e"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfall_warehouse_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-25446-8c8c7620b7d2",
+        "rt-canon-33719-f75430ca375a",
+        "rt-canon-48184-718797344fa0",
+        "rt-canon-49452-bbda198c7017"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallatrium_chorda_mechanics.scenes",
+      "unit_count": 37,
+      "unit_ids": [
+        "rt-canon-01933-269ecfc020d0",
+        "rt-canon-02380-7bbb2bb792c8",
+        "rt-canon-02759-6a5a54f32856",
+        "rt-canon-04105-108bfe8acb14",
+        "rt-canon-04113-a9585c3b7d22",
+        "rt-canon-04704-e1a1c5efbef3",
+        "rt-canon-05235-f260b26cd8d3",
+        "rt-canon-07510-cea4fdfe8974",
+        "rt-canon-18468-72d94954871a",
+        "rt-canon-18741-c4619ec48e88",
+        "rt-canon-21806-6d9ed9f3f6b1",
+        "rt-canon-22310-cade3fb841a8",
+        "rt-canon-29750-556d758665d0",
+        "rt-canon-32176-39b5f7a152f2",
+        "rt-canon-32479-59a37d9380f2",
+        "rt-canon-36049-23a7ae1dc6a8",
+        "rt-canon-40151-a6b1f0773f5c",
+        "rt-canon-40536-9f5aa3b4f6d0",
+        "rt-canon-40693-356ccfff63b4",
+        "rt-canon-45243-891c3b2ab3ca",
+        "rt-canon-45247-20839ead5db7",
+        "rt-canon-47808-73c97c17d92e",
+        "rt-canon-48148-88dbca06c8b1",
+        "rt-canon-48498-ff685e5f8668",
+        "rt-canon-49071-2c693867432a",
+        "rt-canon-49072-ee08f38f708c",
+        "rt-canon-49073-b9dec907132c",
+        "rt-canon-49101-c71ab40ef9b1",
+        "rt-canon-49102-3672355e88c2",
+        "rt-canon-49144-d8abd2c0ec77",
+        "rt-canon-49145-2314685bb4d8",
+        "rt-canon-49185-599214a49cca",
+        "rt-canon-49312-b1d63db80bbf",
+        "rt-canon-49390-2b19033c628b",
+        "rt-canon-51055-b1ec70b68323",
+        "rt-canon-51477-f463d06b2db1",
+        "rt-canon-51734-11789ad01056"
+      ],
+      "profiles": {
+        "scene_bound": 37
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "FootfallDock_Enginseer"
+      ]
+    },
+    {
+      "scene_file": "footfallatrium_defaultmechanics.scenes",
+      "unit_count": 39,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01147-600593f6d56b",
+        "rt-canon-01562-34dd86a96afe",
+        "rt-canon-02759-6a5a54f32856",
+        "rt-canon-04105-108bfe8acb14",
+        "rt-canon-06051-5a2f4480213b",
+        "rt-canon-06087-7ce99b2a7310",
+        "rt-canon-12904-2eba1960f173",
+        "rt-canon-15342-a5ae85531d0e",
+        "rt-canon-17681-0e2caa2aebc9",
+        "rt-canon-18949-9be2dc67691d",
+        "rt-canon-26105-b446710b5b8c",
+        "rt-canon-28452-fe1163d205ca",
+        "rt-canon-28489-3b5464c33477",
+        "rt-canon-29750-556d758665d0",
+        "rt-canon-30613-8f9029cb83f4",
+        "rt-canon-32391-2c9688b56746",
+        "rt-canon-32448-50dc1c868c47",
+        "rt-canon-32638-09baf6967f02",
+        "rt-canon-32661-b8056450c5a8",
+        "rt-canon-34923-8c813245c5af",
+        "rt-canon-35049-cac79c3fc501",
+        "rt-canon-37947-480bd7ed67e6",
+        "rt-canon-38477-d2f29758afc5",
+        "rt-canon-40122-6f71850a0660",
+        "rt-canon-40526-5eeaa9149d73",
+        "rt-canon-41165-0f2419173df3",
+        "rt-canon-42547-a810db2f8418",
+        "rt-canon-45761-1af2254e71ab",
+        "rt-canon-45924-3353d7c1601f",
+        "rt-canon-48602-e3c1da3b3b87",
+        "rt-canon-49390-2b19033c628b",
+        "rt-canon-49453-7e87ef399b75",
+        "rt-canon-50056-e2c50d271e55",
+        "rt-canon-50057-162fea057734",
+        "rt-canon-50133-8f4a10ad6e48",
+        "rt-canon-50611-497aaf6f47bc",
+        "rt-canon-50650-71ed8cefda82",
+        "rt-canon-54906-65ce624611a4"
+      ],
+      "profiles": {
+        "scene_bound": 39
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "Amasec_CheckFailed"
+      ]
+    },
+    {
+      "scene_file": "footfallatrium_footfall_fidelioquest_avanturist_mechanics.scenes",
+      "unit_count": 23,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-02282-93e0cbcd2ca5",
+        "rt-canon-05987-c5c81110662c",
+        "rt-canon-06121-9ab5cf382df5",
+        "rt-canon-06653-db0a8be442aa",
+        "rt-canon-14897-79268d7034dc",
+        "rt-canon-16457-e0e73e22a1ee",
+        "rt-canon-18035-f0a29f659f8f",
+        "rt-canon-20328-c6a8f124f6b4",
+        "rt-canon-20366-d55f6c209e17",
+        "rt-canon-32349-3337b67ad597",
+        "rt-canon-33209-709c59c81fae",
+        "rt-canon-36935-16f2b2ed12e5",
+        "rt-canon-41849-2607d3f54808",
+        "rt-canon-45487-7314f6fd0fea",
+        "rt-canon-47371-e094194a3e7a",
+        "rt-canon-49279-d297251e0b63",
+        "rt-canon-49693-faa03d0295cd",
+        "rt-canon-49694-3db143c0e312",
+        "rt-canon-50038-e58e39c87a2a",
+        "rt-canon-51310-2b326a401be6",
+        "rt-canon-53901-eaff0c2e71c6",
+        "rt-canon-55431-80c7737eea8c"
+      ],
+      "profiles": {
+        "scene_bound": 21,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "bark": 2,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "New_HoboArcheology2_CheckPassed"
+      ]
+    },
+    {
+      "scene_file": "footfallatrium_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-24679-dcbab9a445fc",
+        "rt-canon-24780-f21fd2018a6c"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallatrium_palacech04_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-09464-0543b5377502",
+        "rt-canon-12547-8042cfe919b7"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfalldock_mechanics.scenes",
+      "unit_count": 31,
+      "unit_ids": [
+        "rt-canon-00400-6e66568583d1",
+        "rt-canon-01933-269ecfc020d0",
+        "rt-canon-01936-52dc44c27cc6",
+        "rt-canon-01942-d615c95e7ca9",
+        "rt-canon-01943-f44315604515",
+        "rt-canon-01944-77a73b5f0b14",
+        "rt-canon-04974-e5470d6352c2",
+        "rt-canon-06775-63bebce1634e",
+        "rt-canon-10825-d6056b40ae44",
+        "rt-canon-13419-31deac700452",
+        "rt-canon-19072-3cdd61991649",
+        "rt-canon-20698-25ea42c8ec1d",
+        "rt-canon-24776-75d0ca5a7738",
+        "rt-canon-24780-f21fd2018a6c",
+        "rt-canon-26132-79141f0a5521",
+        "rt-canon-27188-0d2ceac48a7c",
+        "rt-canon-32634-f9d773795486",
+        "rt-canon-32635-ae6a3a694faa",
+        "rt-canon-32662-4979b20dc344",
+        "rt-canon-34220-692db8436764",
+        "rt-canon-34308-049d1593c641",
+        "rt-canon-39247-9d62d30ab6d9",
+        "rt-canon-41128-db7bdefeb281",
+        "rt-canon-43697-66b0b3e88a9f",
+        "rt-canon-45415-f744df6b25e2",
+        "rt-canon-47515-8b54e7605165",
+        "rt-canon-47585-aa79ee2e30d5",
+        "rt-canon-47586-df12668f4b70",
+        "rt-canon-47613-8509dda342eb",
+        "rt-canon-49445-b41254dac523",
+        "rt-canon-50018-138d02f1dad7"
+      ],
+      "profiles": {
+        "scene_bound": 28,
+        "dialogue": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 3,
+        "generic_blueprint": 2
+      },
+      "conversation_groups": [
+        "Footfall_Enforcer",
+        "Guard",
+        "StationGuards",
+        "FootfallDock_Enginseer",
+        "ArbitesGuards_2"
+      ]
+    },
+    {
+      "scene_file": "footfallsewersch04_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-00488-986d2de2ea6d",
+        "rt-canon-00822-9b46b3d92294",
+        "rt-canon-01254-f1ccde339738",
+        "rt-canon-33320-2e98c92ca91a",
+        "rt-canon-34427-cdfaa5982911",
+        "rt-canon-43983-b55f5a31f6de",
+        "rt-canon-44778-025982533a2a"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallslums_default_mechanics_mechanics.scenes",
+      "unit_count": 15,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-02759-6a5a54f32856",
+        "rt-canon-15027-0eb93ce0faa8",
+        "rt-canon-15342-a5ae85531d0e",
+        "rt-canon-19973-3a1af6fc7d94",
+        "rt-canon-22115-7d6effb48a49",
+        "rt-canon-25619-0e9f6b9cc130",
+        "rt-canon-40691-3f9be67f00f5",
+        "rt-canon-42596-322f2565a1e5",
+        "rt-canon-45248-47e070fd26c6",
+        "rt-canon-47594-7f0e33dbeb79",
+        "rt-canon-47792-debccf19efd5",
+        "rt-canon-48771-ed500159689a",
+        "rt-canon-49994-d2eb7a24f366",
+        "rt-canon-50078-8235a6f3aef9"
+      ],
+      "profiles": {
+        "scene_bound": 15
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "footfallslums_jaeincanteena_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-11293-b6e802047ec4"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallslums_jaeq1_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-47582-1b411a710f53",
+        "rt-canon-47584-1f5d9d3fbb02",
+        "rt-canon-47587-50f4232a227d"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallslums_latebydecades_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-44220-bed4d12c9e7e",
+        "rt-canon-50452-c91a86e1ba75"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "footfallslums_latebydecadeszero_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "footfallslums_mechanics.scenes",
+      "unit_count": 23,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00321-c9da3426a451",
+        "rt-canon-00366-6a9860e62fdd",
+        "rt-canon-15659-79a5dc033a21",
+        "rt-canon-24679-dcbab9a445fc",
+        "rt-canon-24776-75d0ca5a7738",
+        "rt-canon-32497-7ef0de68617b",
+        "rt-canon-32501-1c45cf4070d9",
+        "rt-canon-32778-f14c25df9d4d",
+        "rt-canon-34758-a0f50f241008",
+        "rt-canon-35754-a1d7a5ec5d4c",
+        "rt-canon-38552-73766eaa9198",
+        "rt-canon-38662-beb842288cce",
+        "rt-canon-40565-276f3f8f8028",
+        "rt-canon-41273-68eef3831841",
+        "rt-canon-42941-6ab8efa11d5f",
+        "rt-canon-48249-806a6c74a867",
+        "rt-canon-48862-72425ae61a7b",
+        "rt-canon-49092-04029e0cebe3",
+        "rt-canon-50032-12b6b0e49b13",
+        "rt-canon-51019-6d4cab5e2174",
+        "rt-canon-51298-14b1cc0a6d92",
+        "rt-canon-51976-f0d96d55de66"
+      ],
+      "profiles": {
+        "scene_bound": 23
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "FootfallSlums_FootfallSlumsToLair_.Tooltip"
+      ]
+    },
+    {
+      "scene_file": "footfallslums_mutantslair_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-32263-cf8d37561850",
+        "rt-canon-32379-ba3644f7e7fd"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "footfallslums_quicksilverlair_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-51192-5021a3b0c90d"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "forgeheart_default_mechanics.scenes",
+      "unit_count": 30,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-02490-c2243ec2e6e0",
+        "rt-canon-04104-97bf84550f03",
+        "rt-canon-08898-c10265d0675a",
+        "rt-canon-15589-477770d8a3f9",
+        "rt-canon-16115-d53a5b76316e",
+        "rt-canon-16116-20ebf3af7255",
+        "rt-canon-16455-48210aa9fa94",
+        "rt-canon-19478-17c31b5694ec",
+        "rt-canon-32368-c180877ed796",
+        "rt-canon-32369-922ef084722d",
+        "rt-canon-35750-7f5969a49eee",
+        "rt-canon-36054-f3c8d1ec5dc2",
+        "rt-canon-36100-d086ec9df5c0",
+        "rt-canon-41135-af4704d4ef31",
+        "rt-canon-41268-fe3a0346349a",
+        "rt-canon-43924-d311ad100a75",
+        "rt-canon-43963-ab3e773cd62f",
+        "rt-canon-47138-7f34b46d2c2f",
+        "rt-canon-48059-67a14437ac33",
+        "rt-canon-48262-0277c8c77998",
+        "rt-canon-48263-ec4bd4477364",
+        "rt-canon-48341-d07671bb7b47",
+        "rt-canon-48432-0724415d3483",
+        "rt-canon-48613-e5ea0841b114",
+        "rt-canon-48812-29909509f787",
+        "rt-canon-48816-e870ae914709",
+        "rt-canon-50923-06f8fd1cac95",
+        "rt-canon-51057-4000737f4bb7",
+        "rt-canon-52944-7e95164d616f"
+      ],
+      "profiles": {
+        "scene_bound": 30
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeheart_finalarenamoving_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-43998-0e8aa88d5732"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "forgeheart_lava_mechanics.scenes",
+      "unit_count": 20,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-07306-66fb5565b392",
+        "rt-canon-18846-e79dabaf38aa",
+        "rt-canon-32674-6e90fa67350c",
+        "rt-canon-35952-999e4ccf3ec3",
+        "rt-canon-36100-d086ec9df5c0",
+        "rt-canon-36864-506e1874c42b",
+        "rt-canon-39155-335eec6e8ad9",
+        "rt-canon-41590-a5ea5fac733d",
+        "rt-canon-43330-c6d78823e957",
+        "rt-canon-43964-cb17a150a460",
+        "rt-canon-47164-ad5cf5b97c11",
+        "rt-canon-47165-bc88e3d36ca4",
+        "rt-canon-47363-c549f52fac1a",
+        "rt-canon-48006-6978c2e943ab",
+        "rt-canon-48400-8d59cabb3aad",
+        "rt-canon-48446-f479fb3de71b",
+        "rt-canon-48614-8b0c80a451e4",
+        "rt-canon-49137-d9d0c5dc7c82",
+        "rt-canon-53003-adecd9ae5367"
+      ],
+      "profiles": {
+        "scene_bound": 20
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeheart_powercoridors_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-35750-7f5969a49eee",
+        "rt-canon-36100-d086ec9df5c0",
+        "rt-canon-43964-cb17a150a460",
+        "rt-canon-48355-872631361de0",
+        "rt-canon-48356-6e10610f84b4",
+        "rt-canon-51816-6cf5af38b7fc"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeworld_default_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-05187-5ab0d501172c",
+        "rt-canon-46446-564d2d0c3d67"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeworld_indoor_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-36475-1b1f96a41af6",
+        "rt-canon-48909-a4c678b9518f"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "forgeworld_mechanics.scenes",
+      "unit_count": 35,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01352-6251b87a4640",
+        "rt-canon-32260-3a810a1d9d15",
+        "rt-canon-32426-668d2843f9b9",
+        "rt-canon-32449-e340ce653ae3",
+        "rt-canon-32980-540635e4ad25",
+        "rt-canon-33735-9cab45989e77",
+        "rt-canon-34944-8ee0016959dc",
+        "rt-canon-34996-4a34ec117867",
+        "rt-canon-36147-01594089fafc",
+        "rt-canon-36451-7deb1589b2f6",
+        "rt-canon-36470-daa4d0dc5d20",
+        "rt-canon-37137-bf93e5ce8bc1",
+        "rt-canon-40323-6632bce13d21",
+        "rt-canon-41265-1b08e97cd53a",
+        "rt-canon-43922-47a95114e695",
+        "rt-canon-44779-035fdc53e508",
+        "rt-canon-46577-ae3ddc33bfc5",
+        "rt-canon-47318-3ddfae7dee4f",
+        "rt-canon-47362-b26a6bb670da",
+        "rt-canon-47700-ecde683505ff",
+        "rt-canon-47716-9f4dea94e3bd",
+        "rt-canon-47825-fcb0a3b7ba2e",
+        "rt-canon-47826-e396474cb042",
+        "rt-canon-48409-4deaea5cd908",
+        "rt-canon-48909-a4c678b9518f",
+        "rt-canon-49285-802441dd3b8a",
+        "rt-canon-49378-949964167376",
+        "rt-canon-50077-4fa4bc5ffee2",
+        "rt-canon-50155-fd53ccddda82",
+        "rt-canon-50443-4e8436f2bb32",
+        "rt-canon-50483-93c721c88bc7",
+        "rt-canon-50510-c9e189721540",
+        "rt-canon-51487-2038bdec9210",
+        "rt-canon-53132-ca4711e62a25"
+      ],
+      "profiles": {
+        "scene_bound": 35
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeworldspacehulk_firstpartmechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-35949-2d05e01eaebd",
+        "rt-canon-36307-7bac46d17a44",
+        "rt-canon-43331-58c6c7c68d8d",
+        "rt-canon-53902-0b29831d7e17",
+        "rt-canon-54755-4240516a6bb8",
+        "rt-canon-55469-bebcf62302fa"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "forgeworldspacehulk_mechanics.scenes",
+      "unit_count": 13,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-35750-7f5969a49eee",
+        "rt-canon-36452-4badc4936cc5",
+        "rt-canon-40340-5c57862b206e",
+        "rt-canon-42534-a1f8ff0ecf4a",
+        "rt-canon-44502-b656a3afcbaa",
+        "rt-canon-47232-25a16e6d101b",
+        "rt-canon-47870-28963fe9e23b",
+        "rt-canon-48434-19bf6e8fa2a5",
+        "rt-canon-48542-c9ecfa02d877",
+        "rt-canon-49146-7c6e0d57f2e8",
+        "rt-canon-49969-f4a9318d2801",
+        "rt-canon-53337-e3f0d04e4da1"
+      ],
+      "profiles": {
+        "scene_bound": 13
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "forgeworldspacehulk_secondpartmechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-33470-4d171b0c6b12",
+        "rt-canon-47894-b920dca23529"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "grandspecticle_mechanics.scenes",
+      "unit_count": 18,
+      "unit_ids": [
+        "rt-canon-05500-3f9953f28639",
+        "rt-canon-21275-e01236e36844",
+        "rt-canon-21495-5e9eb1f71268",
+        "rt-canon-22784-c3f7a915fb77",
+        "rt-canon-23292-728b8612db06",
+        "rt-canon-23337-e03e8d6738f9",
+        "rt-canon-24258-cae92f337194",
+        "rt-canon-25043-cf942ff89c91",
+        "rt-canon-27140-5601cb8938f5",
+        "rt-canon-27526-ea66e7451e9a",
+        "rt-canon-27654-cab6ffeb77c2",
+        "rt-canon-31085-dcbf24e87a10",
+        "rt-canon-41850-d3dfeafd7f6f",
+        "rt-canon-42602-37f3aa06bb69",
+        "rt-canon-47271-3e9a58b913bc",
+        "rt-canon-47868-4c8fae9352f5",
+        "rt-canon-48333-8f45ffe6c3fd",
+        "rt-canon-51179-8f67b5c3bd97"
+      ],
+      "profiles": {
+        "scene_bound": 18
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "grandspecticle_outdoor_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-36772-d9688ac1d9c8",
+        "rt-canon-53240-314e0e762410"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip"
+      ]
+    },
+    {
+      "scene_file": "grandspecticle_party_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip"
+      ]
+    },
+    {
+      "scene_file": "haemonculuslab_default_mechanics.scenes",
+      "unit_count": 22,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00321-c9da3426a451",
+        "rt-canon-32714-b267646904d6",
+        "rt-canon-38660-b3e553d92003",
+        "rt-canon-43025-0a2846077954",
+        "rt-canon-44464-5f2bf6ebc15c",
+        "rt-canon-44787-748ad888e114",
+        "rt-canon-44788-76a610c4bd58",
+        "rt-canon-47319-e21b2c3cad58",
+        "rt-canon-47338-570cf135b678",
+        "rt-canon-47518-2199bc960e08",
+        "rt-canon-47609-2be34d8e149a",
+        "rt-canon-47812-eb21a47bfbf1",
+        "rt-canon-48099-9158950bb9f6",
+        "rt-canon-48324-e406c4c97d21",
+        "rt-canon-48639-b909cc1814b9",
+        "rt-canon-49744-d5360b4e2d11",
+        "rt-canon-49998-157bae8ff478",
+        "rt-canon-50099-d2844d006471",
+        "rt-canon-51678-a8164dde4d92",
+        "rt-canon-52068-155da14b8bde",
+        "rt-canon-52069-9e62db695688"
+      ],
+      "profiles": {
+        "scene_bound": 22
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "idirathedoor_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-32343-fe65d101640c",
+        "rt-canon-35008-4039435c57e1",
+        "rt-canon-35166-7d995fa50119",
+        "rt-canon-35750-7f5969a49eee",
+        "rt-canon-36991-fe65a57a5602",
+        "rt-canon-44193-99a2afa540c6",
+        "rt-canon-49202-0a82939046ee",
+        "rt-canon-49203-886f55623b24",
+        "rt-canon-49690-7b8385af5696"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "inmydream_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-32885-6f73cc0c38bb",
+        "rt-canon-32893-76b7f547d1c7",
+        "rt-canon-32894-44944937889e",
+        "rt-canon-37023-b643ba7f6933",
+        "rt-canon-37024-9a3dfa7a663d",
+        "rt-canon-37025-5737937b838f",
+        "rt-canon-41185-bd892f4f66f6"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "jailplanetoid_indoor_mechanics.scenes",
+      "unit_count": 20,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-25130-628696e48cb9",
+        "rt-canon-32393-c9fe9face905",
+        "rt-canon-32466-753ccc5a34d1",
+        "rt-canon-34638-4d1db54f119c",
+        "rt-canon-35790-17df4ba1142c",
+        "rt-canon-40335-810497e8781e",
+        "rt-canon-40685-5ad43ae30843",
+        "rt-canon-42279-44ca5c0de4b8",
+        "rt-canon-44503-5ef5d0a0ba15",
+        "rt-canon-44795-5df0bf484b16",
+        "rt-canon-45944-e07324a65027",
+        "rt-canon-47229-7f3c93a6b622",
+        "rt-canon-47483-516e232dff20",
+        "rt-canon-48153-e92ef97e06b8",
+        "rt-canon-48810-ab6bebce66ca",
+        "rt-canon-49189-38cb40e0f7e8",
+        "rt-canon-50054-da97bfb01bb4"
+      ],
+      "profiles": {
+        "scene_bound": 19,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 2,
+        "generic_blueprint": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName"
+      ]
+    },
+    {
+      "scene_file": "jailplanetoid_mechanics.scenes",
+      "unit_count": 24,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-01285-5937b978b2d4",
+        "rt-canon-14825-36a73c8504d7",
+        "rt-canon-25078-a2ad313d2fa1",
+        "rt-canon-25912-f243ed9cabf8",
+        "rt-canon-32229-6d1ec8721702",
+        "rt-canon-32675-b72535b1402b",
+        "rt-canon-32987-bd69390a6a55",
+        "rt-canon-35165-0ddf89ead533",
+        "rt-canon-47124-19256effcc5f",
+        "rt-canon-47288-188bbdc37813",
+        "rt-canon-47696-42219b337f88",
+        "rt-canon-47793-6d97b3829282",
+        "rt-canon-47961-85abff6eded2",
+        "rt-canon-48478-bd76ca670c1f",
+        "rt-canon-48966-c1ac438d91b8",
+        "rt-canon-50235-429f1cbe406d",
+        "rt-canon-50468-3f644e2585d9",
+        "rt-canon-50476-02da9c4c1b60",
+        "rt-canon-50925-8faf6cf0c4f8",
+        "rt-canon-50929-e957ea5d9657",
+        "rt-canon-53364-b6247a26c10d"
+      ],
+      "profiles": {
+        "scene_bound": 23,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 2,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName",
+        "JailPlanetoid_ToMain_Tooltip"
+      ]
+    },
+    {
+      "scene_file": "lair2_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-32721-5fd7366e88df",
+        "rt-canon-42752-834ab9da1fab",
+        "rt-canon-49400-8c235373ef4b",
+        "rt-canon-50454-fd961beca1f9",
+        "rt-canon-51308-8823b5d60776",
+        "rt-canon-53068-4807142d413b",
+        "rt-canon-53133-443286ac4eb4"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "lair4_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-48433-650041dee0f8",
+        "rt-canon-49380-5c1c14b512d8",
+        "rt-canon-49381-df06977d6449",
+        "rt-canon-50812-e715a5c94ec0",
+        "rt-canon-53131-92e47bc0b052"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 1
+      },
+      "conversation_groups": [
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "laststand_lair1_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-32309-2346f7ab7e58",
+        "rt-canon-35254-94b0694efd64",
+        "rt-canon-39317-214eaf0a5504",
+        "rt-canon-47269-97aa24fe61e6",
+        "rt-canon-47280-2929a59b4408",
+        "rt-canon-47281-2bf79b0c352e",
+        "rt-canon-48072-6aa87f0c03c1",
+        "rt-canon-48306-71eec286b842",
+        "rt-canon-48764-e88201e047fe"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "lowertunnels_accident_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-15712-f95f487330db",
+        "rt-canon-16337-a44f7ff82464"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "lowertunnels_chaos_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-47284-3d924a381697"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "lowertunnels_default_mechanics.scenes",
+      "unit_count": 33,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-02007-620cdb1be706",
+        "rt-canon-02386-724519135ac0",
+        "rt-canon-07042-a4183a90f8e8",
+        "rt-canon-07882-d681b71cf9dd",
+        "rt-canon-08356-eba47af23fe2",
+        "rt-canon-32177-3ffbd3596a9b",
+        "rt-canon-32664-9c9f9b38ebd8",
+        "rt-canon-36839-40305a4c62b5",
+        "rt-canon-37211-5c3cab329995",
+        "rt-canon-37759-bcec084e08d8",
+        "rt-canon-38854-d49fa00b8fa5",
+        "rt-canon-41337-b373dddfc71b",
+        "rt-canon-41940-18c4ef0c2b1a",
+        "rt-canon-44594-a1f610e21e3a",
+        "rt-canon-45000-6c514120d2f7",
+        "rt-canon-45239-1877f00a402a",
+        "rt-canon-47326-6166dffb5689",
+        "rt-canon-47502-26ec96350727",
+        "rt-canon-48065-7fafb4880941",
+        "rt-canon-48164-cc392376336c",
+        "rt-canon-48187-fe99a0681416",
+        "rt-canon-48345-ce017a54d7b4",
+        "rt-canon-48466-64bc2e28b402",
+        "rt-canon-48559-cdfbc9867599",
+        "rt-canon-48970-f613a29752f1",
+        "rt-canon-49270-f414c36137e5",
+        "rt-canon-49297-c4b883d50e74",
+        "rt-canon-49707-9e800573e4c5",
+        "rt-canon-50059-52bf6959f7a9",
+        "rt-canon-50519-dbe7e3e0dac4",
+        "rt-canon-50520-763f2124b77d",
+        "rt-canon-53263-71ef7b72b591"
+      ],
+      "profiles": {
+        "scene_bound": 33
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "lowertunnels_faith_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-05234-2eceb5aa3410",
+        "rt-canon-13253-007335bd2cc2",
+        "rt-canon-20664-96e78ec00efc",
+        "rt-canon-32515-cefa3f526d92",
+        "rt-canon-49006-f4de2f8cf10b"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "lowertunnels_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-00321-c9da3426a451",
+        "rt-canon-00395-25874ecbbee0",
+        "rt-canon-41941-3b8005105d89",
+        "rt-canon-43984-aebaa519fd10"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip",
+        "GoToUpperLevel"
+      ]
+    },
+    {
+      "scene_file": "lowertunnels_no_soulmark_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-12163-537fe8a5fb7b",
+        "rt-canon-17060-3e3b620e7531",
+        "rt-canon-40682-bccc2f3b6bb8",
+        "rt-canon-42195-a77a5a97545f",
+        "rt-canon-47223-a947be7a4eed",
+        "rt-canon-47577-5ec1ce1c3dc3",
+        "rt-canon-48172-c892037d622e",
+        "rt-canon-48844-35b22ba51f8d",
+        "rt-canon-49141-3751dd9a6662"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "lowertunnels_streetfight_mechanics.scenes",
+      "unit_count": 15,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00909-719ea396ad92",
+        "rt-canon-01562-34dd86a96afe",
+        "rt-canon-32991-40f7c8d3c9d3",
+        "rt-canon-37137-bf93e5ce8bc1",
+        "rt-canon-40694-c3f21c72ad05",
+        "rt-canon-42190-a0f395d75231",
+        "rt-canon-47283-08ba614f819f",
+        "rt-canon-48619-c2703cdb6bd2",
+        "rt-canon-49046-90c0f67ab72e",
+        "rt-canon-49047-3b959f9b4ece",
+        "rt-canon-49333-bcf76ca38acf",
+        "rt-canon-51487-2038bdec9210",
+        "rt-canon-51837-768462622ef6"
+      ],
+      "profiles": {
+        "scene_bound": 15
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 2,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName"
+      ]
+    },
+    {
+      "scene_file": "lowertunnels_streetfight_mechanics_trap_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "macrocannon_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-32372-8a0d9376fef8",
+        "rt-canon-32654-61da91f7071d",
+        "rt-canon-33802-58acf51b9acd",
+        "rt-canon-40362-b7cbfef2ced8",
+        "rt-canon-40870-697775daf09c",
+        "rt-canon-42579-85209006d660",
+        "rt-canon-47503-60ddf6488166",
+        "rt-canon-47519-6c3577844e5f",
+        "rt-canon-48267-b781af2d2095",
+        "rt-canon-48332-47acfa1499a5"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "macrocannon_psyker_q1_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-04600-fcd2c6899749",
+        "rt-canon-08714-8c516d4f5c9f",
+        "rt-canon-21784-951985170e73",
+        "rt-canon-48472-7c294a2b96c4",
+        "rt-canon-48620-9e9e6f1f03fd",
+        "rt-canon-49440-0ea8e90de434"
+      ],
+      "profiles": {
+        "dialogue": 3,
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 3
+      },
+      "conversation_groups": [
+        "Mutant"
+      ]
+    },
+    {
+      "scene_file": "marazhai_bloodright_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-40670-c4d427ec2dfa",
+        "rt-canon-47823-32c633433154",
+        "rt-canon-49993-c9f11eca8f59"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "marazhai_hollow_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-15958-d144799f3308",
+        "rt-canon-28316-9d70d404a224",
+        "rt-canon-47289-f89c3b981a4f",
+        "rt-canon-47611-cbd2fce37ccd",
+        "rt-canon-48376-1852b987f3ea"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "navisnobilitestation_default_mechanics.scenes",
+      "unit_count": 32,
+      "unit_ids": [
+        "rt-canon-00321-c9da3426a451",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00437-c50f5f6415c3",
+        "rt-canon-00909-719ea396ad92",
+        "rt-canon-08151-c940070bcff3",
+        "rt-canon-25919-047062e70150",
+        "rt-canon-32983-6abb2cc51b33",
+        "rt-canon-33463-b4d6676da142",
+        "rt-canon-34572-b9039c1d168c",
+        "rt-canon-35488-d7b19a1ad50a",
+        "rt-canon-36466-ffab4242b3fe",
+        "rt-canon-40491-fc0611396d57",
+        "rt-canon-40545-27dd4242677f",
+        "rt-canon-40697-1eba140fdd9c",
+        "rt-canon-41906-7d8e5c1862cc",
+        "rt-canon-43747-d07fb35c7ef0",
+        "rt-canon-43948-7a2abcba0ea5",
+        "rt-canon-45234-71e6fa86ba21",
+        "rt-canon-45455-7cbd9ebe8ca8",
+        "rt-canon-45747-8e7a98b5b7a6",
+        "rt-canon-46436-0d4161d50b5d",
+        "rt-canon-46437-6ff1ffb20eb7",
+        "rt-canon-47370-a33ddd6e2db6",
+        "rt-canon-47620-4ba306f68ff3",
+        "rt-canon-47621-69fecb59a50c",
+        "rt-canon-47891-b2ddaf6e1de4",
+        "rt-canon-48320-b325b6ad0587",
+        "rt-canon-48351-c09577b1063e",
+        "rt-canon-50845-04ebc9229a6a",
+        "rt-canon-51085-de85a4b6ef5d",
+        "rt-canon-51190-26563efc2a04",
+        "rt-canon-52608-d074fca66fd8"
+      ],
+      "profiles": {
+        "scene_bound": 30,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "dialogue_line": 1,
+        "ui": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Stats_Entries.Array.Persuasion",
+        "UIStrings",
+        "CorpsesScene"
+      ]
+    },
+    {
+      "scene_file": "navisnobilitestation_stage1_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-23883-3206247a150b",
+        "rt-canon-38527-8ffd1608bbb7",
+        "rt-canon-47983-87609eb03a84"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "navisnobilitestation_stage2_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-31199-6f8cf5c52aa0",
+        "rt-canon-32255-699062da2c7c",
+        "rt-canon-32256-c283391782ee"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "necronlair_3_mechanics.scenes",
+      "unit_count": 23,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-00395-25874ecbbee0",
+        "rt-canon-23368-ee6c94930b81",
+        "rt-canon-32568-bb8ee9a79435",
+        "rt-canon-32571-0b1383ea3e70",
+        "rt-canon-32572-8f3519c97f01",
+        "rt-canon-32981-5fcd7e7e52fb",
+        "rt-canon-33800-022a1e09bb96",
+        "rt-canon-34642-385ef2c7f1e8",
+        "rt-canon-41266-870444545c6a",
+        "rt-canon-41804-12a2af0ce400",
+        "rt-canon-45861-6c3cc84aeeea",
+        "rt-canon-46411-223d497123f9",
+        "rt-canon-47245-4fb169680a0d",
+        "rt-canon-47264-ccd44e51c087",
+        "rt-canon-47561-b822934ef78c",
+        "rt-canon-48458-ef043a25fb2a",
+        "rt-canon-49068-ab3598717d22",
+        "rt-canon-49175-e9c39f35944d",
+        "rt-canon-49176-e58dbe941f7a",
+        "rt-canon-49442-a9aff16b70bd",
+        "rt-canon-50228-881381fe3cec",
+        "rt-canon-52256-be89267276b2"
+      ],
+      "profiles": {
+        "scene_bound": 23
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip",
+        "GoToUpperLevel"
+      ]
+    },
+    {
+      "scene_file": "officerdeck_ceremony_done_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-17020-8667f8f096ca",
+        "rt-canon-22001-f24d8baf1475"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "officerdeck_ceremony_ready_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-17020-8667f8f096ca",
+        "rt-canon-22001-f24d8baf1475"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "pascalevent_chapter2_pascalarest_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-15294-29754de1d769",
+        "rt-canon-47682-8af410710aa8"
+      ],
+      "profiles": {
+        "dialogue": 1,
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "penalworld_arbitesmeeting_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-15060-4b63e6a4edd2",
+        "rt-canon-22305-4bbf57634ef2",
+        "rt-canon-38915-726d29c274bc",
+        "rt-canon-39334-deddca53ff70",
+        "rt-canon-47867-3ce815fd2651",
+        "rt-canon-48573-4247ab808a9a",
+        "rt-canon-49441-6866f590cadd",
+        "rt-canon-50024-fb49bdd68fe9"
+      ],
+      "profiles": {
+        "scene_bound": 8
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "penalworld_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-32428-9f9e94ffba13",
+        "rt-canon-47274-e3742906d52f",
+        "rt-canon-47291-38fa9acb1b90",
+        "rt-canon-47297-693c7ccf4ed9",
+        "rt-canon-47320-68f166ca2512",
+        "rt-canon-47369-4ec1ba1fa8b6",
+        "rt-canon-48390-b3b96379810c",
+        "rt-canon-48395-635fc988b51b",
+        "rt-canon-48866-a970022bb845",
+        "rt-canon-50518-f43838883fbd",
+        "rt-canon-52950-f214914aeda8"
+      ],
+      "profiles": {
+        "scene_bound": 11
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_bottom_mechanics.scenes",
+      "unit_count": 17,
+      "unit_ids": [
+        "rt-canon-15060-4b63e6a4edd2",
+        "rt-canon-34070-b2759f54e7c3",
+        "rt-canon-34164-3c9735d34745",
+        "rt-canon-35918-35abe6af4833",
+        "rt-canon-37866-8575418f141e",
+        "rt-canon-38669-6542ba9624fc",
+        "rt-canon-38915-726d29c274bc",
+        "rt-canon-40045-bfcb45b93d1f",
+        "rt-canon-41264-eadd4ef40147",
+        "rt-canon-44149-b396852dc32b",
+        "rt-canon-45095-1594f25e83e7",
+        "rt-canon-47635-cd33637bb86a",
+        "rt-canon-48347-ff0333d1c585",
+        "rt-canon-48388-32d20d79434f",
+        "rt-canon-48575-110a23788e8c",
+        "rt-canon-49750-c6d40a22545f",
+        "rt-canon-52680-256a65bc7c34"
+      ],
+      "profiles": {
+        "scene_bound": 17
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_common_mechanics.scenes",
+      "unit_count": 20,
+      "unit_ids": [
+        "rt-canon-00765-3a3a7b0a4d11",
+        "rt-canon-01027-77e950a94582",
+        "rt-canon-14367-e995bebd2bda",
+        "rt-canon-15316-5bba55f96a1d",
+        "rt-canon-17547-d4c7a271a7c6",
+        "rt-canon-19833-2182b55da5ce",
+        "rt-canon-32312-a32352fb8c22",
+        "rt-canon-34224-5b1a14ede3f1",
+        "rt-canon-35100-dc05059e3a97",
+        "rt-canon-36304-d658499f108f",
+        "rt-canon-42544-4d2c544b92f9",
+        "rt-canon-44906-a62f0761862f",
+        "rt-canon-47230-655ff4900d58",
+        "rt-canon-47231-984b3dd384a0",
+        "rt-canon-47617-50a4e089b746",
+        "rt-canon-48200-139ae39e37bd",
+        "rt-canon-48781-967c6f4ef24e",
+        "rt-canon-50536-479e3b20caa3",
+        "rt-canon-50591-5d6f5efc0290",
+        "rt-canon-50663-2fae81164184"
+      ],
+      "profiles": {
+        "scene_bound": 19,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "WrackForbiddenPass"
+      ]
+    },
+    {
+      "scene_file": "prison_jaeromancebadparty_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-46215-f9e5c38b5700",
+        "rt-canon-47025-90ac1a08e627"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_laboratory_mechanics.scenes",
+      "unit_count": 23,
+      "unit_ids": [
+        "rt-canon-00765-3a3a7b0a4d11",
+        "rt-canon-04845-14c308e08c61",
+        "rt-canon-05433-66e7d9a88612",
+        "rt-canon-05971-29b1588afb64",
+        "rt-canon-06969-0e46efb703a5",
+        "rt-canon-21155-4c76fef80e4b",
+        "rt-canon-21705-b2a6289b35c0",
+        "rt-canon-28947-c44aa25d2a3b",
+        "rt-canon-33045-e470be845c2b",
+        "rt-canon-37683-5bab73abc3b8",
+        "rt-canon-39385-5ecb13cd251d",
+        "rt-canon-43921-5f0b686e459d",
+        "rt-canon-43923-b382a28642ac",
+        "rt-canon-47213-78d602262234",
+        "rt-canon-47581-ddc0a49a7512",
+        "rt-canon-47794-1e0ff4f0d987",
+        "rt-canon-48476-f5589ba9d27c",
+        "rt-canon-49153-e8f5393a8b1e",
+        "rt-canon-49287-ef3bb6729c6a",
+        "rt-canon-49309-1554439678a8",
+        "rt-canon-49697-099545e85dc1",
+        "rt-canon-50219-7c53de26aff2",
+        "rt-canon-53278-cf0373d8065f"
+      ],
+      "profiles": {
+        "scene_bound": 23
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_pit_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-00765-3a3a7b0a4d11",
+        "rt-canon-10362-8e27dd427e01",
+        "rt-canon-16156-917de875f4df",
+        "rt-canon-18751-b8baf1d7cb04",
+        "rt-canon-26094-2d9b5048bb07",
+        "rt-canon-31063-770000770308",
+        "rt-canon-32345-7118f46d5be4",
+        "rt-canon-32529-c697a011f4fc",
+        "rt-canon-37872-1235a38930f0",
+        "rt-canon-45945-2215d4b7a112",
+        "rt-canon-48119-4ee2fb745f22"
+      ],
+      "profiles": {
+        "scene_bound": 11
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2
+      },
+      "conversation_groups": [
+        "Roaring1_gag",
+        "Roaring4_gag"
+      ]
+    },
+    {
+      "scene_file": "prison_pitanger_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-46215-f9e5c38b5700"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_pitcomisar_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-47025-90ac1a08e627",
+        "rt-canon-47835-985a92fe55e7"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_pitmain_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-38911-8109c3a9a9a4",
+        "rt-canon-41456-61849ca321e9",
+        "rt-canon-49263-0d6fa074819e"
+      ],
+      "profiles": {
+        "scene_bound": 2,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "PortalNonConnected"
+      ]
+    },
+    {
+      "scene_file": "prison_pitowner_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-18751-b8baf1d7cb04",
+        "rt-canon-31063-770000770308",
+        "rt-canon-35918-35abe6af4833",
+        "rt-canon-40992-2f6c8bda285d",
+        "rt-canon-41459-b66cf79e157f",
+        "rt-canon-45002-17d2cbf0894e",
+        "rt-canon-45674-8881ba5e706d",
+        "rt-canon-46215-f9e5c38b5700",
+        "rt-canon-47025-90ac1a08e627"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_pitstart_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-46643-ff73267d5983",
+        "rt-canon-48279-148bd44f3727",
+        "rt-canon-49723-3c2f209be3bb",
+        "rt-canon-51182-9381c0fb0eca",
+        "rt-canon-52914-30b10697f50d"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_stage0_mechanics.scenes",
+      "unit_count": 14,
+      "unit_ids": [
+        "rt-canon-00462-bce06414177f",
+        "rt-canon-33752-0173996f4b9f",
+        "rt-canon-34869-3cc6040de675",
+        "rt-canon-40027-caeb7791644f",
+        "rt-canon-47210-60b6095eedbb",
+        "rt-canon-47619-6df1921cddae",
+        "rt-canon-47795-aaa9b2407fe0",
+        "rt-canon-49631-3e6dcd4d8fbf",
+        "rt-canon-49978-97ecadee80a1",
+        "rt-canon-50058-3a8444dc78c6",
+        "rt-canon-50462-c500be788a23",
+        "rt-canon-52768-645276c66fc0",
+        "rt-canon-53071-d17de7dedcbe",
+        "rt-canon-53318-8af2f140eb90"
+      ],
+      "profiles": {
+        "scene_bound": 14
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 1
+      },
+      "conversation_groups": [
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "prison_stage1_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-01027-77e950a94582",
+        "rt-canon-49391-121957cebf64",
+        "rt-canon-49717-d3405fda8807"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_stage2_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-33741-d088424500ee",
+        "rt-canon-33742-502b5417340e",
+        "rt-canon-37859-0358f3cc853a",
+        "rt-canon-37871-34d9332d9dbe",
+        "rt-canon-47877-f7b4b58bbc98",
+        "rt-canon-47878-3300dc3e4dbd"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "prison_stage3_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-40611-3e0149fee505"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quarryworld_indoor_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-32226-6449b59217dc",
+        "rt-canon-35005-78697f71a3cd",
+        "rt-canon-35072-b14c913716a6",
+        "rt-canon-43352-10fc3d5c50d1",
+        "rt-canon-45532-154570b4fd7e",
+        "rt-canon-45533-a76b0ae81e90",
+        "rt-canon-48600-4a813ba7ec32",
+        "rt-canon-48673-e6e59cf5da92",
+        "rt-canon-49625-04ea926ca0c8",
+        "rt-canon-50127-318e16181b3f",
+        "rt-canon-51191-02b44ed2a905"
+      ],
+      "profiles": {
+        "scene_bound": 11
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quarryworld_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-32323-b82c47463535",
+        "rt-canon-48299-f755a9b5c247",
+        "rt-canon-48673-e6e59cf5da92",
+        "rt-canon-49120-2c7bfcad9261",
+        "rt-canon-49376-fd92793bc767"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_blank1_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "quetza-al_khet_blank2_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-34139-4709a4f06b04"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "quetza-al_khet_blank3_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-47113-cb44506e6eb9"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_camp_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-01285-5937b978b2d4",
+        "rt-canon-35315-12b61a4abefb",
+        "rt-canon-40690-ce379e356f42",
+        "rt-canon-48402-a4769ff4c0fb",
+        "rt-canon-48769-789d355c60a0"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip"
+      ]
+    },
+    {
+      "scene_file": "quetza-al_khet_enterzone_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-02381-c7a2673b69a7",
+        "rt-canon-41919-fe21aa881f36",
+        "rt-canon-44325-fec498d6b0b9",
+        "rt-canon-52719-172d9405d841"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_graves_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-33808-b06330223aca",
+        "rt-canon-45245-c79b73407693",
+        "rt-canon-49261-25cf27c986a8",
+        "rt-canon-49347-a29278ba6b61",
+        "rt-canon-50836-53b0acbef4ce"
+      ],
+      "profiles": {
+        "scene_bound": 6,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 2,
+        "generic_blueprint": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "TrapActor_DefaultName",
+        "Tomb"
+      ]
+    },
+    {
+      "scene_file": "quetza-al_khet_labyrinthenter_afdialog_3_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-41336-548ad0a1bb5b"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_labyrinthenter_afdialog_4_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-41336-548ad0a1bb5b"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_labyrinthenter_bedialog_1_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-41336-548ad0a1bb5b"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_massacre_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-48769-789d355c60a0"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_meeting_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-32514-c2315f154366",
+        "rt-canon-38681-5ec326483dac",
+        "rt-canon-48095-567eebe298f6",
+        "rt-canon-49187-fa461ea6c50b"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_totem_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-36648-7b4adddfa3af",
+        "rt-canon-49389-25f97c30e085",
+        "rt-canon-51189-8807c2b3fd0f"
+      ],
+      "profiles": {
+        "scene_bound": 2,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Totem"
+      ]
+    },
+    {
+      "scene_file": "quetza-al_khet_village_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-08259-e17137c34749",
+        "rt-canon-22653-5075f72ae3cc",
+        "rt-canon-22667-a1db93a15d28",
+        "rt-canon-31021-1cc41bfb1bab"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "quetza-al_khet_villageempty_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-41336-548ad0a1bb5b",
+        "rt-canon-52720-0eaf064d9aca",
+        "rt-canon-55612-0f8c69169ab1",
+        "rt-canon-55613-471ecd6cce6f",
+        "rt-canon-55614-3192dc4ddcd4"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "re_hold_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "re_lowerdecks_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00488-986d2de2ea6d"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "re_macrocannon_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "re_officerdeck_accident_possessed_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "re_officerdeck_accident_uprising_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "re_unique_bridge_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-40859-fd9b9da02075"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "reavingtempestspire_gatehall_traps_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "reavingtempestspire_mainhall_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-07490-eac5fdc0c3dd",
+        "rt-canon-16782-a476c2e96a2b",
+        "rt-canon-20891-a451c6db8789",
+        "rt-canon-29974-fa7aba448abb"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "reavingtempestspire_mainhall_traps_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "reavingtempestspire_maze_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-00764-92ef08325a48",
+        "rt-canon-35991-196ed43a0ac7",
+        "rt-canon-46255-a6dec02a4314",
+        "rt-canon-48992-91cf423dfa4f"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "reavingtempestspire_mechanics.scenes",
+      "unit_count": 22,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-32454-e6b27e8b22ab",
+        "rt-canon-32631-d90231ae28cc",
+        "rt-canon-32671-9529431764d2",
+        "rt-canon-32984-11b2153af18d",
+        "rt-canon-36953-9a7d4e0687b1",
+        "rt-canon-38680-5fc1796a8093",
+        "rt-canon-40495-a722c4fc89ca",
+        "rt-canon-40550-d1f43d2a946d",
+        "rt-canon-40680-d25456b70b86",
+        "rt-canon-41967-0145ff4200b5",
+        "rt-canon-43962-ebc74498de19",
+        "rt-canon-45796-494be5c0c56b",
+        "rt-canon-46310-ab9ec0c19681",
+        "rt-canon-47614-ba9c99ebf9a4",
+        "rt-canon-47833-ffc9f3ed067a",
+        "rt-canon-48292-fce4fc787514",
+        "rt-canon-49077-b17048b563f3",
+        "rt-canon-49152-7af08d33ee83",
+        "rt-canon-49377-59dc48c34be5",
+        "rt-canon-49394-ec0721921590",
+        "rt-canon-52679-f52c43be486f"
+      ],
+      "profiles": {
+        "scene_bound": 22
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "reavingtempestspire_part02_mechanics.scenes",
+      "unit_count": 12,
+      "unit_ids": [
+        "rt-canon-32166-b05605eb287d",
+        "rt-canon-32332-f647e95a9812",
+        "rt-canon-32680-1b202f28d827",
+        "rt-canon-32986-32b5dd94a9e0",
+        "rt-canon-40050-d7a50fa09844",
+        "rt-canon-47145-29bc3f4be1f4",
+        "rt-canon-47242-d96a0503e43f",
+        "rt-canon-47243-ae35e0004f18",
+        "rt-canon-47888-0dd424543636",
+        "rt-canon-49123-bcc7845ac646",
+        "rt-canon-49138-5b3068aee473",
+        "rt-canon-49957-e63faa59e76d"
+      ],
+      "profiles": {
+        "scene_bound": 12
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguertraderpalaceindoorpeaceful_coronation_base_indoor_mechanics.scenes",
+      "unit_count": 13,
+      "unit_ids": [
+        "rt-canon-03855-e5e0c8a468fa",
+        "rt-canon-04797-8a3bcb351a7a",
+        "rt-canon-10813-3d86279c650d",
+        "rt-canon-16314-b3d1c4cbbbb4",
+        "rt-canon-24246-6c325e858eed",
+        "rt-canon-25583-2e941c9529b5",
+        "rt-canon-26048-c632ba44a09e",
+        "rt-canon-32213-012f30e7ce8d",
+        "rt-canon-42334-0180eaba32d5",
+        "rt-canon-47155-e76757f6a899",
+        "rt-canon-49088-3b7653d85bb5",
+        "rt-canon-50083-c88d01a3a77b",
+        "rt-canon-50086-88140e30eea0"
+      ],
+      "profiles": {
+        "scene_bound": 13
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguertraderpalaceindoorpeaceful_indoornamednpcsandcompanions_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-02651-5f93d3c13e90",
+        "rt-canon-16660-b2588e0ac66b",
+        "rt-canon-16695-94a590f6988e",
+        "rt-canon-20601-c7a527e5d136",
+        "rt-canon-22563-09a403ee8640",
+        "rt-canon-27710-be53b3b78565",
+        "rt-canon-30245-e70f5efb74fa",
+        "rt-canon-48990-6ceb3ca123b9"
+      ],
+      "profiles": {
+        "scene_bound": 8
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguertraderpalaceindoorpeaceful_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-35230-3bdf72ec6ce9"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 1
+      },
+      "conversation_groups": [
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "roguertraderpalaceindoorpeaceful_pet_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-51493-93e0f3d6ae3e"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalace_kibellahq2_family_mechanics.scenes",
+      "unit_count": 22,
+      "unit_ids": [
+        "rt-canon-01416-c6ca45a57c62",
+        "rt-canon-19400-aeb725735d3b",
+        "rt-canon-24168-82b5841e79e5",
+        "rt-canon-28847-c8c5fec730b9",
+        "rt-canon-30791-11b0aad34d55",
+        "rt-canon-32294-853ac9fa9fcf",
+        "rt-canon-32467-0490828fc3d2",
+        "rt-canon-32689-592f01287a3f",
+        "rt-canon-32912-e98973e6b8fb",
+        "rt-canon-33740-ffbf951744b4",
+        "rt-canon-37237-f7d0bc0bc3a3",
+        "rt-canon-45535-66c190020106",
+        "rt-canon-47227-c530b35f3eb8",
+        "rt-canon-47509-66f62ebe9b83",
+        "rt-canon-48313-36b0c2ceb7dc",
+        "rt-canon-48485-3ef64678715f",
+        "rt-canon-48778-433670c900c2",
+        "rt-canon-48811-a7870d4d10be",
+        "rt-canon-49007-5da2a4f2cf85",
+        "rt-canon-49420-8173eb641072",
+        "rt-canon-49991-4ed67f02fbc1",
+        "rt-canon-50135-0f4dd1e888b9"
+      ],
+      "profiles": {
+        "scene_bound": 22
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_abelardq2_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-00423-66c3f8514a65",
+        "rt-canon-19193-fe050cce99a2",
+        "rt-canon-29209-56b30f8401e4",
+        "rt-canon-30802-690c79adda24",
+        "rt-canon-30853-29c64e00c01d",
+        "rt-canon-40115-b7e3c24b7029",
+        "rt-canon-48397-d99622d2b318",
+        "rt-canon-48771-ed500159689a"
+      ],
+      "profiles": {
+        "scene_bound": 6,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "dialogue_line": 1,
+        "generic_blueprint": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Stats_Entries.Array.Medicae",
+        "WarhammerSkills.SkillMedicae.Name"
+      ]
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_coronation_base_mechanics.scenes",
+      "unit_count": 18,
+      "unit_ids": [
+        "rt-canon-18778-1cb0c7b3c9af",
+        "rt-canon-22828-5c4636e4c85c",
+        "rt-canon-29740-a7c1b61d8b38",
+        "rt-canon-30546-d78bea272797",
+        "rt-canon-30711-b62ec7036279",
+        "rt-canon-32307-76b0b3b2ce0d",
+        "rt-canon-40319-ea626d787964",
+        "rt-canon-40681-40396ddf38bb",
+        "rt-canon-44471-08401c903420",
+        "rt-canon-46248-ad32f343bf6d",
+        "rt-canon-46249-8c5eb1c38730",
+        "rt-canon-48373-c17fc75964d9",
+        "rt-canon-48528-09924efde61c",
+        "rt-canon-50074-666302ac7da4",
+        "rt-canon-50444-2062916e1d1e",
+        "rt-canon-50448-20115613eedf",
+        "rt-canon-50686-8b53a91f5c03",
+        "rt-canon-52700-df7ce6008fe8"
+      ],
+      "profiles": {
+        "scene_bound": 18
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_coronation_exotic_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-50074-666302ac7da4",
+        "rt-canon-50083-c88d01a3a77b",
+        "rt-canon-52700-df7ce6008fe8"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_coronation_hedonistic_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-42334-0180eaba32d5",
+        "rt-canon-44471-08401c903420",
+        "rt-canon-48801-60fa84f613e0",
+        "rt-canon-50461-26fcc11f8230"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_crimesceneoutdoor_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-00158-2d35fd0096e6",
+        "rt-canon-47273-3d90f7ab64fe",
+        "rt-canon-47480-4b8ba503566d",
+        "rt-canon-50028-05336c999e3d"
+      ],
+      "profiles": {
+        "scene_bound": 3,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "dialogue_line": 1
+      },
+      "conversation_groups": [
+        "Stats_Entries.Array.Awareness"
+      ]
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_deafaul_mechanics.scenes",
+      "unit_count": 22,
+      "unit_ids": [
+        "rt-canon-10910-82c6b815ac1d",
+        "rt-canon-13259-937c4604e1df",
+        "rt-canon-16344-1c52941ae9a9",
+        "rt-canon-17483-8bf486cf744d",
+        "rt-canon-20721-94ae2128d697",
+        "rt-canon-20722-91ef4b9bc718",
+        "rt-canon-21748-f8f4f4a6f093",
+        "rt-canon-26347-7c1de93048d0",
+        "rt-canon-30927-f25470cddfbc",
+        "rt-canon-32389-71093814c329",
+        "rt-canon-33698-778ee0e48da6",
+        "rt-canon-34149-185c0d053ea9",
+        "rt-canon-34221-7a80160f0de4",
+        "rt-canon-36191-2da16da03e12",
+        "rt-canon-42330-13530f012859",
+        "rt-canon-45420-eabffa87829a",
+        "rt-canon-46447-7ced43e1c5c4",
+        "rt-canon-48302-7d8cba4f001e",
+        "rt-canon-48656-d79a413331a2",
+        "rt-canon-48771-ed500159689a",
+        "rt-canon-48990-6ceb3ca123b9",
+        "rt-canon-51018-2ab6323f07ee"
+      ],
+      "profiles": {
+        "scene_bound": 22
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_indoordefaultmechanics_mechanics.scenes",
+      "unit_count": 22,
+      "unit_ids": [
+        "rt-canon-01416-c6ca45a57c62",
+        "rt-canon-15672-3fc1ca7381ff",
+        "rt-canon-32294-853ac9fa9fcf",
+        "rt-canon-32467-0490828fc3d2",
+        "rt-canon-32602-ea1cf061483a",
+        "rt-canon-32689-592f01287a3f",
+        "rt-canon-32912-e98973e6b8fb",
+        "rt-canon-33740-ffbf951744b4",
+        "rt-canon-37237-f7d0bc0bc3a3",
+        "rt-canon-45535-66c190020106",
+        "rt-canon-46447-7ced43e1c5c4",
+        "rt-canon-47227-c530b35f3eb8",
+        "rt-canon-47509-66f62ebe9b83",
+        "rt-canon-48313-36b0c2ceb7dc",
+        "rt-canon-48485-3ef64678715f",
+        "rt-canon-48771-ed500159689a",
+        "rt-canon-48778-433670c900c2",
+        "rt-canon-48811-a7870d4d10be",
+        "rt-canon-49007-5da2a4f2cf85",
+        "rt-canon-49420-8173eb641072",
+        "rt-canon-49991-4ed67f02fbc1",
+        "rt-canon-50135-0f4dd1e888b9"
+      ],
+      "profiles": {
+        "scene_bound": 22
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_namednpcsandcompanions_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-02118-b1eae5237e4d",
+        "rt-canon-11419-5d321de761d1",
+        "rt-canon-16146-886457af7409",
+        "rt-canon-20601-c7a527e5d136",
+        "rt-canon-23258-2bb509f116ae"
+      ],
+      "profiles": {
+        "scene_bound": 4,
+        "dialogue": 1
+      },
+      "speaker_hints": [
+        "Yrliet"
+      ],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Companions_Yrliet"
+      ]
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_orsellioarrange_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-08349-c291125e18b3",
+        "rt-canon-15246-2c100e133012",
+        "rt-canon-17480-4876e4d5c0c6"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacepeaceful_orsellioarrange_outdoor_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-08349-c291125e18b3"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "roguetraderpalacesiege_default_mechanics.scenes",
+      "unit_count": 19,
+      "unit_ids": [
+        "rt-canon-00173-f26d27b073d8",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00989-e874a5225394",
+        "rt-canon-05685-9356ef832df8",
+        "rt-canon-19577-b1f6d68e4e20",
+        "rt-canon-21633-5f4d49bc0592",
+        "rt-canon-30920-f1ac8787ba18",
+        "rt-canon-32990-62bc9f728e53",
+        "rt-canon-33314-99785ac4af8f",
+        "rt-canon-35102-14e3e4f14098",
+        "rt-canon-35154-6c9b8a6a3763",
+        "rt-canon-47209-d857055efe2b",
+        "rt-canon-47983-87609eb03a84",
+        "rt-canon-48109-5ba90e570e09",
+        "rt-canon-48360-243763b59117",
+        "rt-canon-48914-9017c2098abc",
+        "rt-canon-49094-400cfd959801",
+        "rt-canon-49434-52374db7bfd5",
+        "rt-canon-49449-23eefd423025"
+      ],
+      "profiles": {
+        "scene_bound": 18,
+        "system_content": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 2,
+        "ability_or_feature": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "Disarm_Fighter_Talent_",
+        "TrapActor_DefaultName",
+        "Veteran_Talent17_Feature_"
+      ]
+    },
+    {
+      "scene_file": "roguetraderpalacesiegeindoor_default_mechanics.scenes",
+      "unit_count": 21,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01147-600593f6d56b",
+        "rt-canon-05685-9356ef832df8",
+        "rt-canon-06685-591dd344c472",
+        "rt-canon-18830-97842dbbb61a",
+        "rt-canon-21014-a5c90583dbc3",
+        "rt-canon-25994-c2890c46f300",
+        "rt-canon-27862-91ba306de7d3",
+        "rt-canon-30920-f1ac8787ba18",
+        "rt-canon-32467-0490828fc3d2",
+        "rt-canon-33654-cce165d9024c",
+        "rt-canon-35154-6c9b8a6a3763",
+        "rt-canon-42283-cf92962ca58a",
+        "rt-canon-47279-388d72306052",
+        "rt-canon-47287-95aa53ca8478",
+        "rt-canon-47375-3b88dd21c90d",
+        "rt-canon-47509-66f62ebe9b83",
+        "rt-canon-47597-b554b525bec9",
+        "rt-canon-48956-340fea681859",
+        "rt-canon-49007-5da2a4f2cf85",
+        "rt-canon-50551-f8027d5c6e75"
+      ],
+      "profiles": {
+        "scene_bound": 20,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "salisprime_itstime_mechanics.scenes",
+      "unit_count": 12,
+      "unit_ids": [
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-33689-27a3f6a07a29",
+        "rt-canon-40697-1eba140fdd9c",
+        "rt-canon-47360-b47b721f1a51",
+        "rt-canon-47593-192d7f668260",
+        "rt-canon-47940-89b5781a6cb4",
+        "rt-canon-48649-bf64f456d442",
+        "rt-canon-49959-69b28e43f01b",
+        "rt-canon-50126-f90cd87a6412",
+        "rt-canon-51189-8807c2b3fd0f",
+        "rt-canon-52964-a3e168be0ca6",
+        "rt-canon-53196-f85df8f9c24b"
+      ],
+      "profiles": {
+        "scene_bound": 12
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "santielspride_surface_default_mechanics.scenes",
+      "unit_count": 38,
+      "unit_ids": [
+        "rt-canon-00353-bdae0b45035a",
+        "rt-canon-00354-68efea000b9e",
+        "rt-canon-07041-9fd1af014a8f",
+        "rt-canon-11928-2663559f03c4",
+        "rt-canon-16354-4d9d81517a33",
+        "rt-canon-19187-bc96e7263b70",
+        "rt-canon-24825-19bd731547a0",
+        "rt-canon-25325-696d3ebb564f",
+        "rt-canon-28511-bbe52256be4d",
+        "rt-canon-32259-dce9dd29336e",
+        "rt-canon-32274-0468a3b19ae2",
+        "rt-canon-32610-185b38bea4cc",
+        "rt-canon-33727-7d1ebdf69d48",
+        "rt-canon-35752-3d50577a5646",
+        "rt-canon-38116-3df057b4fe67",
+        "rt-canon-38679-2dd0295ef934",
+        "rt-canon-38941-6cfdb4c6b274",
+        "rt-canon-39733-dedebd1d3775",
+        "rt-canon-40541-0fc5dfa61dd0",
+        "rt-canon-40689-b949dfd73eca",
+        "rt-canon-41224-e2232eabdfb6",
+        "rt-canon-45015-6ad7e1dc1db9",
+        "rt-canon-45147-fa473cc7d1f7",
+        "rt-canon-45230-81ecf34919dc",
+        "rt-canon-45231-50c1ee0973c2",
+        "rt-canon-46332-de5508b4eeb3",
+        "rt-canon-47387-e243cbb86db7",
+        "rt-canon-48061-593ea53eff73",
+        "rt-canon-48086-51a1f0b49633",
+        "rt-canon-48090-ff6e41ad422e",
+        "rt-canon-48558-0e1140f118c2",
+        "rt-canon-48889-07daea5d72d8",
+        "rt-canon-48890-8a5c354b6854",
+        "rt-canon-49098-f067976ba750",
+        "rt-canon-49310-08a087d6e05f",
+        "rt-canon-49698-f8069b2dd1fb",
+        "rt-canon-49731-2b6c6dc20fb9",
+        "rt-canon-50783-6c58224abfe9"
+      ],
+      "profiles": {
+        "scene_bound": 38
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "santielspride_surface_indoor_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-16354-4d9d81517a33",
+        "rt-canon-35628-8a437bc9741b",
+        "rt-canon-35753-ef56088598cc",
+        "rt-canon-36789-663f9428b22b",
+        "rt-canon-37754-c8b313bc1328",
+        "rt-canon-38858-ea5a75a63d66",
+        "rt-canon-42848-638591448b8c",
+        "rt-canon-47304-bc5371713503",
+        "rt-canon-47855-87a6c7fd69af",
+        "rt-canon-47893-7d9a3bc7d006",
+        "rt-canon-48126-45dc1a47a0ea"
+      ],
+      "profiles": {
+        "scene_bound": 11
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "santielsprideunderhive_cannibaltemple_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-07250-921dc9c3e9e1",
+        "rt-canon-32311-2661e19eaba3",
+        "rt-canon-36058-c268594909e5",
+        "rt-canon-37304-86e9509873d0",
+        "rt-canon-44329-611b33fa0196",
+        "rt-canon-46276-044fd7757b50",
+        "rt-canon-47321-269fdee1a891",
+        "rt-canon-47330-35e6d2ae33cc",
+        "rt-canon-48245-32e49aa116ac",
+        "rt-canon-48369-88e686615e85"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "santielsprideunderhive_laboratory_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-34811-d4c844814723",
+        "rt-canon-37870-e89cff1a1da9",
+        "rt-canon-48052-079f91a4f030",
+        "rt-canon-49737-3c2f45c5ca50",
+        "rt-canon-49955-d4cdba843b31",
+        "rt-canon-50079-a6e1661619b0",
+        "rt-canon-51104-83aed2025504"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "santielsprideunderhive_mechanics.scenes",
+      "unit_count": 34,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-02754-afaae3674a70",
+        "rt-canon-06201-a6ba37076763",
+        "rt-canon-10737-8518b46c648a",
+        "rt-canon-16064-f10ec6ffb17e",
+        "rt-canon-22307-9db33c4539a1",
+        "rt-canon-25322-65b8eb1f648c",
+        "rt-canon-26092-39bc33c108df",
+        "rt-canon-28118-cc756f87d3ca",
+        "rt-canon-30389-eb0f7696b21b",
+        "rt-canon-32376-0703943e8617",
+        "rt-canon-33788-2235704331f7",
+        "rt-canon-34231-b56c136abe01",
+        "rt-canon-36058-c268594909e5",
+        "rt-canon-37868-849e40640ead",
+        "rt-canon-39586-753cf547f483",
+        "rt-canon-40616-37fcee482e33",
+        "rt-canon-40692-2e9e09ab6c8e",
+        "rt-canon-41942-0701cd2a532d",
+        "rt-canon-42261-5f7ca76877e4",
+        "rt-canon-45228-c065802916bf",
+        "rt-canon-45229-320483cdcf6c",
+        "rt-canon-45726-9667244b50ef",
+        "rt-canon-45793-ea4dedc04346",
+        "rt-canon-47270-b9e798b3aab9",
+        "rt-canon-47286-4c53d692cb28",
+        "rt-canon-47330-35e6d2ae33cc",
+        "rt-canon-48075-b7c461cbfe93",
+        "rt-canon-48633-9d52e3034cd6",
+        "rt-canon-48661-79f2ee79f6d2",
+        "rt-canon-48699-eae38e9f8701",
+        "rt-canon-49960-7b9ecf72ae34",
+        "rt-canon-49967-b52381d98a12",
+        "rt-canon-49977-0cce7e915115"
+      ],
+      "profiles": {
+        "scene_bound": 32,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2,
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "Survivors02",
+        "Survivors01"
+      ]
+    },
+    {
+      "scene_file": "starport_arbitesback_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-21479-7488b43f85d5"
+      ],
+      "profiles": {
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "DLC2_Arbites"
+      ]
+    },
+    {
+      "scene_file": "starport_firststate_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-05287-388fd182ad5d",
+        "rt-canon-06627-578a4ce98aa4",
+        "rt-canon-11069-b37c4b8e8956",
+        "rt-canon-20455-7ba80a99d185",
+        "rt-canon-32990-62bc9f728e53"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "CursedBlindmen_2"
+      ]
+    },
+    {
+      "scene_file": "starport_fuelroom_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-01285-5937b978b2d4"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-33754-ab29725320db",
+        "rt-canon-37790-b3131115c183",
+        "rt-canon-40132-95696f71b4f3",
+        "rt-canon-40336-0765be005311",
+        "rt-canon-48150-1716846c9240",
+        "rt-canon-48269-ad43c6af9d83",
+        "rt-canon-49064-e2a41ec337ae",
+        "rt-canon-49331-10307f13be1f",
+        "rt-canon-52841-ad8dea607719"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_secondstate_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-16946-4e78f1526a94",
+        "rt-canon-17438-598e33ff7685",
+        "rt-canon-19466-000aa530e4df",
+        "rt-canon-20511-7ad34918f05c",
+        "rt-canon-24030-b3a55daac545",
+        "rt-canon-30899-6690cf7abd65",
+        "rt-canon-40686-71af219ea8bc",
+        "rt-canon-42335-14c834b3da21",
+        "rt-canon-53363-04c2edbc2e1d"
+      ],
+      "profiles": {
+        "scene_bound": 7,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2
+      },
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_starport_firststate_early_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-32521-c9e358ead28e",
+        "rt-canon-34997-4447a81fa782",
+        "rt-canon-45943-5774f490ea27",
+        "rt-canon-49157-fb98d77d020f"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_starport_firststate_late_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-40672-92d06fc0269d"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_starport_fuelroom_fs_early_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-47869-e61f41e3ea69"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "starport_starport_fuelroom_secondstate_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-12544-6c16ae8633c8",
+        "rt-canon-24030-b3a55daac545",
+        "rt-canon-24948-1adebe8d2b16",
+        "rt-canon-26077-bfa6cd1e4ce2"
+      ],
+      "profiles": {
+        "scene_bound": 4
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "stryxshed_se_mechanics.scenes",
+      "unit_count": 37,
+      "unit_ids": [
+        "rt-canon-00156-f4909eeee761",
+        "rt-canon-00197-caa299590c8f",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00372-2b1dc4c7b981",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00419-d681d8ad16d8",
+        "rt-canon-00420-03ea3f803d33",
+        "rt-canon-07043-b851a030cabf",
+        "rt-canon-32308-3aa7722225b0",
+        "rt-canon-32598-552f40dbd5b7",
+        "rt-canon-32785-18743b720f65",
+        "rt-canon-32913-a4d11f445243",
+        "rt-canon-37493-18811c23ce80",
+        "rt-canon-39989-356f4234e253",
+        "rt-canon-43344-555ad28f9089",
+        "rt-canon-45226-3c22136e0f5d",
+        "rt-canon-45534-85ee1e5e4cc3",
+        "rt-canon-47177-d9c5fce373fb",
+        "rt-canon-47178-d5519b68a59d",
+        "rt-canon-47589-c8e2bc434b6a",
+        "rt-canon-47590-16342b6cca5b",
+        "rt-canon-47595-440ce1d01bb1",
+        "rt-canon-48085-0aad4872c883",
+        "rt-canon-48152-01773178091a",
+        "rt-canon-48358-eba293202e2e",
+        "rt-canon-48467-63bd688c5cf8",
+        "rt-canon-48561-9625992036c4",
+        "rt-canon-48597-70c76c49c129",
+        "rt-canon-48824-4552d9ce38ed",
+        "rt-canon-48910-62b882e2373d",
+        "rt-canon-48998-74db44a9dad5",
+        "rt-canon-49121-76fac5bf99a1",
+        "rt-canon-49198-c4101b659446",
+        "rt-canon-49624-4a6d885ce32c",
+        "rt-canon-50236-89eb444c08ad",
+        "rt-canon-53189-85b10f0b5e06",
+        "rt-canon-55722-9485989ff514"
+      ],
+      "profiles": {
+        "scene_bound": 31,
+        "dialogue": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "dialogue_line": 5,
+        "generic_blueprint": 2,
+        "ui": 1,
+        "encyclopedia": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Stats_Entries.Array.Athletics",
+        "InteractionVariantVisualSetsBlueprint_.Entries.Array.data[3].InteractionName",
+        "Stats_Entries.Array.LoreXenox",
+        "TrapActor_DefaultName",
+        "UIStrings",
+        "Stats_Entries.Array.Demolition",
+        "Stats_Entries.Array.LoreImperium",
+        "Stats_Entries.Array.LoreWarp",
+        "WarhammerSkills.SkillLoreWarp.Name",
+        "DrukhariGrenadePassed"
+      ]
+    },
+    {
+      "scene_file": "taintedstreets_before_mechanics.scenes",
+      "unit_count": 27,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01285-5937b978b2d4",
+        "rt-canon-04082-1424091b4fc5",
+        "rt-canon-20580-39945209f892",
+        "rt-canon-32530-6fbd9beab699",
+        "rt-canon-32575-f5704f30b035",
+        "rt-canon-35009-23b30420b485",
+        "rt-canon-35751-08a4f92d6e02",
+        "rt-canon-37696-a633d5101cf5",
+        "rt-canon-38670-4f32f64d1409",
+        "rt-canon-42318-17b7fdead142",
+        "rt-canon-42840-52fb6f4e3269",
+        "rt-canon-45235-fcb7542ac45e",
+        "rt-canon-45261-ecffb752188c",
+        "rt-canon-48064-e0769514c9f0",
+        "rt-canon-48080-acb020568a46",
+        "rt-canon-48445-6d8ba2f2dd2c",
+        "rt-canon-48849-2c12e8b2fc7a",
+        "rt-canon-49059-422e35ed391d",
+        "rt-canon-49107-a443bc43a139",
+        "rt-canon-49276-99b934890f27",
+        "rt-canon-49277-e041b290edcf",
+        "rt-canon-49982-0e633542f564",
+        "rt-canon-50456-0ec7ed77686d",
+        "rt-canon-50521-e4af113374ff",
+        "rt-canon-50630-05aceedbaeef",
+        "rt-canon-50649-87d7de548265"
+      ],
+      "profiles": {
+        "scene_bound": 27
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "taintedstreets_cultistshideout_before_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-32523-0bf9a6baf549",
+        "rt-canon-42277-438aa007a3e4",
+        "rt-canon-43777-bd7a93585c8d",
+        "rt-canon-48193-6fe7853c2e7e",
+        "rt-canon-48403-c8705169636b",
+        "rt-canon-48839-e06a853f669a",
+        "rt-canon-50006-7af9978121a1",
+        "rt-canon-50062-8e093b9ba7d4",
+        "rt-canon-50064-27b603ec6715"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "taintedstreets_cultistshideout_mechanics.scenes",
+      "unit_count": 12,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-35778-7a2d55175248",
+        "rt-canon-37050-0a625d95d3c4",
+        "rt-canon-41229-442b40fbe9c7",
+        "rt-canon-43242-97d1fa83e594",
+        "rt-canon-44087-0add7b07efb1",
+        "rt-canon-45014-a53a28c7a38e",
+        "rt-canon-49266-250bb733e6e6",
+        "rt-canon-50685-f25e8944e2f4",
+        "rt-canon-51388-e3b8df7aff01",
+        "rt-canon-51398-5df8c1dbff98",
+        "rt-canon-53188-5bea129df440"
+      ],
+      "profiles": {
+        "scene_bound": 12
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "taintedstreets_mechanics.scenes",
+      "unit_count": 7,
+      "unit_ids": [
+        "rt-canon-32563-0b21ae719c0a",
+        "rt-canon-33761-8875acf524f0",
+        "rt-canon-36841-577ef7dc1516",
+        "rt-canon-45014-a53a28c7a38e",
+        "rt-canon-47618-93da4292ad54",
+        "rt-canon-48128-345dac889a99",
+        "rt-canon-50048-d818d5b9c377"
+      ],
+      "profiles": {
+        "scene_bound": 7
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "InteractionVariantVisualSetsBlueprint_.Entries.Array.data[1].InteractionName"
+      ]
+    },
+    {
+      "scene_file": "taintedstreets_parade_after_mechanics.scenes",
+      "unit_count": 12,
+      "unit_ids": [
+        "rt-canon-05449-17c9b8332d52",
+        "rt-canon-07255-f7d5e3f85bfd",
+        "rt-canon-08297-53d52862ca0f",
+        "rt-canon-12978-431220ff93a4",
+        "rt-canon-16362-2bd7216d1068",
+        "rt-canon-18975-5f2af4534c23",
+        "rt-canon-23115-a36d981dbb4d",
+        "rt-canon-23116-bc41bea9d4e3",
+        "rt-canon-27349-8750112b0ef9",
+        "rt-canon-30918-2cb81206d0ab",
+        "rt-canon-30922-f7b10198fd41",
+        "rt-canon-49100-8684c26706b0"
+      ],
+      "profiles": {
+        "scene_bound": 12
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "taintedstreets_parade_before_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01285-5937b978b2d4",
+        "rt-canon-06724-faeb24c00302",
+        "rt-canon-14997-a1a2106d16ed",
+        "rt-canon-19594-2e7906546107",
+        "rt-canon-20580-39945209f892",
+        "rt-canon-35755-704af08e2620",
+        "rt-canon-47633-a30935e766d5",
+        "rt-canon-48127-ef66b5a6bc92"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "taintedstreets_triumph_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-07255-f7d5e3f85bfd",
+        "rt-canon-16362-2bd7216d1068",
+        "rt-canon-41920-6f32dafcdc86",
+        "rt-canon-49100-8684c26706b0"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "techarcgrave_lair_mechanics.scenes",
+      "unit_count": 12,
+      "unit_ids": [
+        "rt-canon-32988-e175a408d27a",
+        "rt-canon-32989-d0bfe04752af",
+        "rt-canon-33413-d7923e7f7c98",
+        "rt-canon-34795-7cf366bf58a1",
+        "rt-canon-40546-f3f86109818b",
+        "rt-canon-40675-5e67abd68106",
+        "rt-canon-47275-06d93076b5b9",
+        "rt-canon-47278-e3e40a06def0",
+        "rt-canon-47651-08fcb75a7762",
+        "rt-canon-47879-b68b4e4c4d49",
+        "rt-canon-50055-504b2b1b2c79",
+        "rt-canon-52926-87a2d0969115"
+      ],
+      "profiles": {
+        "scene_bound": 10,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2
+      },
+      "conversation_groups": [
+        "SleepingNecron_2",
+        "SleepingNecron_1"
+      ]
+    },
+    {
+      "scene_file": "treasureworld_combat_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-19435-e60df429b4ae",
+        "rt-canon-22610-0f6dc0d7b4ee"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "treasureworld_mechanics.scenes",
+      "unit_count": 35,
+      "unit_ids": [
+        "rt-canon-00179-6b3904d10580",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-00909-719ea396ad92",
+        "rt-canon-00943-adde05589e00",
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-17088-a94ed98e8d89",
+        "rt-canon-32189-2e9c2c1af983",
+        "rt-canon-32230-9cd8d9f32181",
+        "rt-canon-32330-d9bcdf8ded15",
+        "rt-canon-32331-79a51cac8208",
+        "rt-canon-32357-069fea91e17c",
+        "rt-canon-32456-53b1aa08bd0c",
+        "rt-canon-33149-25b443c9cf3e",
+        "rt-canon-36652-75bde14ec04c",
+        "rt-canon-36825-53ac7a5f21df",
+        "rt-canon-36933-6fb6c541ac4b",
+        "rt-canon-37452-f6562c8cf946",
+        "rt-canon-38893-a830d93b55be",
+        "rt-canon-42076-bdf6aa2a55f7",
+        "rt-canon-42278-8891384cd003",
+        "rt-canon-42607-4478859b11d9",
+        "rt-canon-43243-3b3ed087ab98",
+        "rt-canon-43829-76da0481bb83",
+        "rt-canon-45241-8d9a549e4c56",
+        "rt-canon-47583-1cf4f81a074c",
+        "rt-canon-47588-192478ab45a6",
+        "rt-canon-47964-13113faccf1e",
+        "rt-canon-48588-0a53cfb62141",
+        "rt-canon-49479-adb672f72320",
+        "rt-canon-49974-43d0ddc5cc24",
+        "rt-canon-50080-aa013d7b6b23",
+        "rt-canon-51425-d3bba3fd535e",
+        "rt-canon-52046-690a2620c9a2"
+      ],
+      "profiles": {
+        "scene_bound": 34,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 3,
+        "generic_blueprint": 2,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "AgriWorldJungle_SkillcheckBridgeDown_Name",
+        "TaintedStreets_CultistsHideout_Up_Enter_.Tooltip",
+        "TrapActor_DefaultName",
+        "TW_Guard"
+      ]
+    },
+    {
+      "scene_file": "ulfarcabin_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-01933-269ecfc020d0",
+        "rt-canon-47206-f3c18ecdc102",
+        "rt-canon-48826-6bac745c49f5",
+        "rt-canon-49085-7e59f966e004",
+        "rt-canon-51259-63ca9fe20c6e"
+      ],
+      "profiles": {
+        "scene_bound": 5
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "FootfallDock_Enginseer"
+      ]
+    },
+    {
+      "scene_file": "ulfarq2_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-00001-da39a3ee5e6b",
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-47285-a4fc4f56ac48",
+        "rt-canon-48899-91c9fc937aaf",
+        "rt-canon-49313-af9bd6f07c16"
+      ],
+      "profiles": {
+        "scene_bound": 4,
+        "dialogue": 1
+      },
+      "speaker_hints": [
+        "Argenta",
+        "Heinrix",
+        "Marazhai",
+        "Ulfar"
+      ],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "ui": 2,
+        "ability_or_feature": 1,
+        "bark": 1,
+        "dialogue_answer": 1,
+        "item": 1,
+        "quest": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "AeldariArmourUniqueCh2V2_Item_",
+        "AeldariArmourUniqueCh5_Feature_.Properties.Array.data[0]",
+        "Arbites_ch1_",
+        "AstartesPlasmaPistolT1_Item_",
+        "Commissar_InnateAbility_StatBuff_",
+        "Contract24_objective_",
+        "Contract24_objective_.Title",
+        "DjinBladeYremerissBonus_Buff_",
+        "DjinBladeYremerissPenalty_Buff_",
+        "Fleshbreaker_PowerArmor_Feature_.Properties.Array.data[0]",
+        "FlipZoneStrategist",
+        "FrostAxe_Item_",
+        "FusionGunT1_Item_",
+        "GenocideAstartesFlamer_Item_",
+        "Hope_Supply",
+        "KillingAttemptEnter",
+        "LasblasterT2_Item_",
+        "LongRifleUniqueCh3V1_Feature_.Properties.Array.data[0]",
+        "MA_Engine_Backing_"
+      ]
+    },
+    {
+      "scene_file": "vect_throneroom_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-32504-58efca95b5ef",
+        "rt-canon-32818-6654e512f413",
+        "rt-canon-33458-42ad8bc3c476",
+        "rt-canon-37779-50226f007374",
+        "rt-canon-40798-a2b91ee5b90e",
+        "rt-canon-42883-aaf715c6b08f",
+        "rt-canon-43554-f165aec93fbd",
+        "rt-canon-45192-8d7ebbf0476c"
+      ],
+      "profiles": {
+        "scene_bound": 8
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "vigilcastle_finaljudgement_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-00129-c34c20d4bf6d",
+        "rt-canon-15660-166487e4f96e",
+        "rt-canon-15665-0dd702235a1e",
+        "rt-canon-16319-5d577545b5ca",
+        "rt-canon-20179-bb0ba95b4db9",
+        "rt-canon-22724-314210b4fe2b",
+        "rt-canon-37144-36cacfb26931",
+        "rt-canon-40086-0c7ae8e4ec32"
+      ],
+      "profiles": {
+        "scene_bound": 7,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "GuardsSaluteToRT_2"
+      ]
+    },
+    {
+      "scene_file": "voidshipbridge_default_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-22392-274e2c7f2e52",
+        "rt-canon-26423-d0dbe0fbc237",
+        "rt-canon-30788-bb667b486c50",
+        "rt-canon-32982-33896654a61f",
+        "rt-canon-39318-fcf426c52d02",
+        "rt-canon-40859-fd9b9da02075",
+        "rt-canon-44254-596b7d1d4a9a",
+        "rt-canon-48964-330c969c9018",
+        "rt-canon-51190-26563efc2a04",
+        "rt-canon-54135-3621a7b39a6f",
+        "rt-canon-55270-29739213cb2a"
+      ],
+      "profiles": {
+        "scene_bound": 10,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": [
+        "Oddities_BrokenEngine"
+      ]
+    },
+    {
+      "scene_file": "voidshipbridge_dlc1_finalboss_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-23016-aa5512a6bfe4",
+        "rt-canon-45797-46091c8b29d4"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipbridge_dlc1_voidshipbridge_rtcabin_mechanics.scenes",
+      "unit_count": 4,
+      "unit_ids": [
+        "rt-canon-01455-f9ae58aa354c",
+        "rt-canon-07427-34eb4858c85f",
+        "rt-canon-28419-e19685c53cd0",
+        "rt-canon-42961-5c95aa934397"
+      ],
+      "profiles": {
+        "scene_bound": 3,
+        "system_content": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ability_or_feature": 1
+      },
+      "conversation_groups": [
+        "MeleeAttack_ability_"
+      ]
+    },
+    {
+      "scene_file": "voidshipbridge_dlc2_rtcabine_mechanics_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-51493-93e0f3d6ae3e"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipbridge_rtcabin_mechanics.scenes",
+      "unit_count": 36,
+      "unit_ids": [
+        "rt-canon-15644-1bdbad2ff9cb",
+        "rt-canon-31066-446906d62455",
+        "rt-canon-32149-e0c8ff8d0b0f",
+        "rt-canon-32165-32d1d2c5850f",
+        "rt-canon-32257-07e4024bfca9",
+        "rt-canon-32279-9f6b9f6d573c",
+        "rt-canon-32374-c436357d5ce0",
+        "rt-canon-32500-0590ae8ca032",
+        "rt-canon-32509-315219da31ce",
+        "rt-canon-34798-94bbbbca05b5",
+        "rt-canon-35562-22ea75c217a5",
+        "rt-canon-37725-7a11a114e934",
+        "rt-canon-37760-43c6bdc6598d",
+        "rt-canon-41278-1f2cb4223ae4",
+        "rt-canon-43127-5d12bd53552c",
+        "rt-canon-45237-3f5686c00c7e",
+        "rt-canon-47248-d42d8e5c7de9",
+        "rt-canon-47301-03b0ea30a29a",
+        "rt-canon-47499-482381e6c15a",
+        "rt-canon-47634-39fa9385f78a",
+        "rt-canon-48121-e2a742147a82",
+        "rt-canon-48122-b394dbf06cd1",
+        "rt-canon-48199-11f03b533e99",
+        "rt-canon-48328-879b8df13fc0",
+        "rt-canon-48343-c9659a368482",
+        "rt-canon-48404-b369a6aa8008",
+        "rt-canon-48665-a3cb2b335400",
+        "rt-canon-48911-86ad8b856b6b",
+        "rt-canon-49163-50041b98d70e",
+        "rt-canon-49295-fe86b4160e8f",
+        "rt-canon-49472-e727ed8ec8c3",
+        "rt-canon-50455-8d4dc8bf4f04",
+        "rt-canon-50480-9f5c7c7c4f3c",
+        "rt-canon-50517-e57f09f92ea4",
+        "rt-canon-50607-b22dbf1743e8",
+        "rt-canon-51824-3aa4cbd8c8bc"
+      ],
+      "profiles": {
+        "scene_bound": 36
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipbridge_soulmarkchaos_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-03643-290b5a5330ea",
+        "rt-canon-09628-3d0ada1a4a19",
+        "rt-canon-18793-e76091dda2dc",
+        "rt-canon-31060-9895566299ef",
+        "rt-canon-40499-b2d5af6893c0",
+        "rt-canon-42361-e057502cb173",
+        "rt-canon-46257-f4fdaddcdde0",
+        "rt-canon-47359-ea057cada509",
+        "rt-canon-47816-35aa36f46ec6"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipbridge_soulmarkfate_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-17927-ed8c735727ab",
+        "rt-canon-32408-ce45c6b79590",
+        "rt-canon-32546-f49b500dcfd3",
+        "rt-canon-34766-f762136549be",
+        "rt-canon-48383-a7db869d9dc1",
+        "rt-canon-51197-9592b1a9b129"
+      ],
+      "profiles": {
+        "scene_bound": 4,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2
+      },
+      "conversation_groups": [
+        "EcclesiarchyLithany"
+      ]
+    },
+    {
+      "scene_file": "voidshipbridge_soulmarkhope_mechanics.scenes",
+      "unit_count": 6,
+      "unit_ids": [
+        "rt-canon-46186-29f4628e4378",
+        "rt-canon-48243-94a3881ae070",
+        "rt-canon-48384-17616bbf3b17",
+        "rt-canon-48702-d0d7ee986efa",
+        "rt-canon-49125-72971a25e707",
+        "rt-canon-50154-6a238fc558fa"
+      ],
+      "profiles": {
+        "scene_bound": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipcrypt_finalarenafight_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-00978-907e5563d797",
+        "rt-canon-06818-3bae61280158",
+        "rt-canon-07111-ee401d70de05",
+        "rt-canon-22075-369990b7aebf",
+        "rt-canon-47811-57fabe4fe129",
+        "rt-canon-48214-25dd86f13090",
+        "rt-canon-48459-6878c5b3c182",
+        "rt-canon-48874-bad6282972b8",
+        "rt-canon-49953-684c75caec8a",
+        "rt-canon-50609-d5538ac3a3f5"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipcrypt_mechanics.scenes",
+      "unit_count": 26,
+      "unit_ids": [
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-00433-cf9b77061f7b",
+        "rt-canon-01353-5f60b1c2e605",
+        "rt-canon-01561-1d4d43cc6f3a",
+        "rt-canon-07274-08c139b90816",
+        "rt-canon-07992-7d408627ff6d",
+        "rt-canon-15482-fc6e8814731a",
+        "rt-canon-19139-8b70b2dec00a",
+        "rt-canon-25458-81fe2c572304",
+        "rt-canon-30896-646656b8daf3",
+        "rt-canon-32168-86eada6c9255",
+        "rt-canon-32864-a3d6ea27e6ad",
+        "rt-canon-34307-404eae1fc6f9",
+        "rt-canon-40521-440920344068",
+        "rt-canon-42095-a0927310283d",
+        "rt-canon-48107-6e039598d8b2",
+        "rt-canon-48108-f04b24913a00",
+        "rt-canon-48322-5f4f670e6e8b",
+        "rt-canon-48875-cc6ab52b2569",
+        "rt-canon-48957-3aa8d0b9e1bd",
+        "rt-canon-49087-dbe1595a37d1",
+        "rt-canon-49113-552c5061e84c",
+        "rt-canon-49962-8d4631b3d788",
+        "rt-canon-52721-cc3d1ea7bb6f",
+        "rt-canon-53047-1257bd675a57",
+        "rt-canon-65750-c9626eb73a14"
+      ],
+      "profiles": {
+        "scene_bound": 25,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "ui": 3,
+        "generic_blueprint": 1,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "UIStrings",
+        "VoidshipCrypt_ServitorBody",
+        "VoidshipCrypt_SecretButton"
+      ]
+    },
+    {
+      "scene_file": "voidshiplowerdecks_mechanics.scenes",
+      "unit_count": 10,
+      "unit_ids": [
+        "rt-canon-00488-986d2de2ea6d",
+        "rt-canon-32223-f9206e5c4374",
+        "rt-canon-39621-ef514011f71f",
+        "rt-canon-40322-426224feeb65",
+        "rt-canon-41478-12409b2229d1",
+        "rt-canon-45262-d8d81465e900",
+        "rt-canon-47367-86fd8e9d07e2",
+        "rt-canon-48110-bbf59d1eac8e",
+        "rt-canon-48183-e21bccc8611d",
+        "rt-canon-50545-53b7d24a86b3"
+      ],
+      "profiles": {
+        "scene_bound": 10
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipofficerdeckpeacefull_default_mechanics.scenes",
+      "unit_count": 5,
+      "unit_ids": [
+        "rt-canon-07563-63e866dd8182",
+        "rt-canon-15294-29754de1d769",
+        "rt-canon-16283-4a03317f210d",
+        "rt-canon-34220-692db8436764",
+        "rt-canon-47682-8af410710aa8"
+      ],
+      "profiles": {
+        "scene_bound": 3,
+        "dialogue": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 2
+      },
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipofficerdeckpeacefull_enforcers_mechanics.scenes",
+      "unit_count": 15,
+      "unit_ids": [
+        "rt-canon-00140-a4fd5d7736f9",
+        "rt-canon-13328-30ab98190f47",
+        "rt-canon-22098-33def39c7eb3",
+        "rt-canon-32387-c0df9b05d0b3",
+        "rt-canon-32591-198ea761a2a3",
+        "rt-canon-40743-1a1063674ffe",
+        "rt-canon-41605-247d026c2f69",
+        "rt-canon-45238-e443e1b11436",
+        "rt-canon-47331-af05ce7474a4",
+        "rt-canon-47817-6d744a36e7d1",
+        "rt-canon-48274-23dc2f920a11",
+        "rt-canon-48468-c23c7e4eda3e",
+        "rt-canon-48771-ed500159689a",
+        "rt-canon-49382-01cc78741878",
+        "rt-canon-53195-286efa3c8648"
+      ],
+      "profiles": {
+        "scene_bound": 14,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 2,
+        "bark": 1
+      },
+      "conversation_groups": [
+        "APA_Mercenary",
+        "PlayerPresence_04",
+        "Servant",
+        "MasterCogitatorYota_name"
+      ]
+    },
+    {
+      "scene_file": "voidshipofficerdeckpeacefull_enforcersviolence_mechanics.scenes",
+      "unit_count": 1,
+      "unit_ids": [
+        "rt-canon-49704-934e5d2c855a"
+      ],
+      "profiles": {
+        "scene_bound": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipofficersdeck_areaparts02_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-00073-e0e68e0d4777",
+        "rt-canon-06782-1aa155831bf0",
+        "rt-canon-23013-692656f8c8e1",
+        "rt-canon-26044-b4a4103d044d",
+        "rt-canon-32165-32d1d2c5850f",
+        "rt-canon-32500-0590ae8ca032",
+        "rt-canon-42321-20a9266cf633",
+        "rt-canon-48222-b623769349e8",
+        "rt-canon-48471-ba8f7c311aea",
+        "rt-canon-48494-9f39d60c0352",
+        "rt-canon-49162-6091f6c5bec3"
+      ],
+      "profiles": {
+        "scene_bound": 8,
+        "dialogue": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 3,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "Resistant1_gag",
+        "Prologue_MI"
+      ]
+    },
+    {
+      "scene_file": "voidshipofficersdeck_areaparts_mechanics.scenes",
+      "unit_count": 8,
+      "unit_ids": [
+        "rt-canon-00230-e3a545cea7fb",
+        "rt-canon-01381-05a61a2d0b31",
+        "rt-canon-32276-ca08e6257e2b",
+        "rt-canon-45491-c41cb34a07c8",
+        "rt-canon-46604-030cc7056bea",
+        "rt-canon-46617-956b66611cd5",
+        "rt-canon-47853-02bebd6f399f",
+        "rt-canon-47930-e7a47acd8d3c"
+      ],
+      "profiles": {
+        "scene_bound": 8
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "generic_blueprint": 1,
+        "ui": 1
+      },
+      "conversation_groups": [
+        "TrapActor_DefaultName",
+        "UIStrings"
+      ]
+    },
+    {
+      "scene_file": "voidshipofficersdeck_damaged_mechanics.scenes",
+      "unit_count": 18,
+      "unit_ids": [
+        "rt-canon-00856-17dc2f7363bd",
+        "rt-canon-01252-366f8571aa10",
+        "rt-canon-32277-8ed84db77942",
+        "rt-canon-32430-72ae6fba3ef1",
+        "rt-canon-33759-3521b8b37517",
+        "rt-canon-36165-4a177733d835",
+        "rt-canon-43116-4b9695bb64af",
+        "rt-canon-44119-bc644d960602",
+        "rt-canon-47233-1e3a372839ff",
+        "rt-canon-47510-0159b0f03b9d",
+        "rt-canon-47632-9bec59726de6",
+        "rt-canon-47857-d0acf315e7c9",
+        "rt-canon-47858-66974bf0ae01",
+        "rt-canon-47863-78021b4420b1",
+        "rt-canon-47976-22a116573a58",
+        "rt-canon-48112-9d23feb28114",
+        "rt-canon-50221-bb9aff1e3b61",
+        "rt-canon-50850-cb22bb587131"
+      ],
+      "profiles": {
+        "scene_bound": 18
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipofficersdeck_start_mechanics.scenes",
+      "unit_count": 41,
+      "unit_ids": [
+        "rt-canon-00598-1b463e4ee14c",
+        "rt-canon-00749-b8fe317239c4",
+        "rt-canon-02782-5c419f53dfd1",
+        "rt-canon-07424-4c18e4e1d789",
+        "rt-canon-07563-63e866dd8182",
+        "rt-canon-08577-a59822bf4e82",
+        "rt-canon-09177-07eb4fc3150f",
+        "rt-canon-09458-f65ae5f9b5fa",
+        "rt-canon-13359-9407fb6e77b8",
+        "rt-canon-15294-29754de1d769",
+        "rt-canon-15325-a7c3d72af4dd",
+        "rt-canon-16283-4a03317f210d",
+        "rt-canon-19846-9715b310bfc7",
+        "rt-canon-20710-f962d97b064a",
+        "rt-canon-22011-8459b7c1c14d",
+        "rt-canon-23082-eb50f2786273",
+        "rt-canon-25110-d841e632c92b",
+        "rt-canon-30857-b209fb0272a3",
+        "rt-canon-32167-16330333fb91",
+        "rt-canon-32190-98119165b27a",
+        "rt-canon-32339-65635473af76",
+        "rt-canon-32367-4f4ab492f81b",
+        "rt-canon-32427-792bf0d02e28",
+        "rt-canon-32429-1cdc844db4de",
+        "rt-canon-32679-e88081e540fd",
+        "rt-canon-32752-3d70a383e57d",
+        "rt-canon-34220-692db8436764",
+        "rt-canon-40164-ea212dfe84c7",
+        "rt-canon-44994-57d07f195ac6",
+        "rt-canon-47339-24b85ce35dfc",
+        "rt-canon-47682-8af410710aa8",
+        "rt-canon-48151-f3c04d03543d",
+        "rt-canon-48192-ed6a0cbb44ab",
+        "rt-canon-48327-df0e3d63675d",
+        "rt-canon-48408-5dfa961efac4",
+        "rt-canon-48972-cfbcc30a51cc",
+        "rt-canon-49147-90e980045e31",
+        "rt-canon-49687-8b9b1bdf2b24",
+        "rt-canon-50088-f373b3380e80",
+        "rt-canon-50447-0ea28232e4ec",
+        "rt-canon-53136-69f9dcecb829"
+      ],
+      "profiles": {
+        "scene_bound": 35,
+        "dialogue": 6
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 6,
+        "generic_blueprint": 1
+      },
+      "conversation_groups": [
+        "FirstTechPrayer_06"
+      ]
+    },
+    {
+      "scene_file": "voidshipreactor_demagogues_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-34739-2c9215ac32b4",
+        "rt-canon-35458-efb8fef00a0b",
+        "rt-canon-44776-8d3d0e13155e"
+      ],
+      "profiles": {
+        "scene_bound": 3
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipreactor_findgenestealer_mechanics.scenes",
+      "unit_count": 2,
+      "unit_ids": [
+        "rt-canon-37884-302cb60979fd",
+        "rt-canon-52965-471c723fcaa9"
+      ],
+      "profiles": {
+        "scene_bound": 2
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipreactor_mechanics.scenes",
+      "unit_count": 3,
+      "unit_ids": [
+        "rt-canon-35302-b36781869922",
+        "rt-canon-50115-9cd0d22cb2dc",
+        "rt-canon-51196-f22a8ffa37eb"
+      ],
+      "profiles": {
+        "scene_bound": 2,
+        "dialogue": 1
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {
+        "bark": 1
+      },
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipreliquary_attacked_mechanics.scenes",
+      "unit_count": 11,
+      "unit_ids": [
+        "rt-canon-06008-f423e04d608f",
+        "rt-canon-13992-0d4148edf8dd",
+        "rt-canon-15412-8034c4b575f6",
+        "rt-canon-15793-214e7db5c0b8",
+        "rt-canon-16458-00b2d780b0d1",
+        "rt-canon-22906-2d552feb580e",
+        "rt-canon-24857-c44f7d22ed3e",
+        "rt-canon-30436-8732f2d7cdb9",
+        "rt-canon-30797-6506cd66200c",
+        "rt-canon-47388-01ecd26b875c",
+        "rt-canon-48803-c52fdf84e4cd"
+      ],
+      "profiles": {
+        "scene_bound": 11
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipreliquary_default_mechanics.scenes",
+      "unit_count": 9,
+      "unit_ids": [
+        "rt-canon-06198-9bef22f85c97",
+        "rt-canon-06222-812f322d84a5",
+        "rt-canon-13688-6ef3c3638b1b",
+        "rt-canon-15871-5fcada459f20",
+        "rt-canon-19122-2fcc5d739bc8",
+        "rt-canon-19150-47e06bf08532",
+        "rt-canon-32355-ddf5a4c21e71",
+        "rt-canon-47372-e7162ef021cd",
+        "rt-canon-50003-e5f57c8fdc7c"
+      ],
+      "profiles": {
+        "scene_bound": 9
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    },
+    {
+      "scene_file": "voidshipreliquary_mechanics.scenes",
+      "unit_count": 15,
+      "unit_ids": [
+        "rt-canon-00386-e25105ba7fcf",
+        "rt-canon-21477-bf3626540fb9",
+        "rt-canon-21732-a2cc3ca4b291",
+        "rt-canon-21873-b62ad408cc79",
+        "rt-canon-32211-84ff72964f01",
+        "rt-canon-32528-722e8d5cc0eb",
+        "rt-canon-33656-0d4a3b53e2a1",
+        "rt-canon-33703-ffcf4a60e298",
+        "rt-canon-33704-71c2c36c9708",
+        "rt-canon-42361-e057502cb173",
+        "rt-canon-43314-ea683ad61606",
+        "rt-canon-48354-97fecd4c22a8",
+        "rt-canon-48808-6ed0754b1fda",
+        "rt-canon-48873-cb59dee3c57f",
+        "rt-canon-49084-a3398aefd4c2"
+      ],
+      "profiles": {
+        "scene_bound": 15
+      },
+      "speaker_hints": [],
+      "blueprint_kinds": {},
+      "conversation_groups": []
+    }
+  ]
+}

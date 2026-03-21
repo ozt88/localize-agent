@@ -1,0 +1,209 @@
+{
+  "group_count": 3347,
+  "unit_count": 3963,
+  "work_profile_counts": {
+    "dialogue": 3963
+  },
+  "blueprint_kind_counts": {
+    "ability_or_feature": 1,
+    "bark": 2002,
+    "dialogue_answer": 479,
+    "dialogue_line": 1487,
+    "encyclopedia": 1,
+    "generic_blueprint": 16,
+    "item": 1,
+    "quest": 1,
+    "ui": 7
+  },
+  "top_groups": [
+    {
+      "group_key": "Streets_Citizen",
+      "unit_count": 20,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "JaeBoysOutcome_dialogue",
+      "unit_count": 18,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "dialogue_answer",
+        "dialogue_line"
+      ]
+    },
+    {
+      "group_key": "dialog::ktc_HouseOrsellio_Consequences_dialogue",
+      "unit_count": 17,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "dialogue_answer",
+        "dialogue_line"
+      ]
+    },
+    {
+      "group_key": "Techposession2",
+      "unit_count": 12,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Cogitator",
+      "unit_count": 10,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "dialogue_answer",
+        "dialogue_line"
+      ]
+    },
+    {
+      "group_key": "Comissar_Pit",
+      "unit_count": 9,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Pit",
+      "unit_count": 9,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Opera",
+      "unit_count": 8,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Techposession1",
+      "unit_count": 8,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "dialog::QuetzaVillagers_dialogue",
+      "unit_count": 8,
+      "scene_files": [],
+      "speaker_hints": [
+        "Yrliet",
+        "jae"
+      ],
+      "blueprint_kinds": [
+        "dialogue_answer",
+        "dialogue_line"
+      ]
+    },
+    {
+      "group_key": "Servant",
+      "unit_count": 7,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "DarkMechChat",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "EngineProcess",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "MeatDump",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "RaycadMilitarySaved",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "RaycadNobilitySaved",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "TamedChaosEngine",
+      "unit_count": 6,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Askers",
+      "unit_count": 5,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "CassiaNightTogether",
+      "unit_count": 5,
+      "scene_files": [],
+      "speaker_hints": [
+        "Cassia"
+      ],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    },
+    {
+      "group_key": "Civilian",
+      "unit_count": 5,
+      "scene_files": [],
+      "speaker_hints": [],
+      "blueprint_kinds": [
+        "bark"
+      ]
+    }
+  ]
+}

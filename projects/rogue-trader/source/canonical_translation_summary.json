@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-03-14T09:53:50.069257+00:00",
+  "source_rows": 69795,
+  "unique_units": 65808,
+  "duplicate_rows_saved": 3987,
+  "multi_use_units": 1677,
+  "max_group_size": 601,
+  "rows_with_current_ko": 69194,
+  "units_with_markup": 24221,
+  "units_with_glossary_hits": 33101,
+  "units_with_mixed_current_ko": 319,
+  "units_with_empty_current_ko": 1,
+  "empty_source_units": 1,
+  "skip_units": 1,
+  "units_with_blueprint_context": 17202,
+  "units_with_sound_context": 4498,
+  "units_with_scene_context": 1959,
+  "work_profile_counts": {
+    "descriptive": 33587,
+    "dialogue": 3963,
+    "encyclopedia": 67,
+    "general": 11934,
+    "quest": 122,
+    "scene_bound": 1894,
+    "system_content": 4554,
+    "ui_or_name": 9687
+  },
+  "text_kind_counts": {
+    "long_description": 18818,
+    "multi_line_block": 1719,
+    "sentence": 12998,
+    "short_label": 2709,
+    "single_token": 72,
+    "templated_description": 19571,
+    "templated_label": 3273,
+    "title_or_name": 6618,
+    "ui_label": 30
+  },
+  "top_duplicate_units_preview": [
+    {
+      "source_text": "hidden",
+      "group_size": 426,
+      "sample_ids": [
+        "fb5f5c3a-1dcf-4ef6-9f37-173fdfbf4738",
+        "c6ef3f02-f0bf-4857-a8af-97c27c0977d5",
+        "9911cb94-cb39-4986-92d8-8f857e06fc5b",
+        "3d5447a9-a340-405c-b811-216bb8d4e27d",
+        "648be451-002d-4e37-b87a-c1dd210a4b36"
+      ]
+    },
+    {
+      "source_text": "\"I see.\"",
+      "group_size": 54,
+      "sample_ids": [
+        "002ae8f3-0632-4d9d-aa57-16fbbfaf18af",
+        "2f117cf8-036c-4fe9-9460-d0d4c9aac584",
+        "e31d1aa5-2a35-4633-a379-5e32f8b7a7d1",
+        "3175bec4-5786-42a6-900e-0e9f3fbeef83",
+        "60379e5d-17ce-468b-ae54-98def4e1df43"
+      ]
+    },
+    {
+      "source_text": "[Say nothing]",
+      "group_size": 47,
+      "sample_ids": [
+        "3f51801a-8075-41e1-8adf-d617d936c6bf",
+        "66f256fa-e5fa-4daa-aab8-0971d9ea1351",
+        "b9883cf3-4925-4bba-92bf-03adbdfff21d",
+        "4c36e094-ee8b-459e-a0ea-41ca4b38e0d9",
+        "dbc7aed6-db43-445e-bcde-11b273efb8bf"
+      ]
+    },
+    {
+      "source_text": "\"I must take my leave.\"",
+      "group_size": 46,
+      "sample_ids": [
+        "1987f389-1f6b-45e4-9f0b-8f50790fddd6",
+        "c17cda4f-3b48-4fdc-82b4-c47e0ecfd415",
+        "c9fc913e-fd9d-4b6d-94a5-8272541605a8",
+        "6bacf04f-805d-4f8a-a953-8688c18c652d",
+        "7742abdb-3c44-4e76-9159-ed979bcf5e86"
+      ]
+    },
+    {
+      "source_text": "\"Who are you?\"",
+      "group_size": 44,
+      "sample_ids": [
+        "51463caf-a87b-474c-8a01-a74d24236248",
+        "f2706225-7115-4fff-a865-fa08b19eb2ce",
+        "3ce57360-2e2f-44e5-88f6-839fb1e3e896",
+        "1e4d4380-48d6-4629-8073-dc31ca333c35",
+        "4d224691-c8b3-4845-ac16-1f03a8e992fb"
+      ]
+    },
+    {
+      "source_text": "[Leave]",
+      "group_size": 35,
+      "sample_ids": [
+        "6b828ecf-cec7-4efb-96b2-728989a7a02f",
+        "169ad525-5831-4b53-acd4-6918c9f2df20",
+        "82dca297-0dd3-4585-abea-5e432263b445",
+        "b3615913-cf7d-473d-9f4c-29671e6be587",
+        "0338d7bd-ac74-4221-85c1-ee08479ef187"
+      ]
+    },
+    {
+      "source_text": "Off",
+      "group_size": 19,
+      "sample_ids": [
+        "3e08f55c-8515-4ba2-be03-8bb5219d18e2",
+        "a17f9108-430e-429b-a6c3-6a77228ac0da",
+        "9518cdce-ab52-4d4d-8571-9c3917b76ddc",
+        "81841b41-4451-4b00-a32e-1003f81c1634",
+        "673fd30a-a06a-401d-8f00-635e8ad32dca"
+      ]
+    },
+    {
+      "source_text": "All",
+      "group_size": 18,
+      "sample_ids": [
+        "bea1fef1-deb1-412d-85dc-8a01b7c7870d",
+        "13cb3bd2-9317-46d0-8360-bfd9bbb5c954",
+        "eb6c03cd-fd2a-456f-8c3a-5ddbcf921aab",
+        "148a8e1c-1d06-4ea8-826a-540890b7beae",
+        "0cc1cb36-2602-44a0-9fa3-a3381d09b7e4"
+      ]
+    },
+    {
+      "source_text": "Always",
+      "group_size": 18,
+      "sample_ids": [
+        "f3a84b41-b283-4d8e-8bb2-243321441e5f",
+        "ba483d1a-1690-4a3a-9b86-77db0bd75837",
+        "e953b7a2-a48c-41c6-866c-2be8f748c3f8",
+        "e4298fba-9be7-46e1-86da-99f68dd42a39",
+        "9c34c598-0ec4-4b4e-9f24-e20aede76764"
+      ]
+    },
+    {
+      "source_text": "\"I have no more questions.\"",
+      "group_size": 16,
+      "sample_ids": [
+        "8ef6bb39-c5c5-4eb3-93e2-2b10a5c8a7f9",
+        "b620fadf-a1cf-47bd-b22f-fb818180cf2c",
+        "1a2092f1-7c61-44fa-8d18-26c7b94a7e02",
+        "18468c9a-50b3-4643-ba99-947f357f7609",
+        "cabb632b-bae9-4899-a530-7dbedeb41800"
+      ]
+    }
+  ],
+  "inputs": {
+    "source_json": "projects\\rogue-trader\\source\\enGB_original.json",
+    "current_json": "projects\\rogue-trader\\source\\enGB_new.json",
+    "glossary_json": "workflow\\context\\universal_glossary.json",
+    "extract_root": "projects\\rogue-trader\\extract",
+    "scene_context_json": "projects\\rogue-trader\\source\\scene_bundle_context.json",
+    "blueprint_context_json": "projects\\rogue-trader\\source\\blueprint_bundle_context.json",
+    "sound_json": "projects\\rogue-trader\\extract\\ExportedProject\\Assets\\StreamingAssets\\Localization\\Sound.json"
+  }
+}
