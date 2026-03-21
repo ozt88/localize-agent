@@ -24,6 +24,60 @@ func TestValidateRestoredOutput_RejectsEnglishInsideRichText(t *testing.T) {
 	}
 }
 
+func TestValidateRestoredOutput_AllowsForeignTextInTags(t *testing.T) {
+	cases := []struct {
+		name string
+		src  string
+		ko   string
+	}{
+		{
+			name: "latin_phrase",
+			src:  "<i>Ignem accende.</i>",
+			ko:   "<i>Ignem accende.</i>",
+		},
+		{
+			name: "finnish_phrase",
+			src:  "<i>minun puuni</i>",
+			ko:   "<i>minun puuni</i>",
+		},
+		{
+			name: "proper_noun_in_tags",
+			src:  "The <i>Commune</i> stands firm.",
+			ko:   "<i>Commune</i>는 굳건하다.",
+		},
+	}
+	for _, tc := range cases {
+		meta := itemMeta{
+			sourceRaw: tc.src,
+			profile:   textProfile{Kind: textKindDialogue, HasRichText: true},
+		}
+		if err := validateRestoredOutput(meta, tc.ko); err != nil {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+	}
+}
+
+func TestTokenCompatible_AllowsReorderedHTMLTags(t *testing.T) {
+	// Same tags, different order — should pass
+	if !tokenCompatible("<i>hello</i> <b>world</b>", "<b>world</b> <i>hello</i>") {
+		t.Fatal("expected reordered HTML tags to be compatible")
+	}
+}
+
+func TestTokenCompatible_RejectsStructuralTokenMismatch(t *testing.T) {
+	// $variable tokens must match exactly
+	if tokenCompatible("$name says hello", "$other says hello") {
+		t.Fatal("expected structural token mismatch rejection")
+	}
+}
+
+func TestTokenCompatible_AllowsDroppedHTMLTags(t *testing.T) {
+	// Source has tags, output dropped them — should fail (tag count mismatch)
+	if tokenCompatible("<i>hello</i> world", "hello world") {
+		t.Fatal("expected dropped HTML tags to fail")
+	}
+}
+
 func TestValidateRestoredOutput_AllowsGoodRichChoice(t *testing.T) {
 	meta := itemMeta{
 		sourceRaw: "ROLL14 str-Tell <i>him</i> to leave.",

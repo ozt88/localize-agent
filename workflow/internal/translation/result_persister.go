@@ -43,6 +43,7 @@ func persistResults(
 		restored, restoreErr := restoreWithRecovery(rt, slotKey, id, p, meta)
 		if restoreErr != nil {
 			if rt.cfg.SkipInvalid {
+				fmt.Printf("[persist-skip] id=%s reason=restore_error err=%v\n", id, restoreErr)
 				out.skippedInvalid++
 				continue
 			}
@@ -52,6 +53,7 @@ func persistResults(
 		}
 		if err := validateRestoredOutput(meta, restored); err != nil {
 			if rt.cfg.SkipInvalid {
+				fmt.Printf("[persist-skip] id=%s reason=validation_error err=%v\n", id, err)
 				out.skippedInvalid++
 				continue
 			}

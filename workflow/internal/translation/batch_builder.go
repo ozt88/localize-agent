@@ -1,6 +1,9 @@
 package translation
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type batchBuildResult struct {
 	runItems       []translationTask
@@ -31,11 +34,13 @@ func buildBatch(rt translationRuntime, batchIDs []string) batchBuildResult {
 	for _, id := range filteredIDs {
 		enObj, ok := rt.sourceStrings[id]
 		if !ok {
+			fmt.Printf("[build-skip] id=%s reason=source_missing\n", id)
 			out.skippedInvalid++
 			continue
 		}
 		curObj, ok := rt.currentStrings[id]
 		if !ok {
+			fmt.Printf("[build-skip] id=%s reason=current_missing\n", id)
 			out.skippedInvalid++
 			continue
 		}

@@ -815,8 +815,8 @@ func buildFailedRemediationTranslationConfig(projectCfg *shared.ProjectConfig, c
 	out.Concurrency = 1
 	out.BatchSize = 1
 	// Failed-remediation needs to actually attempt long explanatory rows instead of dropping them at the plain-length gate.
-	if out.MaxPlainLen < 700 {
-		out.MaxPlainLen = 700
+	if out.MaxPlainLen < 1200 {
+		out.MaxPlainLen = 1200
 	}
 	return out
 }
@@ -828,8 +828,8 @@ func buildOverlayTranslationConfig(projectCfg *shared.ProjectConfig, cfg Config,
 	applyLLMProfileToTranslationConfig(&out, projectCfg.Pipeline.HighLLM)
 	out.Concurrency = 2
 	out.BatchSize = 8
-	if out.MaxPlainLen < 700 {
-		out.MaxPlainLen = 700
+	if out.MaxPlainLen < 1200 {
+		out.MaxPlainLen = 1200
 	}
 	return out
 }
