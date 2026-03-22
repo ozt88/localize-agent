@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-v2 파이프라인으로 77,816건+ 전량을 처리하고, BepInEx 호환 패치 아티팩트를 생성한다. 아티팩트: translations.json (v2 블록 ID 포맷), 285개 textassets ink JSON (한국어 역삽입), localizationtexts CSV 8개 파일 전량 번역. 패치 생성은 별도 export CLI로 수행하며, 부분 완료 상태에서도 패치 빌드 가능.
+v2 파이프라인으로 40,067건+ 전량을 처리하고, BepInEx 호환 패치 아티팩트를 생성한다. 아티팩트: translations.json (v2 블록 ID 포맷), 285개 textassets ink JSON (한국어 역삽입), localizationtexts CSV 8개 파일 전량 번역. 패치 생성은 별도 export CLI로 수행하며, 부분 완료 상태에서도 패치 빌드 가능.
 
 </domain>
 

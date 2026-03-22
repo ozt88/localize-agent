@@ -6,7 +6,7 @@
 
 ## Summary
 
-Phase 3는 v2 파이프라인의 `pipeline_items_v2` 테이블에서 `state=done` 항목을 추출하여 세 가지 패치 아티팩트를 생성하는 export CLI(`go-v2-export`)를 구축하고, 77,816건+ 전량을 v2 파이프라인으로 처리하는 것이다. 기술적 핵심은 (1) translations.json v3 포맷 생성, (2) 285개 TextAsset ink JSON에 한국어 역삽입, (3) 8개 localizationtexts CSV 번역이다.
+Phase 3는 v2 파이프라인의 `pipeline_items_v2` 테이블에서 `state=done` 항목을 추출하여 세 가지 패치 아티팩트를 생성하는 export CLI(`go-v2-export`)를 구축하고, 40,067건+ 전량을 v2 파이프라인으로 처리하는 것이다. 기술적 핵심은 (1) translations.json v3 포맷 생성, (2) 285개 TextAsset ink JSON에 한국어 역삽입, (3) 8개 localizationtexts CSV 번역이다.
 
 기존 코드베이스가 Phase 3에 필요한 대부분의 인프라를 이미 갖추고 있다. `v2pipeline.Store`에 bulk query 메서드를 추가하고, `inkparse` 패키지의 트리 워킹 로직을 역방향으로 재사용하여 `"^text"` 노드를 교체하면 된다. localizationtexts CSV는 총 698행(헤더 포함)으로 소규모이며, 별도 배치로 LLM 번역 후 CSV 파일을 직접 생성하는 방식이 적합하다.
 
@@ -53,7 +53,7 @@ Phase 3는 v2 파이프라인의 `pipeline_items_v2` 테이블에서 `state=done
 | PATCH-01 | v2 대사 블록 단위 소스로 translations.json 생성 (BepInEx TranslationLoader 호환) | Store.QueryDone() 메서드 추가 + v3 포맷 JSON 생성. Plugin.cs AddEntry()가 `source`/`target` 키를 읽으므로 호환 가능 |
 | PATCH-02 | 285개 textassets 파일에 한국어 삽입된 ink JSON 생성 | inkparse 트리 워킹 로직 역방향 적용 -- `"^text"` 노드 위치를 찾아 ko_formatted로 교체 |
 | PATCH-03 | localizationtexts CSV 및 runtime_lexicon.json 생성 | CSV 8개 파일 총 ~690행(ENGLISH). LLM 번역 후 CSV 직접 출력. runtime_lexicon.json은 D-13에 의해 Phase 4로 연기 |
-| VERIFY-01 | v2 파이프라인으로 전량(77,816건+) 재번역 실행 완료 | 기존 go-v2-pipeline CLI 활용, 모니터링은 CountByState() 주기적 조회로 구현 |
+| VERIFY-01 | v2 파이프라인으로 전량(40,067건+) 재번역 실행 완료 | 기존 go-v2-pipeline CLI 활용, 모니터링은 CountByState() 주기적 조회로 구현 |
 </phase_requirements>
 
 ## Standard Stack
@@ -324,7 +324,7 @@ func writeCSV(path string, rows [][]string) error {
    - Recommendation: 별도 Go CLI 또는 export CLI의 서브커맨드로 CSV 번역 실행. 번역 결과를 중간 파일이나 DB에 저장한 뒤 export CLI가 취합. CSV 규모가 작으므로 한 번에 시트별로 LLM 호출 가능.
 
 3. **전량 실행 예상 소요 시간**
-   - What we know: 77,816건 중 passthrough(이미 done)를 제외한 실제 LLM 처리 대상 수 미확인
+   - What we know: 40,067건 중 passthrough(이미 done)를 제외한 실제 LLM 처리 대상 수 미확인
    - What's unclear: OpenCode 서버의 처리 속도에 따른 총 소요 시간
    - Recommendation: CountByState()로 초기 상태 확인 후 예상 시간 산출. 실패률 임계치로 조기 중단 가능하게 설계.
 
