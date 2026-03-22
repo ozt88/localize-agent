@@ -37,9 +37,9 @@
 
 ### 파이프라인 인프라 (INFRA)
 
-- [ ] **INFRA-01**: DB 기반 파이프라인 상태 관리 (pending → working → done/failed), 크래시 후 재개 지원
-- [ ] **INFRA-02**: source_raw 기준 EXISTS 체크로 중복 인제스트 방지
-- [ ] **INFRA-03**: 포맷팅 단계용 파이프라인 상태 확장 (pending_format/working_format)
+- [x] **INFRA-01**: DB 기반 파이프라인 상태 관리 (pending → working → done/failed), 크래시 후 재개 지원
+- [x] **INFRA-02**: source_raw 기준 EXISTS 체크로 중복 인제스트 방지
+- [x] **INFRA-03**: 포맷팅 단계용 파이프라인 상태 확장 (pending_format/working_format)
 
 ### 패치 출력 (PATCH)
 
@@ -98,9 +98,9 @@
 | TRANS-06 | Phase 2 | Pending |
 | TRANS-07 | Phase 2 | Pending |
 | TRANS-08 | Phase 2 | Pending |
-| INFRA-01 | Phase 2 | Pending |
-| INFRA-02 | Phase 2 | Pending |
-| INFRA-03 | Phase 2 | Pending |
+| INFRA-01 | Phase 2 | Complete |
+| INFRA-02 | Phase 2 | Complete |
+| INFRA-03 | Phase 2 | Complete |
 | PATCH-01 | Phase 3 | Pending |
 | PATCH-02 | Phase 3 | Pending |
 | PATCH-03 | Phase 3 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-22T07:23:36.533Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-22T15:49:07.020Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 01 — source-parser
+**Current focus:** Phase 02 — translation-engine
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (translation-engine) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: Not started
 | Phase 01 P01 | 10min | 2 tasks | 6 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
 | Phase 01 P03 | 16min | 2 tasks | 3 files |
+| Phase 02 P01 | 5min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Recent decisions affecting current work:
 - [Phase 01]: D-04: parser in workflow/internal/inkparse (shared location)
 - [Phase 01]: D-10 resolved: file prefix is primary classifier signal (TS_/AR_ -> dialogue, TU_ -> system), with tag-based spell/item detection as secondary
 - [Phase 01]: 88.9% capture validation match rate accepted as baseline; remaining 11% are DC headers, system msgs, glue text
+- [Phase 02]: source_hash UNIQUE constraint for ON CONFLICT dedup (not just index)
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T07:17:14.987Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-22T15:49:07.017Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
