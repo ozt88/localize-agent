@@ -52,10 +52,12 @@ type Config struct {
 	ScoreTimeoutSec  int
 
 	// Orchestrator
-	WorkerRole   string
-	WorkerID     string
-	LeaseSec     int
-	IdleSleepSec int
-	MaxRetries   int
-	TraceOutDir  string
+	WorkerRole         string
+	WorkerID           string
+	LeaseSec           int
+	IdleSleepSec       int
+	MaxRetries         int
+	TraceOutDir        string
+	CleanupStaleClaims bool
+	Once               bool
 }
