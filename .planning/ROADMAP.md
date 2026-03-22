@@ -29,11 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. 각 대사 블록에 speaker/DC_check 메타데이터와 콘텐츠 유형(대사/주문/UI/아이템/시스템)이 분류되어 있다
   4. 콘텐츠 유형별 배칭 형식(스크립트/사전/카드)이 적용되어 번역 입력이 준비되어 있다
   5. 번역 불필요 문자열(코드 식별자, 변수 참조)이 패스스루 처리되어 있다
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Core ink JSON parser with TDD (types, tree walker, block merger, SHA-256 hash, glue, CLI)
+- [ ] 01-02-PLAN.md -- Content type classification, passthrough detection, batch builder
+- [ ] 01-03-PLAN.md -- Parser validation against game runtime capture data (4,550 entries)
 
 ### Phase 2: 번역 엔진
 **Goal**: 2단계 LLM 아키텍처(gpt-5.4 번역 + codex-mini 태그 복원)로 번역 결과를 생성하고, DB 상태 머신으로 대규모 실행을 관리한다
@@ -85,7 +86,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. 소스 준비 & 파서 | 0/? | Not started | - |
+| 1. 소스 준비 & 파서 | 0/3 | Planning complete | - |
 | 2. 번역 엔진 | 0/? | Not started | - |
 | 3. 패치 출력 & 전량 실행 | 0/? | Not started | - |
 | 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |
