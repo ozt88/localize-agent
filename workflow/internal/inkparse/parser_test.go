@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"os"
 	"testing"
 )
 
@@ -686,6 +687,46 @@ func TestParse_SourceHash_SHA256(t *testing.T) {
 		}
 	}
 	t.Fatalf("no blocks with text found")
+}
+
+// --- integration test with real file ---
+
+func TestParse_RealFile_AR_CoastMap(t *testing.T) {
+	data, err := os.ReadFile("../../../projects/esoteric-ebb/extract/1.1.3/ExportedProject/Assets/TextAsset/AR_CoastMap.txt")
+	if err != nil {
+		t.Skipf("real file not available: %v", err)
+	}
+	result, err := Parse(data, "AR_CoastMap")
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	if len(result.Blocks) == 0 {
+		t.Fatalf("expected blocks from AR_CoastMap, got 0")
+	}
+	t.Logf("AR_CoastMap: %d blocks, %d text entries", len(result.Blocks), result.TotalTextEntries)
+	// Verify some known content exists
+	foundCoastMap := false
+	for _, b := range result.Blocks {
+		if b.Knot == "CoastMap" {
+			foundCoastMap = true
+		}
+		// Every block must have non-empty fields
+		if b.Text == "" {
+			t.Errorf("block %s has empty text", b.ID)
+		}
+		if b.SourceHash == "" {
+			t.Errorf("block %s has empty hash", b.ID)
+		}
+		if b.ID == "" {
+			t.Errorf("block has empty ID")
+		}
+		if len(b.SourceHash) != 64 {
+			t.Errorf("block %s hash length %d != 64", b.ID, len(b.SourceHash))
+		}
+	}
+	if !foundCoastMap {
+		t.Fatalf("expected CoastMap knot")
+	}
 }
 
 // helper
