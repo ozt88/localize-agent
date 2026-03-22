@@ -18,10 +18,9 @@ Esoteric Ebb(내러티브 cRPG, Ink 스크립트 기반)의 한국어 번역 파
 - ✓ BepInEx TranslationLoader 플러그인 (Plugin.cs) — v1 existing
 - ✓ 패치 출력 포맷 (translations.json, textassets/, localizationtexts/, runtime_lexicon.json) — v1 existing
 - ✓ 프로젝트별 설정 (project.json) — v1 existing
+- ✓ ink JSON 트리 파서 — 대사 블록 단위로 소스 생성, 분기 구조 보존. Validated in Phase 01: source-parser
 
 ### Active
-
-- [ ] ink JSON 트리 파서 — 대사 블록 단위로 소스 생성 (분기 구조 보존)
 - [ ] 씬 단위 클러스터 번역 — 태그 없이 스크립트 형식으로 번역
 - [ ] 포맷터 LLM (codex-mini) — 번역 결과에 태그 복원
 - [ ] 콘텐츠 유형별 입력 설계 — 대사/주문/UI/아이템/시스템 각각 최적 형식
@@ -124,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 after initialization*
+*Last updated: 2026-03-22 after Phase 01 completion*
