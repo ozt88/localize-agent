@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md -- Core ink JSON parser with TDD (types, tree walker, block merger, SHA-256 hash, glue, CLI)
-- [ ] 01-02-PLAN.md -- Content type classification, passthrough detection, batch builder
+- [x] 01-02-PLAN.md -- Content type classification, passthrough detection, batch builder
 - [ ] 01-03-PLAN.md -- Parser validation against game runtime capture data (4,550 entries)
 
 ### Phase 2: 번역 엔진
@@ -86,7 +86,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. 소스 준비 & 파서 | 0/3 | Planning complete | - |
+| 1. 소스 준비 & 파서 | 2/3 | In Progress|  |
 | 2. 번역 엔진 | 0/? | Not started | - |
 | 3. 패치 출력 & 전량 실행 | 0/? | Not started | - |
 | 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |

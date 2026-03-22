@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-22T06:57:52.856Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-22T07:05:57.944Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 01 (source-parser) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 2 of 3
 
 *Updated after each plan completion*
 | Phase 01 P01 | 10min | 2 tasks | 6 files |
+| Phase 01 P02 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,7 @@ Recent decisions affecting current work:
 - [Roadmap]: PATCH + VERIFY-01 in Phase 3, PLUGIN + VERIFY-02 in Phase 4 (verify split by what they test)
 - [Phase 01]: D-02: path-based block IDs (KnotName/gate/choice/blk-N)
 - [Phase 01]: D-04: parser in workflow/internal/inkparse (shared location)
+- [Phase 01]: D-10 resolved: file prefix is primary classifier signal (TS_/AR_ -> dialogue, TU_ -> system), with tag-based spell/item detection as secondary
 
 ### Pending Todos
 
@@ -73,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T06:57:52.853Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-22T07:05:57.940Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

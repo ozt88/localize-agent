@@ -19,9 +19,9 @@
 - [x] **PARSE-01**: ink JSON 트리를 재귀적으로 워킹하여 연속된 `"^text"` 엔트리를 게임 렌더링 단위(대사 블록)로 병합
 - [x] **PARSE-02**: `g-N` (게이트), `c-N` (선택지) 분기 구조를 보존하며 씬(knot) 단위로 소스 생성
 - [x] **PARSE-03**: `#speaker`, `#DC_check` 등 태그 메타데이터를 대사 블록에 연결하여 번역 컨텍스트로 제공
-- [ ] **PARSE-04**: 286개 TextAsset 파일에서 콘텐츠 유형 분류 (대사/주문/UI/아이템/시스템)
-- [ ] **PARSE-05**: 각 콘텐츠 유형에 최적화된 배칭 형식 적용 (대사=스크립트 10~30줄, UI=사전 50~100개, 주문=카드 5~10개)
-- [ ] **PARSE-06**: 번역 불필요 문자열 감지 (코드 식별자, 변수 참조, 게임 메커닉 수식) 및 패스스루 처리
+- [x] **PARSE-04**: 286개 TextAsset 파일에서 콘텐츠 유형 분류 (대사/주문/UI/아이템/시스템)
+- [x] **PARSE-05**: 각 콘텐츠 유형에 최적화된 배칭 형식 적용 (대사=스크립트 10~30줄, UI=사전 50~100개, 주문=카드 5~10개)
+- [x] **PARSE-06**: 번역 불필요 문자열 감지 (코드 식별자, 변수 참조, 게임 메커닉 수식) 및 패스스루 처리
 - [ ] **PARSE-07**: 파서 출력을 게임 런타임 캡처 데이터와 대조하여 블록 경계 정확성 검증
 
 ### 번역 엔진 (TRANS)
@@ -86,9 +86,9 @@
 | PARSE-01 | Phase 1 | Complete |
 | PARSE-02 | Phase 1 | Complete |
 | PARSE-03 | Phase 1 | Complete |
-| PARSE-04 | Phase 1 | Pending |
-| PARSE-05 | Phase 1 | Pending |
-| PARSE-06 | Phase 1 | Pending |
+| PARSE-04 | Phase 1 | Complete |
+| PARSE-05 | Phase 1 | Complete |
+| PARSE-06 | Phase 1 | Complete |
 | PARSE-07 | Phase 1 | Pending |
 | TRANS-01 | Phase 2 | Pending |
 | TRANS-02 | Phase 2 | Pending |
