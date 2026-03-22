@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-22T16:45:00.237Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-22T18:11:35.263Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 02 — translation-engine
+**Current focus:** Phase 03 — patch-output-full-run
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 03 (patch-output-full-run) — EXECUTING
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -53,6 +53,8 @@ Plan: Not started
 | Phase 02 P03 | 5min | 2 tasks | 11 files |
 | Phase 02 P02 | 6min | 3 tasks | 10 files |
 | Phase 02 P04 | multi-session | 3 tasks | 7 files |
+| Phase 03 P01 | 3min | 2 tasks | 5 files |
+| Phase 03 P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -75,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 02]: scorellm/types.go uses string literals instead of v2pipeline constants to break import cycle
 - [Phase 02]: ScoreFinal() method on ScoreResult computes weighted final score for clean abstraction boundary in worker
 - [Phase 02]: Excluded blocks (content_type=excluded) filtered in TranslateWorker before LLM call to avoid wasted API calls
+- [Phase 03]: V3 format uses direct ContentType->TextRole, Speaker->SpeakerHint mapping; no dedup in sidecar output (D-02)
+- [Phase 03]: Injector mirrors parser walkContainer/walkFlatContent for hash consistency
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:28:27.032Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-22T18:11:22.808Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None

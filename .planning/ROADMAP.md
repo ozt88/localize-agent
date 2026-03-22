@@ -66,8 +66,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Store.QueryDone() + translations.json v3 export domain logic
-- [ ] 03-02-PLAN.md -- ink JSON injection (InjectTranslations) with TDD
+- [x] 03-01-PLAN.md -- Store.QueryDone() + translations.json v3 export domain logic
+- [x] 03-02-PLAN.md -- ink JSON injection (InjectTranslations) with TDD
 - [ ] 03-03-PLAN.md -- Export CLI wiring + localizationtexts CSV + verification checkpoint
 
 ### Phase 4: 플러그인 최적화 & 게임 검증
@@ -92,5 +92,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. 소스 준비 & 파서 | 3/3 | Complete |  |
 | 2. 번역 엔진 | 4/4 | Complete   | 2026-03-22 |
-| 3. 패치 출력 & 전량 실행 | 0/? | Not started | - |
+| 3. 패치 출력 & 전량 실행 | 2/3 | In Progress|  |
 | 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |
