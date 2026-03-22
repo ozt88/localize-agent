@@ -46,11 +46,13 @@ Plans:
   3. 파이프라인 상태(pending -> working -> done/failed + pending_format/working_format)가 DB에서 관리되며, 크래시 후 재개가 동작한다
   4. 용어집이 LLM 컨텍스트에 주입되어 반복 등장 용어의 번역이 일관된다
   5. 품질 기준 미달 항목이 자동으로 재번역된다
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md -- V2 pipeline contracts, DB schema (pipeline_items_v2), PostgreSQL store, ingest CLI
+- [ ] 02-02-PLAN.md -- Glossary loader (3 sources) + cluster translation domain (prompts, parser, validator)
+- [ ] 02-03-PLAN.md -- Tag format domain (codex-mini prompts, tag validation) + Score LLM domain (response parser, failure routing)
+- [ ] 02-04-PLAN.md -- Pipeline orchestrator (3-role workers, retry logic) + CLI entry point + prompt templates
 
 ### Phase 3: 패치 출력 & 전량 실행
 **Goal**: v2 파이프라인으로 77,816건+ 전량을 처리하고, BepInEx 호환 패치 아티팩트를 생성한다
@@ -86,7 +88,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. 소스 준비 & 파서 | 2/3 | In Progress|  |
-| 2. 번역 엔진 | 0/? | Not started | - |
+| 1. 소스 준비 & 파서 | 3/3 | Complete |  |
+| 2. 번역 엔진 | 0/4 | Planned | - |
 | 3. 패치 출력 & 전량 실행 | 0/? | Not started | - |
 | 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |
