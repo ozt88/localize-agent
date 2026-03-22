@@ -320,3 +320,208 @@ func TestInjectGateChoiceContainers(t *testing.T) {
 		t.Errorf("choice text not replaced")
 	}
 }
+
+// --- Integration Tests ---
+
+func TestInjectRoundTrip(t *testing.T) {
+	// Build a realistic ink JSON with multiple knots, gates, choices
+	knots := map[string][]any{
+		"SceneOne": {
+			"^Welcome to the tavern.\n",
+			map[string]any{"->": "SceneOne.g-0"},
+			nil,
+			map[string]any{
+				"#n": "g-0",
+				"#f": 5,
+				"c-0": []any{
+					"^Order a drink.\n",
+					nil,
+					map[string]any{"#n": "c-0", "#f": 5},
+				},
+			},
+		},
+		"SceneTwo": {
+			"^The night grows dark.\n",
+			"^You feel uneasy.\n",
+			nil,
+			map[string]any{"#n": "g-0", "#f": 5},
+		},
+	}
+	data := buildMinimalInkJSON(knots)
+
+	// Parse original to get blocks
+	origResult, err := Parse(data, "test")
+	if err != nil {
+		t.Fatalf("Parse original: %v", err)
+	}
+	if len(origResult.Blocks) == 0 {
+		t.Fatalf("Parse returned 0 blocks")
+	}
+
+	// Build translations map: source_hash -> "KO_" + original text
+	translations := map[string]string{}
+	for _, block := range origResult.Blocks {
+		translations[block.SourceHash] = "KO_" + block.Text
+	}
+
+	// Inject translations
+	out, report, err := InjectTranslations(data, "test", translations)
+	if err != nil {
+		t.Fatalf("InjectTranslations: %v", err)
+	}
+
+	// Verify report
+	if report.Replaced != len(origResult.Blocks) {
+		t.Errorf("Replaced: got %d, want %d", report.Replaced, len(origResult.Blocks))
+	}
+	if report.Missing != 0 {
+		t.Errorf("Missing: got %d, want 0", report.Missing)
+	}
+
+	// Re-parse injected output
+	injResult, err := Parse(out, "test")
+	if err != nil {
+		t.Fatalf("Parse injected: %v", err)
+	}
+
+	// Same number of blocks
+	if len(injResult.Blocks) != len(origResult.Blocks) {
+		t.Fatalf("block count: got %d, want %d", len(injResult.Blocks), len(origResult.Blocks))
+	}
+
+	// Build sets of IDs from both parses
+	origIDs := map[string]bool{}
+	for _, block := range origResult.Blocks {
+		origIDs[block.ID] = true
+	}
+	injIDs := map[string]bool{}
+	for _, block := range injResult.Blocks {
+		injIDs[block.ID] = true
+		// Each output block's text should start with "KO_"
+		if !strings.HasPrefix(block.Text, "KO_") {
+			t.Errorf("block %s: text %q does not start with KO_", block.ID, block.Text)
+		}
+	}
+
+	// All original IDs should exist in injected output
+	for id := range origIDs {
+		if !injIDs[id] {
+			t.Errorf("original block ID %q missing from injected output", id)
+		}
+	}
+	for id := range injIDs {
+		if !origIDs[id] {
+			t.Errorf("injected output has unexpected block ID %q", id)
+		}
+	}
+}
+
+func TestInjectPreservesNonTextStructure(t *testing.T) {
+	// Create ink JSON with diverts, eval blocks, and tags
+	knots := map[string][]any{
+		"TestKnot": {
+			"ev",
+			"^some eval content",
+			"/ev",
+			"^Visible text\n",
+			"#", "^speaker:Braxo", "/#",
+			map[string]any{"->": "OtherKnot"},
+			nil,
+			map[string]any{"#n": "g-0", "#f": 5},
+		},
+	}
+	data := buildMinimalInkJSON(knots)
+
+	hash := SourceHash("Visible text\n")
+	translations := map[string]string{
+		hash: "보이는 텍스트\n",
+	}
+
+	out, _, err := InjectTranslations(data, "test", translations)
+	if err != nil {
+		t.Fatalf("InjectTranslations error: %v", err)
+	}
+
+	// Parse output and verify non-text elements preserved
+	var outRoot map[string]any
+	if err := json.Unmarshal(out[3:], &outRoot); err != nil {
+		t.Fatalf("unmarshal output: %v", err)
+	}
+	rootArr := outRoot["root"].([]any)
+	knotDict := rootArr[0].(map[string]any)
+	knotArr := knotDict["TestKnot"].([]any)
+
+	// Check that "ev", "/ev" still exist
+	foundEv := false
+	foundEvEnd := false
+	foundDivert := false
+	foundTag := false
+	for _, elem := range knotArr {
+		switch v := elem.(type) {
+		case string:
+			if v == "ev" {
+				foundEv = true
+			}
+			if v == "/ev" {
+				foundEvEnd = true
+			}
+			if v == "#" {
+				foundTag = true
+			}
+		case map[string]any:
+			if _, ok := v["->"]; ok {
+				foundDivert = true
+			}
+		}
+	}
+
+	if !foundEv {
+		t.Errorf("'ev' not preserved")
+	}
+	if !foundEvEnd {
+		t.Errorf("'/ev' not preserved")
+	}
+	if !foundDivert {
+		t.Errorf("divert not preserved")
+	}
+	if !foundTag {
+		t.Errorf("tag marker '#' not preserved")
+	}
+}
+
+func TestInjectCountByState(t *testing.T) {
+	// 3 blocks, translations for only 2
+	knots := map[string][]any{
+		"KnotA": {
+			"^Block one.\n",
+			map[string]any{"->": "KnotA.g-0"},
+			"^Block two.\n",
+			map[string]any{"->": "KnotA.g-1"},
+			"^Block three.\n",
+			nil,
+			map[string]any{"#n": "g-0", "#f": 5},
+		},
+	}
+	data := buildMinimalInkJSON(knots)
+
+	hash1 := SourceHash("Block one.\n")
+	hash3 := SourceHash("Block three.\n")
+	translations := map[string]string{
+		hash1: "블록 1.\n",
+		hash3: "블록 3.\n",
+	}
+
+	_, report, err := InjectTranslations(data, "test", translations)
+	if err != nil {
+		t.Fatalf("InjectTranslations error: %v", err)
+	}
+	if report.Total != 3 {
+		t.Errorf("Total: got %d, want 3", report.Total)
+	}
+	if report.Replaced != 2 {
+		t.Errorf("Replaced: got %d, want 2", report.Replaced)
+	}
+	if report.Missing != 1 {
+		t.Errorf("Missing: got %d, want 1", report.Missing)
+	}
+}
