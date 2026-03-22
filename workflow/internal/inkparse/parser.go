@@ -142,7 +142,7 @@ func (w *walker) walkFlatContent(arr []any, knot, gate, choice string) {
 		idx := w.blockCount[path]
 		w.blockCount[path]++
 		block := DialogueBlock{
-			ID:         fmt.Sprintf("%s/blk-%d", path, idx),
+			ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
 			Path:       path,
 			Text:       text,
 			SourceHash: SourceHash(text),
@@ -298,7 +298,7 @@ func (w *walker) tryExtractChoiceText(remaining []any, knot, gate string) {
 			idx := w.blockCount[path]
 			w.blockCount[path]++
 			block := DialogueBlock{
-				ID:         fmt.Sprintf("%s/blk-%d", path, idx),
+				ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
 				Path:       path,
 				Text:       text,
 				SourceHash: SourceHash(text),

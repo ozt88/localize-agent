@@ -318,10 +318,10 @@ func TestParse_BlockIDPattern(t *testing.T) {
 	foundGateBlock := false
 	foundChoiceBlock := false
 	for _, b := range result.Blocks {
-		if b.ID == "MyKnot/g-0/blk-0" {
+		if b.ID == "test_file/MyKnot/g-0/blk-0" {
 			foundGateBlock = true
 		}
-		if b.ID == "MyKnot/g-0/c-0/blk-0" {
+		if b.ID == "test_file/MyKnot/g-0/c-0/blk-0" {
 			foundChoiceBlock = true
 		}
 	}
@@ -330,14 +330,14 @@ func TestParse_BlockIDPattern(t *testing.T) {
 		for i, b := range result.Blocks {
 			ids[i] = b.ID
 		}
-		t.Fatalf("expected block ID 'MyKnot/g-0/blk-0', got: %v", ids)
+		t.Fatalf("expected block ID 'test_file/MyKnot/g-0/blk-0', got: %v", ids)
 	}
 	if !foundChoiceBlock {
 		ids := make([]string, len(result.Blocks))
 		for i, b := range result.Blocks {
 			ids[i] = b.ID
 		}
-		t.Fatalf("expected block ID 'MyKnot/g-0/c-0/blk-0', got: %v", ids)
+		t.Fatalf("expected block ID 'test_file/MyKnot/g-0/c-0/blk-0', got: %v", ids)
 	}
 }
 
