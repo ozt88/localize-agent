@@ -22,7 +22,7 @@
 - [x] **PARSE-04**: 286개 TextAsset 파일에서 콘텐츠 유형 분류 (대사/주문/UI/아이템/시스템)
 - [x] **PARSE-05**: 각 콘텐츠 유형에 최적화된 배칭 형식 적용 (대사=스크립트 10~30줄, UI=사전 50~100개, 주문=카드 5~10개)
 - [x] **PARSE-06**: 번역 불필요 문자열 감지 (코드 식별자, 변수 참조, 게임 메커닉 수식) 및 패스스루 처리
-- [ ] **PARSE-07**: 파서 출력을 게임 런타임 캡처 데이터와 대조하여 블록 경계 정확성 검증
+- [x] **PARSE-07**: 파서 출력을 게임 런타임 캡처 데이터와 대조하여 블록 경계 정확성 검증
 
 ### 번역 엔진 (TRANS)
 
@@ -89,7 +89,7 @@
 | PARSE-04 | Phase 1 | Complete |
 | PARSE-05 | Phase 1 | Complete |
 | PARSE-06 | Phase 1 | Complete |
-| PARSE-07 | Phase 1 | Pending |
+| PARSE-07 | Phase 1 | Complete |
 | TRANS-01 | Phase 2 | Pending |
 | TRANS-02 | Phase 2 | Pending |
 | TRANS-03 | Phase 2 | Pending |

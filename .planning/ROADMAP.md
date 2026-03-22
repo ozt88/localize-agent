@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md -- Core ink JSON parser with TDD (types, tree walker, block merger, SHA-256 hash, glue, CLI)
 - [x] 01-02-PLAN.md -- Content type classification, passthrough detection, batch builder
-- [ ] 01-03-PLAN.md -- Parser validation against game runtime capture data (4,550 entries)
+- [x] 01-03-PLAN.md -- Parser validation against game runtime capture data (4,550 entries)
 
 ### Phase 2: 번역 엔진
 **Goal**: 2단계 LLM 아키텍처(gpt-5.4 번역 + codex-mini 태그 복원)로 번역 결과를 생성하고, DB 상태 머신으로 대규모 실행을 관리한다

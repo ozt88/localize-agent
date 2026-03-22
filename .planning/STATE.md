@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-22T07:05:57.944Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-03-22T07:17:14.989Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Plan: 3 of 3
 *Updated after each plan completion*
 | Phase 01 P01 | 10min | 2 tasks | 6 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
+| Phase 01 P03 | 16min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,7 @@ Recent decisions affecting current work:
 - [Phase 01]: D-02: path-based block IDs (KnotName/gate/choice/blk-N)
 - [Phase 01]: D-04: parser in workflow/internal/inkparse (shared location)
 - [Phase 01]: D-10 resolved: file prefix is primary classifier signal (TS_/AR_ -> dialogue, TU_ -> system), with tag-based spell/item detection as secondary
+- [Phase 01]: 88.9% capture validation match rate accepted as baseline; remaining 11% are DC headers, system msgs, glue text
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T07:05:57.940Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-22T07:17:14.987Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
