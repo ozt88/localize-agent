@@ -35,6 +35,14 @@
   - 캡처 데이터의 ink_dialogue/ink_choice 원본과 파서 출력 대조
   - 패턴별로 맞으면 전체 286개 파일에 동일 로직 적용 가능
 
+### Glue 메커닉 (ink 컴파일 JSON)
+- **D-16:** 컴파일된 ink JSON에서 glue는 문자열 `"<>"`로 표현됨.
+- **D-17:** glue는 현재 텍스트와 divert 대상의 다음 텍스트를 줄바꿈 없이 하나로 합친다.
+  - 예: `"^You answer. "` + `<>` + divert → `"^Another question..."` = `"You answer. Another question from the darkness."`
+  - 캡처 데이터로 확인 완료.
+- **D-18:** 286개 파일 중 10개만 glue 사용 (총 34개 마커). 빈도는 낮지만 무시 불가.
+- **D-19:** 파서가 divert를 따라가면서 glue로 연결된 텍스트를 추적해야 함 — 단순 배열 순회가 아니라 divert 해석 필요. 파서 복잡도 증가 요인.
+
 ### 콘텐츠 유형 분류
 - **D-09:** Phase 1에서 ink + UI + 메뉴 + 시스템 전체 분류. ink 전용이 아님.
 - **D-10:** Claude 재량. ink 내부 콘텐츠 유형 분류 기준 (파일명/구조 패턴/태그 기반) 선택.
