@@ -3,7 +3,9 @@ package v2pipeline
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -33,6 +35,12 @@ func Run(cfg Config) int {
 
 	// Apply project defaults.
 	applyProjectDefaults(projectCfg, &cfg)
+
+	// Ensure OpenCode server is running before opening store or creating LLM clients.
+	if err := ensureOpenCode(cfg.TranslateServerURL); err != nil {
+		fmt.Fprintf(os.Stderr, "v2pipeline opencode startup error: %v\n", err)
+		return 1
+	}
 
 	// Open store.
 	store, err := OpenStore(cfg.CheckpointBackend, cfg.CheckpointDB, cfg.CheckpointDSN)
@@ -345,6 +353,84 @@ func loadFileContent(path string) string {
 		return ""
 	}
 	return strings.TrimSpace(string(data))
+}
+
+// ensureOpenCode checks if the OpenCode server is reachable and starts it if not.
+// It uses the manage-opencode-serve.ps1 script to start the server and waits up to 30s.
+func ensureOpenCode(serverURL string) error {
+	if serverURL == "" {
+		return nil
+	}
+
+	// Quick health check — try to connect.
+	if probeServer(serverURL) {
+		fmt.Printf("v2pipeline: opencode server already running at %s\n", serverURL)
+		return nil
+	}
+
+	fmt.Printf("v2pipeline: opencode server not reachable at %s, starting...\n", serverURL)
+
+	// Find the manage script relative to repo root.
+	repoRoot := findRepoRoot()
+	if repoRoot == "" {
+		return fmt.Errorf("cannot find repo root to locate manage-opencode-serve.ps1")
+	}
+	script := filepath.Join(repoRoot, "scripts", "manage-opencode-serve.ps1")
+	if _, err := os.Stat(script); err != nil {
+		return fmt.Errorf("manage script not found: %s", script)
+	}
+
+	cmd := exec.Command("powershell.exe",
+		"-NoProfile", "-ExecutionPolicy", "Bypass",
+		"-File", script,
+		"-Action", "start",
+	)
+	cmd.Dir = repoRoot
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("opencode start failed: %v\n%s", err, string(out))
+	}
+	fmt.Printf("v2pipeline: opencode start output: %s\n", strings.TrimSpace(string(out)))
+
+	// Wait for server to become reachable (up to 30s).
+	deadline := time.Now().Add(30 * time.Second)
+	for time.Now().Before(deadline) {
+		if probeServer(serverURL) {
+			fmt.Printf("v2pipeline: opencode server ready at %s\n", serverURL)
+			return nil
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return fmt.Errorf("opencode server did not become reachable at %s within 30s", serverURL)
+}
+
+// probeServer checks if a server URL is reachable with a short timeout.
+func probeServer(serverURL string) bool {
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(serverURL)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return true
+}
+
+// findRepoRoot walks up from cwd looking for a go.mod file.
+func findRepoRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
 }
 
 // formatCounts formats state counts for display.
