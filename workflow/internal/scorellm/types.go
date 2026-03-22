@@ -1,7 +1,5 @@
 package scorellm
 
-import "localize-agent/workflow/internal/v2pipeline"
-
 // ScoreTask represents a single item to be evaluated by the Score LLM.
 type ScoreTask struct {
 	BlockID     string
@@ -18,16 +16,22 @@ type ScoreResult struct {
 	Reason           string  `json:"reason"`
 }
 
+// ScoreFinal returns the averaged score for pipeline storage.
+func (r *ScoreResult) ScoreFinal() float64 {
+	return (r.TranslationScore + r.FormatScore) / 2.0
+}
+
 // TargetState returns the pipeline state this score routes to per D-14.
+// Uses string literals matching v2pipeline state constants to avoid import cycle.
 func (r *ScoreResult) TargetState() string {
 	switch r.FailureType {
 	case "pass":
-		return v2pipeline.StateDone
+		return "done"
 	case "translation", "both":
-		return v2pipeline.StatePendingTranslate
+		return "pending_translate"
 	case "format":
-		return v2pipeline.StatePendingFormat
+		return "pending_format"
 	default:
-		return v2pipeline.StateFailed // unknown failure_type
+		return "failed" // unknown failure_type
 	}
 }

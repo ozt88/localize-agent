@@ -1,7 +1,6 @@
 package scorellm
 
 import (
-	"localize-agent/workflow/internal/v2pipeline"
 	"testing"
 )
 
@@ -84,10 +83,10 @@ func TestScoreResult_TargetState(t *testing.T) {
 		failureType string
 		wantState   string
 	}{
-		{"pass", v2pipeline.StateDone},
-		{"translation", v2pipeline.StatePendingTranslate},
-		{"format", v2pipeline.StatePendingFormat},
-		{"both", v2pipeline.StatePendingTranslate},
+		{"pass", "done"},
+		{"translation", "pending_translate"},
+		{"format", "pending_format"},
+		{"both", "pending_translate"},
 	}
 	for _, tt := range tests {
 		r := &ScoreResult{FailureType: tt.failureType}
