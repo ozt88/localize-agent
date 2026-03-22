@@ -44,7 +44,7 @@
 ### 패치 출력 (PATCH)
 
 - [x] **PATCH-01**: v2 대사 블록 단위 소스로 translations.json 생성 (BepInEx TranslationLoader 호환)
-- [ ] **PATCH-02**: 285개 textassets 파일에 한국어 삽입된 ink JSON 생성
+- [x] **PATCH-02**: 285개 textassets 파일에 한국어 삽입된 ink JSON 생성
 - [ ] **PATCH-03**: localizationtexts CSV 및 runtime_lexicon.json 생성
 
 ### 플러그인 (PLUGIN)
@@ -102,7 +102,7 @@
 | INFRA-02 | Phase 2 | Complete |
 | INFRA-03 | Phase 2 | Complete |
 | PATCH-01 | Phase 3 | Complete |
-| PATCH-02 | Phase 3 | Pending |
+| PATCH-02 | Phase 3 | Complete |
 | PATCH-03 | Phase 3 | Pending |
 | PLUGIN-01 | Phase 4 | Pending |
 | PLUGIN-02 | Phase 4 | Pending |
