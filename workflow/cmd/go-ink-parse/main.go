@@ -12,10 +12,11 @@ import (
 )
 
 type output struct {
-	TotalFiles       int                     `json:"total_files"`
-	TotalBlocks      int                     `json:"total_blocks"`
-	TotalTextEntries int                     `json:"total_text_entries"`
-	Results          []*inkparse.ParseResult `json:"results"`
+	TotalFiles       int                          `json:"total_files"`
+	TotalBlocks      int                          `json:"total_blocks"`
+	TotalTextEntries int                          `json:"total_text_entries"`
+	Results          []*inkparse.ParseResult      `json:"results"`
+	Validation       *inkparse.ValidationReport   `json:"validation,omitempty"`
 }
 
 func main() {
@@ -24,14 +25,18 @@ func main() {
 
 func run() int {
 	var (
-		assetsDir string
-		outputPath string
-		single    string
+		assetsDir   string
+		outputPath  string
+		single      string
+		validate    bool
+		captureFile string
 	)
 
 	flag.StringVar(&assetsDir, "assets-dir", "projects/esoteric-ebb/extract/1.1.3/ExportedProject/Assets/TextAsset", "path to TextAsset directory")
 	flag.StringVar(&outputPath, "output", "", "output JSON file path (default: stdout)")
 	flag.StringVar(&single, "single", "", "parse a single file (for debugging)")
+	flag.BoolVar(&validate, "validate", false, "run validation against capture data after parsing")
+	flag.StringVar(&captureFile, "capture-file", "projects/esoteric-ebb/source/full_text_capture_clean.json", "path to capture JSON for validation")
 	flag.Parse()
 
 	var results []*inkparse.ParseResult
@@ -85,13 +90,67 @@ func run() int {
 		Results:          results,
 	}
 
+	fmt.Fprintf(os.Stderr, "Parsed %d files, %d blocks, %d text entries", len(results), totalBlocks, totalTextEntries)
+	if parseErrors > 0 {
+		fmt.Fprintf(os.Stderr, " (%d errors)", parseErrors)
+	}
+	fmt.Fprintln(os.Stderr)
+
+	// Run validation if requested
+	if validate {
+		captureData, err := inkparse.LoadCaptureData(captureFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error loading capture data from %s: %v\n", captureFile, err)
+			return 1
+		}
+
+		// Collect all blocks from all results
+		var allBlocks []inkparse.DialogueBlock
+		for _, r := range results {
+			allBlocks = append(allBlocks, r.Blocks...)
+		}
+
+		report := inkparse.ValidateAgainstCapture(allBlocks, captureData)
+		out.Validation = &report
+
+		// Print validation report to stderr
+		fmt.Fprintf(os.Stderr, "\n=== Validation Report ===\n")
+		fmt.Fprintf(os.Stderr, "Capture entries (ink_dialogue + ink_choice): %d\n", report.TotalCapture)
+		fmt.Fprintf(os.Stderr, "Matched: %d (%.1f%%)\n", report.Matched, report.MatchRate*100)
+		fmt.Fprintf(os.Stderr, "Unmatched: %d\n", report.Unmatched)
+
+		// Print skipped origins
+		if len(report.SkippedOrigins) > 0 {
+			fmt.Fprintf(os.Stderr, "Skipped origins:")
+			for origin, count := range report.SkippedOrigins {
+				fmt.Fprintf(os.Stderr, " %s=%d", origin, count)
+			}
+			fmt.Fprintln(os.Stderr)
+		}
+
+		// Print top 20 unmatched entries
+		if len(report.UnmatchedItems) > 0 {
+			fmt.Fprintf(os.Stderr, "\nTop 20 unmatched entries:\n")
+			limit := len(report.UnmatchedItems)
+			if limit > 20 {
+				limit = 20
+			}
+			for i := 0; i < limit; i++ {
+				item := report.UnmatchedItems[i]
+				text := item.Text
+				if len(text) > 80 {
+					text = text[:80] + "..."
+				}
+				fmt.Fprintf(os.Stderr, "[%d] %q (%s)\n", i+1, text, item.Origin)
+			}
+		}
+
+	}
+
+	// Write JSON output (before match rate check so output is always available)
 	var jsonData []byte
 	var err error
-	if outputPath != "" {
-		jsonData, err = json.MarshalIndent(out, "", "  ")
-	} else {
-		jsonData, err = json.MarshalIndent(out, "", "  ")
-	}
+	jsonData, err = json.MarshalIndent(out, "", "  ")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "json marshal error: %v\n", err)
 		return 1
@@ -107,11 +166,11 @@ func run() int {
 		fmt.Println(string(jsonData))
 	}
 
-	fmt.Fprintf(os.Stderr, "Parsed %d files, %d blocks, %d text entries", len(results), totalBlocks, totalTextEntries)
-	if parseErrors > 0 {
-		fmt.Fprintf(os.Stderr, " (%d errors)", parseErrors)
+	// Exit 1 if validation was run and match rate below 95%
+	if validate && out.Validation != nil && out.Validation.MatchRate < 0.95 {
+		fmt.Fprintf(os.Stderr, "\nWARNING: Match rate %.1f%% is below 95%% target\n", out.Validation.MatchRate*100)
+		return 1
 	}
-	fmt.Fprintln(os.Stderr)
 
 	return 0
 }
