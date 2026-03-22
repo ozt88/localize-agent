@@ -26,13 +26,13 @@
 
 ### 번역 엔진 (TRANS)
 
-- [ ] **TRANS-01**: 씬 단위 클러스터를 태그 없이 스크립트 형식으로 gpt-5.4에 전송하여 번역
-- [ ] **TRANS-02**: 분기 구조 마커 (BRANCH/OPTION)를 포함하여 분기별 톤/문맥 일관성 보존
-- [ ] **TRANS-03**: 번역 결과의 각 라인을 `[NN]` 번호 마커로 원본 소스 ID에 매핑
-- [ ] **TRANS-04**: 라인 수 불일치 시 자동 거부 및 재시도
+- [x] **TRANS-01**: 씬 단위 클러스터를 태그 없이 스크립트 형식으로 gpt-5.4에 전송하여 번역
+- [x] **TRANS-02**: 분기 구조 마커 (BRANCH/OPTION)를 포함하여 분기별 톤/문맥 일관성 보존
+- [x] **TRANS-03**: 번역 결과의 각 라인을 `[NN]` 번호 마커로 원본 소스 ID에 매핑
+- [x] **TRANS-04**: 라인 수 불일치 시 자동 거부 및 재시도
 - [x] **TRANS-05**: codex-mini로 태그가 필요한 라인에만 태그 복원 (원본 태그 구조 기반)
 - [x] **TRANS-06**: 태그 복원 후 원본과 정확한 태그 문자열 매칭 검증 (태그 수만이 아닌 속성/순서 포함)
-- [ ] **TRANS-07**: 용어집(글로서리) 구축 및 LLM 컨텍스트에 주입하여 용어 일관성 유지
+- [x] **TRANS-07**: 용어집(글로서리) 구축 및 LLM 컨텍스트에 주입하여 용어 일관성 유지
 - [x] **TRANS-08**: 번역 품질 스코어링 및 기준 미달 항목 자동 재번역
 
 ### 파이프라인 인프라 (INFRA)
@@ -90,13 +90,13 @@
 | PARSE-05 | Phase 1 | Complete |
 | PARSE-06 | Phase 1 | Complete |
 | PARSE-07 | Phase 1 | Complete |
-| TRANS-01 | Phase 2 | Pending |
-| TRANS-02 | Phase 2 | Pending |
-| TRANS-03 | Phase 2 | Pending |
-| TRANS-04 | Phase 2 | Pending |
+| TRANS-01 | Phase 2 | Complete |
+| TRANS-02 | Phase 2 | Complete |
+| TRANS-03 | Phase 2 | Complete |
+| TRANS-04 | Phase 2 | Complete |
 | TRANS-05 | Phase 2 | Complete |
 | TRANS-06 | Phase 2 | Complete |
-| TRANS-07 | Phase 2 | Pending |
+| TRANS-07 | Phase 2 | Complete |
 | TRANS-08 | Phase 2 | Complete |
 | INFRA-01 | Phase 2 | Complete |
 | INFRA-02 | Phase 2 | Complete |

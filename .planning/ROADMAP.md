@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md -- V2 pipeline contracts, DB schema (pipeline_items_v2), PostgreSQL store, ingest CLI
-- [ ] 02-02-PLAN.md -- Glossary loader (3 sources) + cluster translation domain (prompts, parser, validator)
+- [x] 02-02-PLAN.md -- Glossary loader (3 sources) + cluster translation domain (prompts, parser, validator)
 - [x] 02-03-PLAN.md -- Tag format domain (codex-mini prompts, tag validation) + Score LLM domain (response parser, failure routing)
 - [ ] 02-04-PLAN.md -- Pipeline orchestrator (3-role workers, retry logic) + CLI entry point + prompt templates
 
