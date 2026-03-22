@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Core ink JSON parser with TDD (types, tree walker, block merger, SHA-256 hash, glue, CLI)
+- [x] 01-01-PLAN.md -- Core ink JSON parser with TDD (types, tree walker, block merger, SHA-256 hash, glue, CLI)
 - [ ] 01-02-PLAN.md -- Content type classification, passthrough detection, batch builder
 - [ ] 01-03-PLAN.md -- Parser validation against game runtime capture data (4,550 entries)
 
