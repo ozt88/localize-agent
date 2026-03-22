@@ -68,7 +68,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md -- Store.QueryDone() + translations.json v3 export domain logic
 - [x] 03-02-PLAN.md -- ink JSON injection (InjectTranslations) with TDD
-- [ ] 03-03-PLAN.md -- Export CLI wiring + localizationtexts CSV + verification checkpoint
+- [x] 03-03-PLAN.md -- Export CLI wiring + localizationtexts CSV + verification checkpoint
 
 ### Phase 4: 플러그인 최적화 & 게임 검증
 **Goal**: Plugin.cs 매칭 로직을 대사 블록 단위에 최적화하고, 게임 내에서 태그 깨짐 없이 한국어가 표시됨을 확인한다

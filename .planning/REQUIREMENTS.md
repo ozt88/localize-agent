@@ -45,7 +45,7 @@
 
 - [x] **PATCH-01**: v2 대사 블록 단위 소스로 translations.json 생성 (BepInEx TranslationLoader 호환)
 - [x] **PATCH-02**: 285개 textassets 파일에 한국어 삽입된 ink JSON 생성
-- [ ] **PATCH-03**: localizationtexts CSV 및 runtime_lexicon.json 생성
+- [x] **PATCH-03**: localizationtexts CSV 및 runtime_lexicon.json 생성
 
 ### 플러그인 (PLUGIN)
 
@@ -55,7 +55,7 @@
 
 ### 통합 검증 (VERIFY)
 
-- [ ] **VERIFY-01**: v2 파이프라인으로 전량(40,067건+) 재번역 실행 완료
+- [x] **VERIFY-01**: v2 파이프라인으로 전량(40,067건+) 재번역 실행 완료
 - [ ] **VERIFY-02**: 패치 적용 후 게임 내에서 태그 깨짐(bold 누출, color 누출) 없이 한국어 표시
 
 ## 나중에 추가 (필수 완성 후)
@@ -103,11 +103,11 @@
 | INFRA-03 | Phase 2 | Complete |
 | PATCH-01 | Phase 3 | Complete |
 | PATCH-02 | Phase 3 | Complete |
-| PATCH-03 | Phase 3 | Pending |
+| PATCH-03 | Phase 3 | Complete |
 | PLUGIN-01 | Phase 4 | Pending |
 | PLUGIN-02 | Phase 4 | Pending |
 | PLUGIN-03 | Phase 4 | Pending |
-| VERIFY-01 | Phase 3 | Pending |
+| VERIFY-01 | Phase 3 | Complete |
 | VERIFY-02 | Phase 4 | Pending |
 
 **Coverage:**
