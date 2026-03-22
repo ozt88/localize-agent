@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-2단계 LLM 아키텍처(gpt-5.4 번역 + codex-mini 태그 복원)로 40,067개 대사 블록의 번역 결과를 생성하고, DB 상태 머신으로 대규모 실행을 관리한다. 용어집을 구축하여 번역 일관성을 유지하고, Score LLM으로 품질을 게이팅한다.
+2단계 LLM 아키텍처(gpt-5.4 번역 + gpt-5.3-codex-spark 태그 복원)로 40,067개 대사 블록의 번역 결과를 생성하고, DB 상태 머신으로 대규모 실행을 관리한다. 용어집을 구축하여 번역 일관성을 유지하고, Score LLM으로 품질을 게이팅한다.
 
 </domain>
 
@@ -15,17 +15,18 @@
 
 ### 클러스터 프롬프트 설계
 
-- **D-01:** 화자 태깅은 라인 앞에 직접 표시: `[01] Braxo: "번역 텍스트"`. codex-mini가 화자 제거 + 태그 복원을 함께 처리하므로 번역 LLM 출력의 화자 파싱 부담 없음.
+- **D-01:** 화자 태깅은 라인 앞에 직접 표시: `[01] Braxo: "번역 텍스트"`. gpt-5.3-codex-spark가 화자 제거 + 태그 복원을 함께 처리하므로 번역 LLM 출력의 화자 파싱 부담 없음.
 - **D-02:** 분기 마커는 인라인 태그: `[05] [CHOICE] "(선택지 텍스트)"`. 라인 수 불변. LLM이 태그를 출력에 포함해도 formatter가 제거.
 - **D-03:** 이전 게이트 맥락 주입: 같은 knot의 이전 게이트 마지막 3줄을 `[CONTEXT]` 블록으로 배치 앞에 추가. 번역 대상 아님을 명시.
 - **D-04:** 콘텐츠 유형별 프롬프트: 베이스 프롬프트를 세션 warmup에 1회 주입 + 유형별 접미 규칙을 배치 전송 시 런타임 조립. 베이스 프롬프트를 warmup 세션에서 프롬프트 최적화.
 
 ### 태그 복원 전략
 
-- **D-05:** codex-mini 입력은 EN원본(태그포함) + KO번역(태그없음) 쌍. codex-mini가 EN↔KO 대응점을 스스로 찾아 태그 위치 결정. 이 방식을 우선 시도.
+- **D-05:** gpt-5.3-codex-spark 입력은 EN원본(태그포함) + KO번역(태그없음) 쌍. gpt-5.3-codex-spark가 EN↔KO 대응점을 스스로 찾아 태그 위치 결정. 이 방식을 우선 시도.
 - **D-06:** 소규모 배치(3-5줄)로 시작하여 안정화 후 배치 크기 확대.
-- **D-07:** 태그 검증은 엄격: 태그 문자열 정확 매칭(수, 순서, 속성값). 태그 안에 들어간 번역어의 적절성도 Score LLM에서 함께 평가.
-- **D-08:** 복원 실패 시 codex-mini 2회 재시도(2회차에 실패 이유 힌트), 3회차에 gpt-5.4로 에스컬레이션.
+- **D-07:** 태그 검증: 태그 수 + 각 태그 문자열 존재 확인 (순서는 무시 — 한국어 어순이 영어와 다르므로 태그 순서가 바뀌는 것은 정상). 태그 안에 들어간 번역어의 의미 적절성은 Score LLM에 위임.
+- **D-07a:** formatter 모델: 기본 gpt-5.3-codex-spark, 에스컬레이션 gpt-5.3-codex → gpt-5.4. gpt-5.3-codex-spark는 OpenCode 서버에 없음 (실험으로 확인).
+- **D-08:** 복원 실패 시 gpt-5.3-codex-spark 2회 재시도(2회차에 실패 이유 힌트), 3회차에 gpt-5.4로 에스컬레이션.
 
 ### 용어집 구축 및 주입
 
@@ -43,7 +44,7 @@
   - 한글 비율은 거부 기준에서 제외 (고유명사 원문 유지 정책과 충돌)
 - **D-14:** Score LLM은 formatter 이후 1회 호출. 번역 품질 + 포맷 적절성을 동시 평가. failure_type(translation/format/both/pass)과 reason을 반환하여 재시도 라우팅:
   - failure_type="translation" → Stage 1(gpt-5.4)부터 재시도
-  - failure_type="format" → Stage 2(codex-mini)만 재시도
+  - failure_type="format" → Stage 2(gpt-5.3-codex-spark)만 재시도
   - failure_type="both" → Stage 1부터 재시도
   - failure_type="pass" → done
 - **D-15:** 재시도 전략: 동일 모델 2회(2회차에 Score LLM reason을 힌트로 추가) → 3회차에 고지능 모델로 에스컬레이션. 번역/format 각각 동일 패턴.
@@ -55,7 +56,7 @@
 번역(gpt-5.4)
   → 코드 검증(퇴화/마커) → [실패] → 번역 재시도 (D-15 패턴)
   → [통과]
-  → formatter(codex-mini)
+  → formatter(gpt-5.3-codex-spark)
   → 코드 검증(태그 매칭) → [실패] → format 재시도 (D-15 패턴)
   → [통과]
   → Score LLM(품질+포맷, failure_type 반환)
@@ -157,7 +158,7 @@
 <specifics>
 ## Specific Ideas
 
-- formatter(codex-mini)의 역할이 v2에서 확장됨: 화자 제거 + 인라인 태그([CHOICE]) 제거 + 리치텍스트 태그 복원 + 번호 마커 → ID 매핑. 단순한 "태그 삽입기"가 아니라 "번역 출력 정규화기"에 가까움.
+- formatter(gpt-5.3-codex-spark)의 역할이 v2에서 확장됨: 화자 제거 + 인라인 태그([CHOICE]) 제거 + 리치텍스트 태그 복원 + 번호 마커 → ID 매핑. 단순한 "태그 삽입기"가 아니라 "번역 출력 정규화기"에 가까움.
 - Score LLM의 failure_type 반환은 JSON 형식: `{"translation_score": N, "format_score": N, "failure_type": "...", "reason": "..."}`. 파이프라인이 이를 파싱하여 재시도 라우팅.
 - 구두점 전용 블록 49개(말줄임표, `<wiggle>...</wiggle>`)는 배치 조립 전에 필터하여 원문 유지. 이들은 `IsPassthrough`에 추가하거나 별도 필터로 처리.
 - `<i>단어</i>` 패턴 151개는 번역 필요 — 짧지만 의미 있는 텍스트. 태그 복원 대상.
