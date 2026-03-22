@@ -98,7 +98,10 @@ func run() int {
 	fmt.Fprintf(os.Stderr, "Loaded %d done items\n", len(items))
 
 	// --- 1. translations.json (PATCH-01) ---
-	os.MkdirAll(outDir, 0o755)
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "v2-export: mkdir %s: %v\n", outDir, err)
+		return 1
+	}
 	sidecar := v2pipeline.BuildV3Sidecar(items)
 	tjPath := filepath.Join(outDir, "translations.json")
 	if err := v2pipeline.WriteTranslationsJSON(tjPath, sidecar); err != nil {
@@ -110,7 +113,10 @@ func run() int {
 	// --- 2. TextAsset injection (PATCH-02) ---
 	if textassetDir != "" {
 		taOutDir := filepath.Join(outDir, "textassets")
-		os.MkdirAll(taOutDir, 0o755)
+		if err := os.MkdirAll(taOutDir, 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "v2-export: mkdir %s: %v\n", taOutDir, err)
+			return 1
+		}
 
 		// Build source_hash -> ko_formatted map from done items
 		hashToKO := make(map[string]string, len(items))
@@ -152,7 +158,7 @@ func run() int {
 			// NOTE: current Plugin.cs scans *.txt only; Phase 4 (PLUGIN-01) will add *.json scanning
 			outName := sourceFile + ".json"
 			outPath := filepath.Join(taOutDir, outName)
-			if err := os.WriteFile(outPath, injected, 0o644); err != nil {
+			if err := shared.AtomicWriteFile(outPath, injected, 0o644); err != nil {
 				fmt.Fprintf(os.Stderr, "v2-export: write %s: %v\n", outPath, err)
 				return 1
 			}
@@ -167,14 +173,17 @@ func run() int {
 		if csvOutDir == "" {
 			csvOutDir = filepath.Join(outDir, "localizationtexts")
 		}
-		os.MkdirAll(csvOutDir, 0o755)
+		if err := os.MkdirAll(csvOutDir, 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "v2-export: mkdir %s: %v\n", csvOutDir, err)
+			return 1
+		}
 
 		// Initialize LLM client for CSV translation
 		if project == "" && projectDir == "" {
 			fmt.Fprintf(os.Stderr, "v2-export: -project or -project-dir is required for CSV translation\n")
 			return 1
 		}
-		projCfg, resolvedDir, err := shared.LoadProjectConfig(project, projectDir)
+		projCfg, _, err := shared.LoadProjectConfig(project, projectDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "v2-export: load project config: %v\n", err)
 			return 1
@@ -183,8 +192,6 @@ func run() int {
 			fmt.Fprintf(os.Stderr, "v2-export: project config not found\n")
 			return 1
 		}
-		_ = resolvedDir // used for path resolution if needed
-
 		// Use high_llm profile for CSV translation (same quality as main pipeline)
 		highLLM := projCfg.Pipeline.HighLLM
 		providerID, modelID, err := platform.ParseModel(highLLM.Model)

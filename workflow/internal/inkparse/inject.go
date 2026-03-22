@@ -214,6 +214,9 @@ func (inj *injector) walkFlatContent(arr []any, knot, gate, choice string) {
 			case "<>":
 				// glue, skip
 			case "\n":
+				// Intentionally NOT recorded in textNodeIndices — newline nodes are
+				// control markers that must stay unmodified. They contribute to the
+				// hash via textBuf to match the parser's walkFlatContent behavior.
 				if textBuf.Len() > 0 {
 					textBuf.WriteString("\n")
 				}
