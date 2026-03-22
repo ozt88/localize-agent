@@ -29,6 +29,9 @@ CREATE TABLE IF NOT EXISTS pipeline_items_v2 (
     source_file TEXT NOT NULL DEFAULT '',
     knot TEXT NOT NULL DEFAULT '',
     content_type TEXT NOT NULL DEFAULT '',
+    speaker TEXT NOT NULL DEFAULT '',
+    choice TEXT NOT NULL DEFAULT '',
+    gate TEXT NOT NULL DEFAULT '',
     source_raw TEXT NOT NULL,
     source_hash TEXT NOT NULL UNIQUE,
     has_tags INTEGER NOT NULL DEFAULT 0,
@@ -153,10 +156,11 @@ func (s *Store) Seed(items []contracts.V2PipelineItem) (int, int, error) {
 		var result sql.Result
 		if s.backend == platform.DBBackendPostgres {
 			result, err = tx.Exec(`
-				INSERT INTO pipeline_items_v2 (id, sort_index, source_file, knot, content_type, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, updated_at)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+				INSERT INTO pipeline_items_v2 (id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, updated_at)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
 				ON CONFLICT (source_hash) DO NOTHING`,
 				item.ID, item.SortIndex, item.SourceFile, item.Knot, item.ContentType,
+				item.Speaker, item.Choice, item.Gate,
 				item.SourceRaw, item.SourceHash, hasTags, item.State,
 				nullableText(item.KORaw), nullableText(item.KOFormatted),
 				item.TranslateAttempts, item.FormatAttempts, item.ScoreAttempts,
@@ -165,10 +169,11 @@ func (s *Store) Seed(items []contracts.V2PipelineItem) (int, int, error) {
 			)
 		} else {
 			result, err = tx.Exec(`
-				INSERT INTO pipeline_items_v2 (id, sort_index, source_file, knot, content_type, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, updated_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				INSERT INTO pipeline_items_v2 (id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				ON CONFLICT (source_hash) DO NOTHING`,
 				item.ID, item.SortIndex, item.SourceFile, item.Knot, item.ContentType,
+				item.Speaker, item.Choice, item.Gate,
 				item.SourceRaw, item.SourceHash, hasTags, item.State,
 				nullableText(item.KORaw), nullableText(item.KOFormatted),
 				item.TranslateAttempts, item.FormatAttempts, item.ScoreAttempts,
@@ -223,7 +228,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			UPDATE pipeline_items_v2
 			SET state = $3, claimed_by = $4, claimed_at = $5, lease_until = $6, updated_at = $7
 			WHERE id IN (SELECT id FROM picked)
-			RETURNING id, sort_index, source_file, knot, content_type, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id`, batchSize),
+			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id`, batchSize),
 			pendingState, nowVal, workingState, workerID, nowVal, leaseVal, nowVal,
 		)
 	} else {
@@ -280,7 +285,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			readArgs[i] = id
 		}
 		rows, err = s.db.Query(fmt.Sprintf(`
-			SELECT id, sort_index, source_file, knot, content_type, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
 			FROM pipeline_items_v2
 			WHERE id IN (%s)
 			ORDER BY sort_index, id`, strings.Join(readPlaceholders, ",")),
@@ -510,7 +515,7 @@ func (s *Store) CountByState() (map[string]int, error) {
 // GetItem retrieves a single pipeline item by ID.
 func (s *Store) GetItem(id string) (*contracts.V2PipelineItem, error) {
 	row := s.db.QueryRow(s.rebind(`
-		SELECT id, sort_index, source_file, knot, content_type, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+		SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
 		FROM pipeline_items_v2
 		WHERE id = ?`),
 		id,
@@ -534,6 +539,7 @@ func (s *Store) scanItem(rows *sql.Rows) (contracts.V2PipelineItem, error) {
 
 	err := rows.Scan(
 		&item.ID, &item.SortIndex, &item.SourceFile, &item.Knot, &item.ContentType,
+		&item.Speaker, &item.Choice, &item.Gate,
 		&item.SourceRaw, &item.SourceHash, &hasTags, &item.State,
 		&koRaw, &koFormatted,
 		&item.TranslateAttempts, &item.FormatAttempts, &item.ScoreAttempts,
@@ -564,6 +570,7 @@ func (s *Store) scanItemRow(row *sql.Row) (contracts.V2PipelineItem, error) {
 
 	err := row.Scan(
 		&item.ID, &item.SortIndex, &item.SourceFile, &item.Knot, &item.ContentType,
+		&item.Speaker, &item.Choice, &item.Gate,
 		&item.SourceRaw, &item.SourceHash, &hasTags, &item.State,
 		&koRaw, &koFormatted,
 		&item.TranslateAttempts, &item.FormatAttempts, &item.ScoreAttempts,
@@ -647,6 +654,55 @@ func parseBool(v interface{}) bool {
 	default:
 		return false
 	}
+}
+
+// MarkDonePassthrough sets state=done with ko_formatted=source text for punctuation-only blocks.
+func (s *Store) MarkDonePassthrough(id, koFormatted string) error {
+	now := s.nowValue()
+	_, err := s.db.Exec(s.rebind(`
+		UPDATE pipeline_items_v2
+		SET state = ?, ko_raw = ?, ko_formatted = ?,
+		    claimed_by = '', claimed_at = NULL, lease_until = NULL,
+		    updated_at = ?
+		WHERE id = ?`),
+		StateDone, koFormatted, koFormatted, now, id,
+	)
+	return err
+}
+
+// GetPrevGateLines returns the last N source_raw texts from the previous gate
+// in the same knot, ordered by sort_index descending. Used for D-03 context injection.
+func (s *Store) GetPrevGateLines(knot, currentGate string, limit int) ([]string, error) {
+	if knot == "" || currentGate == "" {
+		return nil, nil
+	}
+
+	rows, err := s.db.Query(s.rebind(`
+		SELECT source_raw FROM pipeline_items_v2
+		WHERE knot = ? AND gate != ? AND gate != ''
+		  AND sort_index < (SELECT MIN(sort_index) FROM pipeline_items_v2 WHERE knot = ? AND gate = ?)
+		ORDER BY sort_index DESC
+		LIMIT ?`),
+		knot, currentGate, knot, currentGate, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lines []string
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			return nil, err
+		}
+		lines = append(lines, line)
+	}
+	// Reverse so lines are in chronological order (oldest first).
+	for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
+		lines[i], lines[j] = lines[j], lines[i]
+	}
+	return lines, rows.Err()
 }
 
 // nullableText converts empty strings to NULL for ko_raw/ko_formatted.

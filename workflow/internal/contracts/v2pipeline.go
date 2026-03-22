@@ -8,6 +8,9 @@ type V2PipelineItem struct {
 	SourceFile        string  // TextAsset filename
 	Knot              string  // knot name
 	ContentType       string  // dialogue, spell, ui, item, system
+	Speaker           string  // speaker label from ink # tag (e.g., "Braxo")
+	Choice            string  // choice ID (e.g., "c-1") or empty
+	Gate              string  // gate ID (e.g., "g-0") or empty
 	SourceRaw         string  // original EN text
 	SourceHash        string  // SHA-256 of SourceRaw
 	HasTags           bool    // whether source contains rich-text tags
@@ -63,6 +66,13 @@ type V2PipelineStore interface {
 
 	// CountByState returns counts of items grouped by state.
 	CountByState() (map[string]int, error)
+
+	// MarkDonePassthrough sets state=done with ko_formatted=source text (for punctuation-only blocks).
+	MarkDonePassthrough(id, koFormatted string) error
+
+	// GetPrevGateLines returns the last N source_raw texts from the previous gate
+	// in the same knot, ordered by sort_index descending. Used for D-03 context injection.
+	GetPrevGateLines(knot, currentGate string, limit int) ([]string, error)
 
 	// GetItem retrieves a single pipeline item by ID.
 	GetItem(id string) (*V2PipelineItem, error)

@@ -192,6 +192,24 @@ func (s *fakeStore) GetItem(id string) (*contracts.V2PipelineItem, error) {
 	}
 	return nil, nil
 }
+func (s *fakeStore) MarkDonePassthrough(id, koFormatted string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	item, ok := s.items[id]
+	if !ok {
+		return fmt.Errorf("item %s not found", id)
+	}
+	item.State = StateDone
+	item.KORaw = koFormatted
+	item.KOFormatted = koFormatted
+	item.ClaimedBy = ""
+	return nil
+}
+
+func (s *fakeStore) GetPrevGateLines(knot, currentGate string, limit int) ([]string, error) {
+	return nil, nil // no-op for tests
+}
+
 func (s *fakeStore) Close() error { return nil }
 
 // TestTranslateWorkerHappyPath verifies claim -> translate -> mark translated.

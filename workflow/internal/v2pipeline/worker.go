@@ -3,6 +3,7 @@ package v2pipeline
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -49,8 +50,12 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		for batchID, batchItems := range batches {
 			if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, batchID, batchItems); err != nil {
 				// Log error but continue processing other batches.
-				fmt.Printf("[translate-%s] batch %s error: %v\n", workerID, batchID, err)
+				fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, batchID, err)
 			}
+		}
+
+		if cfg.Once {
+			return nil
 		}
 	}
 }
@@ -68,7 +73,8 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		blocks[i] = inkparse.DialogueBlock{
 			ID:      item.ID,
 			Text:    item.SourceRaw,
-			Speaker: "", // Speaker extracted from source at parse time, not stored separately.
+			Speaker: item.Speaker,
+			Choice:  item.Choice,
 		}
 		sourceTexts[i] = item.SourceRaw
 	}
@@ -90,9 +96,16 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		}
 	}
 
+	// Fetch previous gate context for D-03 injection.
+	var prevGateLines []string
+	if items[0].Gate != "" {
+		prevGateLines, _ = store.GetPrevGateLines(items[0].Knot, items[0].Gate, 3)
+	}
+
 	task := clustertranslate.ClusterTask{
-		Batch:        batch,
-		GlossaryJSON: glossaryJSON,
+		Batch:         batch,
+		GlossaryJSON:  glossaryJSON,
+		PrevGateLines: prevGateLines,
 	}
 
 	prompt, meta := clustertranslate.BuildScriptPrompt(task)
@@ -171,7 +184,15 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 
 	// Mark excluded items (punctuation-only per D-13) as done with source preserved.
 	for _, excludedID := range meta.ExcludedBlockIDs {
-		if err := store.MarkTranslated(excludedID, ""); err != nil {
+		// Find source_raw for this excluded block to preserve as output.
+		var sourceRaw string
+		for _, item := range items {
+			if item.ID == excludedID {
+				sourceRaw = item.SourceRaw
+				break
+			}
+		}
+		if err := store.MarkDonePassthrough(excludedID, sourceRaw); err != nil {
 			return fmt.Errorf("mark excluded %s: %w", excludedID, err)
 		}
 	}
@@ -221,8 +242,12 @@ func FormatWorker(ctx context.Context, cfg Config, store contracts.V2PipelineSto
 			subBatch := items[i:end]
 
 			if err := formatSubBatch(ctx, cfg, store, llm, formatProfile, highProfile, sessionKey, workerID, subBatch); err != nil {
-				fmt.Printf("[format-%s] sub-batch error: %v\n", workerID, err)
+				fmt.Fprintf(os.Stderr, "[format-%s] sub-batch error: %v\n", workerID, err)
 			}
+		}
+
+		if cfg.Once {
+			return nil
 		}
 	}
 }
@@ -327,8 +352,12 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 		// Score each item individually (Open Question 2 in RESEARCH.md).
 		for _, item := range items {
 			if err := scoreItem(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, item); err != nil {
-				fmt.Printf("[score-%s] item %s error: %v\n", workerID, item.ID, err)
+				fmt.Fprintf(os.Stderr, "[score-%s] item %s error: %v\n", workerID, item.ID, err)
 			}
+		}
+
+		if cfg.Once {
+			return nil
 		}
 	}
 }
@@ -373,7 +402,7 @@ func scoreItem(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	}
 
 	// Mark scored -- this auto-routes per D-14.
-	scoreFinal := (result.TranslationScore + result.FormatScore) / 2.0
+	scoreFinal := result.ScoreFinal()
 	if err := store.MarkScored(item.ID, scoreFinal, result.FailureType, result.Reason); err != nil {
 		return fmt.Errorf("mark scored %s: %w", item.ID, err)
 	}
