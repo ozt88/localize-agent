@@ -101,10 +101,10 @@ func (w *walker) walkContainer(arr []any, knot, gate, choice string) {
 		}
 	}
 
-	// Recurse into named sub-containers in metadata dict (c-N, g-N, etc.)
+	// Recurse into named sub-containers in metadata dict (c-N, g-N, hubs)
 	if meta != nil {
 		for key, val := range meta {
-			if isMetaKey(key) {
+			if isMetaKey(key) || isInternalKey(key) {
 				continue
 			}
 			if subArr, ok := val.([]any); ok {
@@ -113,7 +113,7 @@ func (w *walker) walkContainer(arr []any, knot, gate, choice string) {
 				} else if strings.HasPrefix(key, "g-") {
 					w.walkContainer(subArr, knot, key, "")
 				} else {
-					// Other named containers
+					// Named hub containers (e.g., "hubFirstSide")
 					w.walkContainer(subArr, knot, key, "")
 				}
 			}
@@ -391,4 +391,19 @@ func buildPath(knot, gate, choice string) string {
 // isMetaKey returns true for ink metadata keys (not content keys).
 func isMetaKey(key string) bool {
 	return key == "#f" || key == "#n"
+}
+
+// isInternalKey returns true for ink internal keys that are not named containers.
+// These include "s" (choice start content), "$r" style temp vars, etc.
+func isInternalKey(key string) bool {
+	if key == "s" {
+		return true
+	}
+	if strings.HasPrefix(key, "$") {
+		return true
+	}
+	if strings.HasPrefix(key, "^") {
+		return true
+	}
+	return false
 }
