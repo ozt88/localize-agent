@@ -535,6 +535,36 @@ func (s *Store) GetItem(id string) (*contracts.V2PipelineItem, error) {
 	return &item, nil
 }
 
+// QueryDone returns all items in state=done, ordered by sort_index.
+func (s *Store) QueryDone() ([]contracts.V2PipelineItem, error) {
+	rows, err := s.db.Query(s.rebind(`
+		SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate,
+		       source_raw, source_hash, has_tags, state, ko_raw, ko_formatted,
+		       translate_attempts, format_attempts, score_attempts, score_final,
+		       failure_type, last_error, attempt_log, claimed_by, batch_id
+		FROM pipeline_items_v2
+		WHERE state = ?
+		ORDER BY sort_index`),
+		contracts.StateDone,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []contracts.V2PipelineItem
+	for rows.Next() {
+		item, err := s.scanItem(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	if items == nil {
+		items = []contracts.V2PipelineItem{}
+	}
+	return items, rows.Err()
+}
+
 // scanItem scans a row from sql.Rows into a V2PipelineItem.
 func (s *Store) scanItem(rows *sql.Rows) (contracts.V2PipelineItem, error) {
 	var item contracts.V2PipelineItem

@@ -192,6 +192,17 @@ func (s *fakeStore) GetItem(id string) (*contracts.V2PipelineItem, error) {
 	}
 	return nil, nil
 }
+func (s *fakeStore) QueryDone() ([]contracts.V2PipelineItem, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var result []contracts.V2PipelineItem
+	for _, item := range s.items {
+		if item.State == contracts.StateDone {
+			result = append(result, *item)
+		}
+	}
+	return result, nil
+}
 func (s *fakeStore) MarkDonePassthrough(id, koFormatted string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

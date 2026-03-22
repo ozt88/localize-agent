@@ -89,6 +89,9 @@ type V2PipelineStore interface {
 	// in the same knot, ordered by sort_index descending. Used for D-03 context injection.
 	GetPrevGateLines(knot, currentGate string, limit int) ([]string, error)
 
+	// QueryDone returns all items in state=done, ordered by sort_index.
+	QueryDone() ([]V2PipelineItem, error)
+
 	// GetItem retrieves a single pipeline item by ID.
 	GetItem(id string) (*V2PipelineItem, error)
 
