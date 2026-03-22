@@ -13,7 +13,7 @@ v1의 근본 문제(소스 단위 != 렌더링 단위)를 해결하기 위해 in
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: 소스 준비 & 파서** - 해시 수정, ink JSON 파서 구축, 대사 블록 단위 소스 생성 및 검증
-- [ ] **Phase 2: 번역 엔진** - 클러스터 번역(gpt-5.4) + 태그 복원(codex-mini) + 파이프라인 상태 관리
+- [x] **Phase 2: 번역 엔진** - 클러스터 번역(gpt-5.4) + 태그 복원(codex-mini) + 파이프라인 상태 관리 (completed 2026-03-22)
 - [ ] **Phase 3: 패치 출력 & 전량 실행** - 77K건 파이프라인 통과, translations.json/textassets/localizationtexts 생성
 - [ ] **Phase 4: 플러그인 최적화 & 게임 검증** - Plugin.cs 매칭 정리, 게임 내 태그 깨짐 없이 동작 확인
 
@@ -52,7 +52,7 @@ Plans:
 - [x] 02-01-PLAN.md -- V2 pipeline contracts, DB schema (pipeline_items_v2), PostgreSQL store, ingest CLI
 - [x] 02-02-PLAN.md -- Glossary loader (3 sources) + cluster translation domain (prompts, parser, validator)
 - [x] 02-03-PLAN.md -- Tag format domain (codex-mini prompts, tag validation) + Score LLM domain (response parser, failure routing)
-- [ ] 02-04-PLAN.md -- Pipeline orchestrator (3-role workers, retry logic) + CLI entry point + prompt templates
+- [x] 02-04-PLAN.md -- Pipeline orchestrator (3-role workers, retry logic) + CLI entry point + prompt templates
 
 ### Phase 3: 패치 출력 & 전량 실행
 **Goal**: v2 파이프라인으로 77,816건+ 전량을 처리하고, BepInEx 호환 패치 아티팩트를 생성한다
@@ -89,6 +89,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. 소스 준비 & 파서 | 3/3 | Complete |  |
-| 2. 번역 엔진 | 0/4 | Planned | - |
+| 2. 번역 엔진 | 4/4 | Complete   | 2026-03-22 |
 | 3. 패치 출력 & 전량 실행 | 0/? | Not started | - |
 | 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |

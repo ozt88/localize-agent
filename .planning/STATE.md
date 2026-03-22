@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-22T15:57:22.990Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-22T16:28:27.035Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -52,6 +52,7 @@ Plan: 4 of 4
 | Phase 02 P01 | 5min | 3 tasks | 6 files |
 | Phase 02 P03 | 5min | 2 tasks | 11 files |
 | Phase 02 P02 | 6min | 3 tasks | 10 files |
+| Phase 02 P04 | multi-session | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Tag order ignored in validation per D-07 -- frequency map comparison, not positional
 - [Phase 02]: Localization texts CSV format: comma-delimited (ID,ENGLISH,KOREAN), BOM stripping for Windows game files
 - [Phase 02]: Punctuation-only check duplicated in clustertranslate to avoid cross-package import
+- [Phase 02]: scorellm/types.go uses string literals instead of v2pipeline constants to break import cycle
+- [Phase 02]: ScoreFinal() method on ScoreResult computes weighted final score for clean abstraction boundary in worker
+- [Phase 02]: Excluded blocks (content_type=excluded) filtered in TranslateWorker before LLM call to avoid wasted API calls
 
 ### Pending Todos
 
@@ -84,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:57:22.987Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-03-22T16:28:27.032Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
