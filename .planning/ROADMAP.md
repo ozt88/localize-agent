@@ -63,10 +63,12 @@ Plans:
   2. translations.json이 대사 블록 단위 키로 생성되어 BepInEx TranslationLoader에서 로드된다
   3. 285개 textassets 파일에 한국어가 삽입된 ink JSON이 생성되며, 원본과 컨테이너 구조가 동일하다
   4. localizationtexts CSV 및 runtime_lexicon.json이 생성된다
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md -- Store.QueryDone() + translations.json v3 export domain logic
+- [ ] 03-02-PLAN.md -- ink JSON injection (InjectTranslations) with TDD
+- [ ] 03-03-PLAN.md -- Export CLI wiring + localizationtexts CSV + verification checkpoint
 
 ### Phase 4: 플러그인 최적화 & 게임 검증
 **Goal**: Plugin.cs 매칭 로직을 대사 블록 단위에 최적화하고, 게임 내에서 태그 깨짐 없이 한국어가 표시됨을 확인한다
