@@ -314,22 +314,89 @@ func (w *walker) tryExtractChoiceText(remaining []any, knot, gate string) {
 	}
 }
 
-// isSpeakerTag checks if a tag is a speaker/role tag (vs a check/objective tag).
+// isSpeakerTag checks if a tag is a speaker/character name tag
+// (vs a game command, check, conditional, or objective tag).
+//
+// Strategy: reject known non-speaker patterns, accept proper-case single words.
+// Prefers false-positive speakers over missing character names, because
+// downstream translation prompts benefit more from having speaker context
+// (even occasionally wrong) than from missing it entirely.
 func isSpeakerTag(tag string) bool {
+	// DC/FC check tags
 	if strings.HasPrefix(tag, "DC") || strings.HasPrefix(tag, "FC") {
 		return false
 	}
+	// Conditional tags like ".DrummerIntro==1"
 	if strings.HasPrefix(tag, ".") {
-		return false // conditional tags like ".DrummerIntro==1"
+		return false
 	}
-	upper := strings.ToUpper(tag)
-	if upper == tag && len(tag) > 1 {
-		return false // ALL CAPS like OBJ, MINOR
+	// ALL CAPS: OBJ, PCVFX, SFX, NPC, DEATH, etc.
+	if len(tag) > 1 && tag == strings.ToUpper(tag) {
+		return false
 	}
+	// Known ability score / role tags (lowercase)
 	switch tag {
-	case "speaker":
+	case "speaker", "wis", "str", "int", "con", "dex", "cha", "reply":
 		return true
-	case "wis", "str", "int", "con", "dex", "cha", "reply":
+	}
+	// Reject game command patterns
+	if isGameCommandTag(tag) {
+		return false
+	}
+	// Accept proper-case single words as character names:
+	// Starts with uppercase, rest lowercase, length >= 2
+	if len(tag) >= 2 && tag[0] >= 'A' && tag[0] <= 'Z' {
+		allLower := true
+		for _, r := range tag[1:] {
+			if r < 'a' || r > 'z' {
+				allLower = false
+				break
+			}
+		}
+		if allLower {
+			return true
+		}
+	}
+	return false
+}
+
+// isGameCommandTag returns true for tags that are game engine commands,
+// not character names. These use CamelCase, underscores, known prefixes,
+// dice notation, numbers, or known non-speaker keywords.
+func isGameCommandTag(tag string) bool {
+	// CamelCase compound words: internal uppercase after lowercase
+	// e.g., PlaySFX, CamFocus, FadeToBlack, AddItem, PCTrigger
+	for i := 1; i < len(tag); i++ {
+		if tag[i-1] >= 'a' && tag[i-1] <= 'z' && tag[i] >= 'A' && tag[i] <= 'Z' {
+			return true
+		}
+	}
+	// Contains underscore: vo_drummer, generic_fire, Ragn_Idle
+	if strings.Contains(tag, "_") {
+		return true
+	}
+	// Pure numbers: "1", "0", "3600"
+	allDigit := len(tag) > 0
+	for _, r := range tag {
+		if r < '0' || r > '9' {
+			allDigit = false
+			break
+		}
+	}
+	if allDigit {
+		return true
+	}
+	// Dice notation: "1d4", "2d6", "3d10"
+	if len(tag) >= 3 && tag[0] >= '0' && tag[0] <= '9' && strings.Contains(tag, "d") {
+		return true
+	}
+	// Known non-speaker single words (not character names)
+	switch tag {
+	case "Minor", "Medium", "Major", "Crowns",
+		"Death", "Attacking", "Casting", "Punching",
+		"Biting", "Crawling", "Dancing", "Cower",
+		"Combat", "Cutscene", "Appear", "Disappear",
+		"Augury", "Attack":
 		return true
 	}
 	return false

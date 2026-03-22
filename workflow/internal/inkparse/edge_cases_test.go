@@ -502,21 +502,17 @@ func TestParse_RealFile_TS_Braxo_HasBlocks(t *testing.T) {
 	}
 	t.Logf("TS_Braxo: %d blocks, %d text entries", len(result.Blocks), result.TotalTextEntries)
 
-	// NOTE: "Braxo" is classified as a tag, not Speaker, because isSpeakerTag
-	// only recognizes literal "speaker" and ability scores (wis, str, etc.).
-	// Character names (Braxo, Snell, Meek) go to Tags[]. This is a known
-	// metadata quality gap — does not affect block extraction correctness.
-	foundBraxoTag := false
+	// After isSpeakerTag fix: character names like "Braxo" are now
+	// correctly classified as Speaker, not Tags.
+	foundBraxoSpeaker := false
 	for _, b := range result.Blocks {
-		for _, tag := range b.Tags {
-			if tag == "Braxo" {
-				foundBraxoTag = true
-				break
-			}
+		if b.Speaker == "Braxo" {
+			foundBraxoSpeaker = true
+			break
 		}
 	}
-	if !foundBraxoTag {
-		t.Error("expected at least one block with 'Braxo' in Tags")
+	if !foundBraxoSpeaker {
+		t.Error("expected at least one block with Speaker='Braxo'")
 	}
 }
 
@@ -860,6 +856,116 @@ func TestValidateAgainstCapture_DuplicateEntries(t *testing.T) {
 	}
 	if report.Unmatched != 1 {
 		t.Errorf("Unmatched = %d, want 1", report.Unmatched)
+	}
+}
+
+// =============================================================================
+// isSpeakerTag classification tests
+// =============================================================================
+
+func TestIsSpeakerTag_CharacterNames(t *testing.T) {
+	// Proper-case single words should be recognized as speakers
+	names := []string{"Braxo", "Snell", "Ettir", "Viira", "Darrow", "Meek", "Gorm", "Arn", "Isk", "Oyu"}
+	for _, name := range names {
+		if !isSpeakerTag(name) {
+			t.Errorf("isSpeakerTag(%q) = false, want true (character name)", name)
+		}
+	}
+}
+
+func TestIsSpeakerTag_AbilityScores(t *testing.T) {
+	scores := []string{"wis", "str", "int", "con", "dex", "cha", "reply"}
+	for _, s := range scores {
+		if !isSpeakerTag(s) {
+			t.Errorf("isSpeakerTag(%q) = false, want true (ability score)", s)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsDCFC(t *testing.T) {
+	tags := []string{"DC10", "DC8", "FC12", "FC7"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (DC/FC tag)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsConditional(t *testing.T) {
+	tags := []string{".DrummerIntro==1", ".BraxoIntro=1", ".Q_Feathers=1"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (conditional)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsAllCaps(t *testing.T) {
+	tags := []string{"OBJ", "PCVFX", "NPC", "SFX", "DEATH", "BADEND"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (ALL CAPS)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsGameCommands(t *testing.T) {
+	commands := []string{
+		"UpdateEntities", "PlaySFX", "FadeToClear", "FadeToBlack",
+		"CamFocus", "AddItem", "PCTrigger", "StopMusic", "PlayMusic",
+		"PCRotate", "PCAnimation", "GoToBlack", "SystemText",
+		"NPCTrigger", "EndEncounter", "PlayNormalMusic",
+	}
+	for _, cmd := range commands {
+		if isSpeakerTag(cmd) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (game command)", cmd)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsUnderscoreTags(t *testing.T) {
+	tags := []string{"vo_drummer", "generic_fire", "Ragn_Idle", "spell_misty_step"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (underscore tag)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsNumbers(t *testing.T) {
+	tags := []string{"1", "0", "3600", "100"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (number)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsDice(t *testing.T) {
+	tags := []string{"1d4", "2d6", "3d10", "6d6"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (dice notation)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_RejectsKnownNonSpeaker(t *testing.T) {
+	tags := []string{"Minor", "Medium", "Major", "Cutscene", "Death", "Combat", "Augury"}
+	for _, tag := range tags {
+		if isSpeakerTag(tag) {
+			t.Errorf("isSpeakerTag(%q) = true, want false (known non-speaker)", tag)
+		}
+	}
+}
+
+func TestIsSpeakerTag_XPGainHPLoss(t *testing.T) {
+	// CamelCase compounds → game commands
+	if isSpeakerTag("XPGain") {
+		t.Error("XPGain should not be speaker")
+	}
+	if isSpeakerTag("HPLoss") {
+		t.Error("HPLoss should not be speaker")
 	}
 }
 
