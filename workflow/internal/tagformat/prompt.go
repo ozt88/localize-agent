@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
-)
 
-// codeFenceRe matches markdown code fences wrapping JSON.
-var codeFenceRe = regexp.MustCompile("(?s)```(?:json)?\\s*(.+?)\\s*```")
+	"localize-agent/workflow/pkg/shared"
+)
 
 // BuildFormatWarmup returns the system prompt for gpt-5.3-codex-spark tag restoration.
 func BuildFormatWarmup() string {
@@ -65,7 +63,7 @@ func ParseFormatResponse(raw string, expectedCount int) ([]string, error) {
 	// Try extracting from code fence if direct parse fails.
 	var resp formatResponse
 	if err := json.Unmarshal([]byte(jsonStr), &resp); err != nil {
-		if m := codeFenceRe.FindStringSubmatch(raw); len(m) > 1 {
+		if m := shared.CodeFenceRe.FindStringSubmatch(raw); len(m) > 1 {
 			jsonStr = strings.TrimSpace(m[1])
 			if err2 := json.Unmarshal([]byte(jsonStr), &resp); err2 != nil {
 				return nil, fmt.Errorf("failed to parse format response: %w", err2)

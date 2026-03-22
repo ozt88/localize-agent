@@ -1,20 +1,20 @@
 package v2pipeline
 
-// Pipeline states per D-14/CONTEXT.md state flow.
-// Items flow: pending_translate -> working_translate -> translated ->
-// pending_format -> working_format -> formatted ->
-// pending_score -> working_score -> done | failed
+import "localize-agent/workflow/internal/contracts"
+
+// Re-export pipeline state constants from contracts for backward compatibility.
+// All state constants are canonically defined in contracts to avoid import cycles.
 const (
-	StatePendingTranslate = "pending_translate"
-	StateWorkingTranslate = "working_translate"
-	StateTranslated       = "translated"
-	StatePendingFormat    = "pending_format"
-	StateWorkingFormat    = "working_format"
-	StateFormatted        = "formatted"
-	StatePendingScore     = "pending_score"
-	StateWorkingScore     = "working_score"
-	StateDone             = "done"
-	StateFailed           = "failed"
+	StatePendingTranslate = contracts.StatePendingTranslate
+	StateWorkingTranslate = contracts.StateWorkingTranslate
+	StateTranslated       = contracts.StateTranslated
+	StatePendingFormat    = contracts.StatePendingFormat
+	StateWorkingFormat    = contracts.StateWorkingFormat
+	StateFormatted        = contracts.StateFormatted
+	StatePendingScore     = contracts.StatePendingScore
+	StateWorkingScore     = contracts.StateWorkingScore
+	StateDone             = contracts.StateDone
+	StateFailed           = contracts.StateFailed
 )
 
 // Config for v2 pipeline orchestration.

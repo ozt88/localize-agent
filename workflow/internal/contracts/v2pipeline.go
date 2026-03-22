@@ -1,5 +1,20 @@
 package contracts
 
+// Pipeline states per D-14 state flow.
+// Defined in contracts to avoid import cycles between domain packages.
+const (
+	StatePendingTranslate = "pending_translate"
+	StateWorkingTranslate = "working_translate"
+	StateTranslated       = "translated"
+	StatePendingFormat    = "pending_format"
+	StateWorkingFormat    = "working_format"
+	StateFormatted        = "formatted"
+	StatePendingScore     = "pending_score"
+	StateWorkingScore     = "working_score"
+	StateDone             = "done"
+	StateFailed           = "failed"
+)
+
 // V2PipelineItem represents a single dialogue block in the v2 translation pipeline.
 // Each item flows through translate -> format -> score stages with lease-based claiming.
 type V2PipelineItem struct {

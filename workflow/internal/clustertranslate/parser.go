@@ -10,9 +10,11 @@ import (
 // numberedLineRe matches lines starting with [NN] marker.
 var numberedLineRe = regexp.MustCompile(`^\[(\d+)\]\s*(.*)$`)
 
-// speakerRe matches "SpeakerName: text" or "SpeakerName: \"text\"" patterns.
-// Speaker names are typically single capitalized words or multi-word names.
-var speakerRe = regexp.MustCompile(`^([A-Za-z][A-Za-z0-9_ ]*?):\s*(.*)$`)
+// speakerRe matches "SpeakerName: text" patterns in LLM output.
+// Requires uppercase first letter to prevent false positives on Korean text
+// containing lowercase "english: ..." patterns (e.g., "Level: 조심해").
+// Character names in this game are always capitalized (Braxo, She'lia, Captain Morgan).
+var speakerRe = regexp.MustCompile(`^([A-Z][A-Za-z0-9_' ]*?):\s*(.*)$`)
 
 // ParseNumberedOutput parses LLM output into TranslatedLine slice.
 // Expects lines in format: [NN] optional-speaker: "translated text"

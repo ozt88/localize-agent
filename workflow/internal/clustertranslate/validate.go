@@ -56,6 +56,24 @@ func degenerateReason(en, ko string) string {
 		return "exact_source_copy"
 	}
 
+	// ASCII-heavy check: if >80% of non-space characters are ASCII,
+	// the LLM likely did not actually translate (v1 ascii_heavy check).
+	if len(koTrim) > 5 {
+		asciiCount, totalCount := 0, 0
+		for _, r := range koTrim {
+			if unicode.IsSpace(r) {
+				continue
+			}
+			totalCount++
+			if r < 128 {
+				asciiCount++
+			}
+		}
+		if totalCount > 0 && float64(asciiCount)/float64(totalCount) > 0.8 {
+			return "ascii_heavy"
+		}
+	}
+
 	return ""
 }
 

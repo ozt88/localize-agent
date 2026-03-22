@@ -3,12 +3,10 @@ package scorellm
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
-)
 
-// codeFenceRe matches markdown code fences wrapping JSON.
-var codeFenceRe = regexp.MustCompile("(?s)```(?:json)?\\s*(.+?)\\s*```")
+	"localize-agent/workflow/pkg/shared"
+)
 
 // validFailureTypes lists the accepted failure_type values per D-14.
 var validFailureTypes = map[string]bool{
@@ -28,7 +26,7 @@ func ParseScoreResponse(raw string) (*ScoreResult, error) {
 	var result ScoreResult
 	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
 		// Try extracting from code fence.
-		if m := codeFenceRe.FindStringSubmatch(raw); len(m) > 1 {
+		if m := shared.CodeFenceRe.FindStringSubmatch(raw); len(m) > 1 {
 			jsonStr = strings.TrimSpace(m[1])
 			if err2 := json.Unmarshal([]byte(jsonStr), &result); err2 != nil {
 				return nil, fmt.Errorf("failed to parse score response: %w", err2)

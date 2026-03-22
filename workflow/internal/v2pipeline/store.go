@@ -136,6 +136,9 @@ func (s *Store) Close() error {
 }
 
 // Seed inserts items into pipeline_items_v2, deduplicating by source_hash via ON CONFLICT DO NOTHING.
+// Design note: items with different IDs but the same source_hash are silently skipped (INFRA-02).
+// The pipeline references the first-inserted ID for a given source_hash, which may originate from
+// a different knot/gate context. This is intentional — identical source text gets one translation.
 func (s *Store) Seed(items []contracts.V2PipelineItem) (int, int, error) {
 	if len(items) == 0 {
 		return 0, 0, nil
@@ -224,6 +227,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 				  AND (claimed_by = '' OR lease_until IS NULL OR lease_until < $2)
 				ORDER BY sort_index, id
 				LIMIT %d
+				FOR UPDATE SKIP LOCKED
 			)
 			UPDATE pipeline_items_v2
 			SET state = $3, claimed_by = $4, claimed_at = $5, lease_until = $6, updated_at = $7
