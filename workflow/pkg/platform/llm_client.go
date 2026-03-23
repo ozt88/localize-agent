@@ -82,9 +82,7 @@ func (c *SessionLLMClient) EnsureContext(key string, profile LLMProfile) error {
 		"model": map[string]any{"providerID": profile.ProviderID, "modelID": profile.ModelID},
 		"parts": []map[string]string{{"type": "text", "text": profile.Warmup}},
 	}
-	if strings.TrimSpace(profile.Agent) != "" {
-		body["agent"] = profile.Agent
-	}
+	// NOTE: "agent" field omitted — OpenCode 1.2.26 returns empty response when agent is set.
 	var out map[string]any
 	if err := c.postJSON("/session/"+sid+"/message", body, &out); err != nil {
 		c.writeTrace(LLMTraceEvent{
@@ -133,9 +131,7 @@ func (c *SessionLLMClient) SendPrompt(key string, profile LLMProfile, prompt str
 		"model": map[string]any{"providerID": profile.ProviderID, "modelID": profile.ModelID},
 		"parts": []map[string]string{{"type": "text", "text": prompt}},
 	}
-	if strings.TrimSpace(profile.Agent) != "" {
-		body["agent"] = profile.Agent
-	}
+	// NOTE: "agent" field omitted — OpenCode 1.2.26 returns empty response when agent is set.
 	var out map[string]any
 	if err := c.postJSON("/session/"+sid+"/message", body, &out); err != nil {
 		c.writeTrace(LLMTraceEvent{
