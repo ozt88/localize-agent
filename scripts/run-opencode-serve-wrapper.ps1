@@ -39,7 +39,12 @@ $psi.UseShellExecute = $false
 $psi.RedirectStandardOutput = $true
 $psi.RedirectStandardError = $true
 $psi.CreateNoWindow = $true
-$psi.WorkingDirectory = (Split-Path -Parent $Executable)
+# Use an isolated temp directory so OpenCode does not auto-discover
+# .claude/, .codex/, or other project config from the working directory.
+# This ensures it runs as a pure model server without loading skills/agents.
+$isolatedDir = Join-Path ([System.IO.Path]::GetTempPath()) "opencode-serve-isolated"
+New-Item -ItemType Directory -Force -Path $isolatedDir | Out-Null
+$psi.WorkingDirectory = $isolatedDir
 
 $proc = New-Object System.Diagnostics.Process
 $proc.StartInfo = $psi
