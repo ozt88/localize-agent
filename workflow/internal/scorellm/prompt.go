@@ -1,6 +1,9 @@
 package scorellm
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // BuildScoreWarmup returns the system prompt for Score LLM.
 func BuildScoreWarmup() string {
@@ -10,7 +13,10 @@ For each item, assess:
 1. Translation quality (1-10): accuracy, naturalness, tone
 2. Format quality (1-10): tag preservation, structure
 
-Return JSON only:
+When given multiple items, return a JSON array with one result per item in order.
+When given a single item, return a single JSON object.
+
+Each result:
 {"translation_score": N, "format_score": N, "failure_type": "pass|translation|format|both", "reason": "brief explanation if not pass"}
 
 Rules:
@@ -26,4 +32,19 @@ Reply with: OK`
 // BuildScorePrompt builds a single-item scoring prompt.
 func BuildScorePrompt(task ScoreTask) string {
 	return fmt.Sprintf("EN: %s\nKO: %s\nHas tags: %v", task.ENSource, task.KOFormatted, task.HasTags)
+}
+
+// BuildBatchScorePrompt builds a numbered batch scoring prompt.
+// Returns the prompt and the ordered list of block IDs for result mapping.
+func BuildBatchScorePrompt(tasks []ScoreTask) (string, []string) {
+	var b strings.Builder
+	ids := make([]string, len(tasks))
+
+	fmt.Fprintf(&b, "Score these %d translations. Return a JSON array with %d results in order.\n\n", len(tasks), len(tasks))
+	for i, t := range tasks {
+		ids[i] = t.BlockID
+		fmt.Fprintf(&b, "[%d] EN: %s\nKO: %s\nTags: %v\n\n", i+1, t.ENSource, t.KOFormatted, t.HasTags)
+	}
+
+	return b.String(), ids
 }

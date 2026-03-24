@@ -349,17 +349,77 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 			}
 		}
 
-		// Score each item individually (Open Question 2 in RESEARCH.md).
-		for _, item := range items {
-			if err := scoreItem(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, item); err != nil {
-				fmt.Fprintf(os.Stderr, "[score-%s] item %s error: %v\n", workerID, item.ID, err)
-			}
+		// Score items in batch (optimized from single-item scoring).
+		if err := scoreBatch(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, items); err != nil {
+			fmt.Fprintf(os.Stderr, "[score-%s] batch error: %v\n", workerID, err)
 		}
 
 		if cfg.Once {
 			return nil
 		}
 	}
+}
+
+// scoreBatch processes multiple items through a single Score LLM call.
+// Builds a numbered batch prompt, parses the JSON array response, and routes each item.
+func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
+	llm *platform.SessionLLMClient, scoreProfile platform.LLMProfile,
+	sessionKey, workerID string, items []contracts.V2PipelineItem) error {
+
+	// Build batch tasks.
+	tasks := make([]scorellm.ScoreTask, len(items))
+	for i, item := range items {
+		koText := item.KOFormatted
+		if koText == "" {
+			koText = item.KORaw
+		}
+		tasks[i] = scorellm.ScoreTask{
+			BlockID:     item.ID,
+			ENSource:    item.SourceRaw,
+			KOFormatted: koText,
+			HasTags:     item.HasTags,
+		}
+	}
+
+	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks)
+
+	// Warmup and send.
+	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {
+		return fmt.Errorf("score warmup: %w", err)
+	}
+	rawOutput, err := llm.SendPrompt(sessionKey, scoreProfile, prompt)
+	if err != nil {
+		// LLM error — retry all items.
+		for _, item := range items {
+			logAttempt(store, item.ID, "score", scoreProfile.ModelID, "", err.Error(), -1, item.ScoreAttempts+1, cfg.MaxRetries)
+			_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
+		}
+		return fmt.Errorf("score send: %w", err)
+	}
+
+	// Parse batch response.
+	results, parseErr := scorellm.ParseBatchScoreResponse(rawOutput, len(items))
+	if parseErr != nil {
+		// Parse error — retry all items.
+		reason := fmt.Sprintf("parse: %v", parseErr)
+		for _, item := range items {
+			logAttempt(store, item.ID, "score", scoreProfile.ModelID, "", reason, -1, item.ScoreAttempts+1, cfg.MaxRetries)
+			_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
+		}
+		return nil // not fatal; will retry
+	}
+
+	// Apply each result.
+	for i, result := range results {
+		id := blockIDs[i]
+		scoreFinal := result.ScoreFinal()
+		if err := store.MarkScored(id, scoreFinal, result.FailureType, result.Reason); err != nil {
+			return fmt.Errorf("mark scored %s: %w", id, err)
+		}
+		logAttempt(store, id, "score", scoreProfile.ModelID, result.FailureType, result.Reason, scoreFinal, 0, 0)
+	}
+
+	return nil
 }
 
 // scoreItem processes a single item through the Score LLM.

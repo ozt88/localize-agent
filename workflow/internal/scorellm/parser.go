@@ -51,3 +51,44 @@ func ParseScoreResponse(raw string) (*ScoreResult, error) {
 
 	return &result, nil
 }
+
+// ParseBatchScoreResponse parses a JSON array of score results.
+// Falls back to single-object parsing if the array parse fails (single-item batch).
+func ParseBatchScoreResponse(raw string, expectedCount int) ([]*ScoreResult, error) {
+	jsonStr := strings.TrimSpace(raw)
+
+	// Try code fence extraction first.
+	if m := shared.CodeFenceRe.FindStringSubmatch(raw); len(m) > 1 {
+		jsonStr = strings.TrimSpace(m[1])
+	}
+
+	// Try parsing as array.
+	var results []*ScoreResult
+	if err := json.Unmarshal([]byte(jsonStr), &results); err != nil {
+		// Fallback: single object (batch of 1).
+		single, singleErr := ParseScoreResponse(raw)
+		if singleErr != nil {
+			return nil, fmt.Errorf("failed to parse batch score response: %w (single fallback: %v)", err, singleErr)
+		}
+		return []*ScoreResult{single}, nil
+	}
+
+	if len(results) != expectedCount {
+		return nil, fmt.Errorf("batch score count mismatch: expected %d, got %d", expectedCount, len(results))
+	}
+
+	// Validate each result.
+	for i, r := range results {
+		if !validFailureTypes[r.FailureType] {
+			return nil, fmt.Errorf("item %d: invalid failure_type: %q", i+1, r.FailureType)
+		}
+		if r.TranslationScore < 0 || r.TranslationScore > 10 {
+			return nil, fmt.Errorf("item %d: translation_score %v out of range", i+1, r.TranslationScore)
+		}
+		if r.FormatScore < 0 || r.FormatScore > 10 {
+			return nil, fmt.Errorf("item %d: format_score %v out of range", i+1, r.FormatScore)
+		}
+	}
+
+	return results, nil
+}
