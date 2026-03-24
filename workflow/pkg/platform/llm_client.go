@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -39,10 +38,12 @@ type SessionLLMClient struct {
 }
 
 func NewSessionLLMClient(serverURL string, timeoutSec int, metrics *shared.MetricCollector, traceSink LLMTraceSink) *SessionLLMClient {
-	directory, _ := os.Getwd()
+	// NOTE: directory left empty — passing cwd causes OpenCode to scan the entire
+	// project tree on every session/message (skills, file indexing), adding minutes
+	// of latency per request. Translation pipeline does not need project context.
 	return &SessionLLMClient{
 		serverURL:    strings.TrimRight(serverURL, "/"),
-		directory:    directory,
+		directory:    "",
 		http:         newHTTPClient(timeoutSec),
 		metrics:      metrics,
 		traceSink:    traceSink,

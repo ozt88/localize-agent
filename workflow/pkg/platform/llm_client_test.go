@@ -144,10 +144,6 @@ func TestSessionLLMClient_SendPrompt_WarmupSessionReuseAndTrace(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/session":
-			if r.URL.Query().Get("directory") == "" {
-				http.Error(w, "missing directory", http.StatusBadRequest)
-				return
-			}
 			mu.Lock()
 			sessionCalls++
 			mu.Unlock()
@@ -155,10 +151,6 @@ func TestSessionLLMClient_SendPrompt_WarmupSessionReuseAndTrace(t *testing.T) {
 			_, _ = w.Write([]byte(`{"id":"s1"}`))
 			return
 		case r.Method == http.MethodPost && r.URL.Path == "/session/s1/message":
-			if r.URL.Query().Get("directory") == "" {
-				http.Error(w, "missing directory", http.StatusBadRequest)
-				return
-			}
 			var body map[string]any
 			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
