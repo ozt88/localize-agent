@@ -56,6 +56,12 @@ func IsPassthrough(text string) bool {
 		return true
 	}
 
+	// Single ASCII letter — skill check result markers (S=Success, F=Fail) and similar
+	// game UI labels that are not translatable dialogue.
+	if len(trimmed) == 1 && trimmed[0] >= 'A' && trimmed[0] <= 'Z' {
+		return true
+	}
+
 	// Punctuation-only
 	if isPunctOnly(trimmed) {
 		return true
