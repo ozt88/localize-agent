@@ -2,10 +2,17 @@ package v2pipeline
 
 import (
 	"encoding/json"
+	"regexp"
 
 	"localize-agent/workflow/internal/contracts"
 	"localize-agent/workflow/pkg/shared"
 )
+
+// abilityPrefixRe matches ability score prefixes that LLM may have included
+// in translation output (e.g., "con: ", "str: "). The game engine reads
+// speaker from ink # tags, not from text content. Character names (Braxo, etc.)
+// are not affected — LLM already omits those correctly.
+var abilityPrefixRe = regexp.MustCompile(`^(?:wis|str|int|con|dex|cha):\s*`)
 
 // V3Format is the format identifier for esoteric-ebb sidecar v3.
 const V3Format = "esoteric-ebb-sidecar.v3"
@@ -35,10 +42,15 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 		Entries: make([]V3Entry, 0, len(items)),
 	}
 	for _, item := range items {
+		target := item.KOFormatted
+		// Strip ability score prefixes that LLM may have included in output.
+		// Game engine reads speaker from ink # tags, not text content.
+		target = abilityPrefixRe.ReplaceAllString(target, "")
+
 		sidecar.Entries = append(sidecar.Entries, V3Entry{
 			ID:          item.ID,
 			Source:      item.SourceRaw,
-			Target:      item.KOFormatted,
+			Target:      target,
 			SourceFile:  item.SourceFile,
 			TextRole:    item.ContentType,
 			SpeakerHint: item.Speaker,

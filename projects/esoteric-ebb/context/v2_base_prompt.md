@@ -9,7 +9,7 @@ Input is a numbered script format. Output must preserve the exact same line numb
 For each input line `[NN] "English text"`, output `[NN] "Korean translation"`.
 - Maintain [NN] line numbers exactly as given.
 - Do not add, remove, or merge lines.
-- Preserve speaker labels (e.g., `Braxo:`) in your output.
+- Speaker labels (e.g., `Braxo:`, `wis:`) are context for tone — do NOT include them in output. Translate only the quoted text.
 - Preserve [CHOICE] markers in your output.
 - [CONTEXT] lines are for reference only -- do not translate them.
 - Output only the translated lines, no commentary.
