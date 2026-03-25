@@ -48,9 +48,13 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		// Group items by batch_id for scene-context translation (TRANS-01).
 		batches := groupByBatchID(items)
 		for batchID, batchItems := range batches {
-			if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, batchID, batchItems); err != nil {
-				// Log error but continue processing other batches.
-				fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, batchID, err)
+			// Split huge batches (>30 items) into gate-based sub-batches
+			// to prevent LLM timeouts while preserving scene context.
+			subBatches := splitByGateIfHuge(batchID, batchItems, 30)
+			for _, sub := range subBatches {
+				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
+					fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, sub.id, err)
+				}
 			}
 		}
 
@@ -520,6 +524,53 @@ func logAttempt(store contracts.V2PipelineStore, id, stage, model, failureType, 
 }
 
 // groupByBatchID groups items by their BatchID for scene-context translation.
+type subBatch struct {
+	id    string
+	items []contracts.V2PipelineItem
+}
+
+// splitByGateIfHuge splits a batch into gate-based sub-batches if it exceeds maxSize.
+// Small batches pass through unchanged. This preserves scene context within each gate
+// while preventing LLM timeouts on huge batches (100+ items).
+func splitByGateIfHuge(batchID string, items []contracts.V2PipelineItem, maxSize int) []subBatch {
+	if len(items) <= maxSize {
+		return []subBatch{{id: batchID, items: items}}
+	}
+
+	// Group by gate, preserving sort order within each gate.
+	gateOrder := make([]string, 0)
+	gateItems := make(map[string][]contracts.V2PipelineItem)
+	for _, item := range items {
+		gate := item.Gate
+		if gate == "" {
+			gate = "_root"
+		}
+		if _, exists := gateItems[gate]; !exists {
+			gateOrder = append(gateOrder, gate)
+		}
+		gateItems[gate] = append(gateItems[gate], item)
+	}
+
+	var result []subBatch
+	for _, gate := range gateOrder {
+		gitems := gateItems[gate]
+		subID := batchID + "/gate-" + gate
+		// If a single gate is still too large, chunk it further.
+		for i := 0; i < len(gitems); i += maxSize {
+			end := i + maxSize
+			if end > len(gitems) {
+				end = len(gitems)
+			}
+			chunkID := subID
+			if len(gitems) > maxSize {
+				chunkID = fmt.Sprintf("%s/%d", subID, i/maxSize)
+			}
+			result = append(result, subBatch{id: chunkID, items: gitems[i:end]})
+		}
+	}
+	return result
+}
+
 func groupByBatchID(items []contracts.V2PipelineItem) map[string][]contracts.V2PipelineItem {
 	groups := make(map[string][]contracts.V2PipelineItem)
 	for _, item := range items {
