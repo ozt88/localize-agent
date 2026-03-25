@@ -111,7 +111,9 @@ func degenerateReason(en, ko string) string {
 
 	// ASCII-heavy check: if >80% of non-space, non-tag, non-game-token characters
 	// are ASCII, the LLM likely did not actually translate.
-	if len(koTrim) > 5 {
+	// Skip for short texts (≤50 chars) — proper nouns, quotes, and game terms
+	// make short translations inherently ASCII-heavy.
+	if len(koTrim) > 50 {
 		cleaned := stripGameTokensAndTags(koTrim)
 		asciiCount, totalCount := 0, 0
 		for _, r := range cleaned {
