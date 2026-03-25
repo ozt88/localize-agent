@@ -225,7 +225,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 				SELECT id FROM pipeline_items_v2
 				WHERE state = $1
 				  AND (claimed_by = '' OR lease_until IS NULL OR lease_until < $2)
-				ORDER BY sort_index, id
+				ORDER BY batch_id, sort_index, id
 				LIMIT %d
 				FOR UPDATE SKIP LOCKED
 			)
@@ -242,7 +242,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			SELECT id FROM pipeline_items_v2
 			WHERE state = ?
 			  AND (claimed_by = '' OR lease_until IS NULL OR lease_until < ?)
-			ORDER BY sort_index, id
+			ORDER BY batch_id, sort_index, id
 			LIMIT %d`, batchSize),
 			pendingState, nowVal,
 		)
@@ -292,7 +292,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
 			FROM pipeline_items_v2
 			WHERE id IN (%s)
-			ORDER BY sort_index, id`, strings.Join(readPlaceholders, ",")),
+			ORDER BY batch_id, sort_index, id`, strings.Join(readPlaceholders, ",")),
 			readArgs...,
 		)
 	}
