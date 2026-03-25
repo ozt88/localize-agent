@@ -68,6 +68,31 @@ func (s *fakeStore) ClaimPending(pendingState, workingState, workerID string, ba
 	return claimed, nil
 }
 
+func (s *fakeStore) ClaimBatch(pendingState, workingState, workerID string, leaseSec int) (string, []contracts.V2PipelineItem, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// Find first pending batch_id
+	var batchID string
+	for _, item := range s.items {
+		if item.State == pendingState {
+			batchID = item.BatchID
+			break
+		}
+	}
+	if batchID == "" {
+		return "", nil, nil
+	}
+	var claimed []contracts.V2PipelineItem
+	for _, item := range s.items {
+		if item.State == pendingState && item.BatchID == batchID {
+			item.State = workingState
+			item.ClaimedBy = workerID
+			claimed = append(claimed, *item)
+		}
+	}
+	return batchID, claimed, nil
+}
+
 func (s *fakeStore) MarkState(id, newState string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

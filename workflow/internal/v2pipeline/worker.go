@@ -32,6 +32,7 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		default:
 		}
 
+		// Claim items ordered by batch_id for locality — same batch items claimed together.
 		items, err := store.ClaimPending(StatePendingTranslate, StateWorkingTranslate, workerID, cfg.TranslateBatchSize, cfg.LeaseSec)
 		if err != nil {
 			return fmt.Errorf("translate claim: %w", err)
@@ -45,11 +46,9 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 			}
 		}
 
-		// Group items by batch_id for scene-context translation (TRANS-01).
+		// Group by batch_id, then split huge batches by gate.
 		batches := groupByBatchID(items)
 		for batchID, batchItems := range batches {
-			// Split huge batches (>30 items) into gate-based sub-batches
-			// to prevent LLM timeouts while preserving scene context.
 			subBatches := splitByGateIfHuge(batchID, batchItems, 30)
 			for _, sub := range subBatches {
 				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {

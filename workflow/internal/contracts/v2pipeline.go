@@ -54,6 +54,10 @@ type V2PipelineStore interface {
 	// transitioning them to workingState with a lease.
 	ClaimPending(pendingState, workingState, workerID string, batchSize int, leaseSec int) ([]V2PipelineItem, error)
 
+	// ClaimBatch claims all pending items of the next available batch_id.
+	// Returns batchID, items, error. 1 claim = 1 batch = 1 LLM call.
+	ClaimBatch(pendingState, workingState, workerID string, leaseSec int) (string, []V2PipelineItem, error)
+
 	// MarkState sets an item to a new state, clearing claim fields.
 	MarkState(id, newState string) error
 

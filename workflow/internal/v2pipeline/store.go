@@ -313,6 +313,88 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 	return claimed, rows.Err()
 }
 
+// ClaimBatch claims all pending items belonging to the next available batch_id.
+// Instead of claiming N arbitrary items, this finds the first unclaimed batch_id
+// and claims all its pending items at once. Returns the batch_id and items.
+// This ensures 1 claim = 1 batch = 1 LLM call with no re-grouping needed.
+func (s *Store) ClaimBatch(pendingState, workingState, workerID string, leaseSec int) (string, []contracts.V2PipelineItem, error) {
+	if workerID == "" {
+		return "", nil, fmt.Errorf("workerID required")
+	}
+
+	now := time.Now().UTC()
+	leaseUntil := now.Add(time.Duration(leaseSec) * time.Second)
+	nowVal := s.timeValue(now)
+	leaseVal := s.timeValue(leaseUntil)
+
+	// Step 1: Find the next unclaimed batch_id.
+	var batchID string
+	err := s.db.QueryRow(s.rebind(`
+		SELECT batch_id FROM pipeline_items_v2
+		WHERE state = ? AND (claimed_by = '' OR lease_until IS NULL OR lease_until < ?)
+		ORDER BY batch_id, sort_index
+		LIMIT 1`),
+		pendingState, nowVal,
+	).Scan(&batchID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, nil
+		}
+		return "", nil, err
+	}
+
+	// Step 2: Claim all items with this batch_id.
+	var rows *sql.Rows
+	if s.backend == platform.DBBackendPostgres {
+		rows, err = s.db.Query(`
+			WITH picked AS (
+				SELECT id FROM pipeline_items_v2
+				WHERE state = $1 AND batch_id = $2
+				  AND (claimed_by = '' OR lease_until IS NULL OR lease_until < $3)
+				FOR UPDATE SKIP LOCKED
+			)
+			UPDATE pipeline_items_v2
+			SET state = $4, claimed_by = $5, claimed_at = $6, lease_until = $7, updated_at = $8
+			WHERE id IN (SELECT id FROM picked)
+			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id`,
+			pendingState, batchID, nowVal, workingState, workerID, nowVal, leaseVal, nowVal,
+		)
+	} else {
+		// SQLite fallback
+		_, err = s.db.Exec(s.rebind(`
+			UPDATE pipeline_items_v2
+			SET state = ?, claimed_by = ?, claimed_at = ?, lease_until = ?, updated_at = ?
+			WHERE state = ? AND batch_id = ?
+			  AND (claimed_by = '' OR lease_until IS NULL OR lease_until < ?)`),
+			workingState, workerID, nowVal, leaseVal, nowVal, pendingState, batchID, nowVal,
+		)
+		if err != nil {
+			return "", nil, err
+		}
+		rows, err = s.db.Query(s.rebind(`
+			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+			FROM pipeline_items_v2
+			WHERE batch_id = ? AND claimed_by = ?
+			ORDER BY sort_index`),
+			batchID, workerID,
+		)
+	}
+	if err != nil {
+		return "", nil, err
+	}
+	defer rows.Close()
+
+	var items []contracts.V2PipelineItem
+	for rows.Next() {
+		item, err := s.scanItem(rows)
+		if err != nil {
+			return "", nil, err
+		}
+		items = append(items, item)
+	}
+	return batchID, items, rows.Err()
+}
+
 // MarkState sets an item to a new state, clearing claim fields.
 func (s *Store) MarkState(id, newState string) error {
 	now := s.nowValue()

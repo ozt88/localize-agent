@@ -173,7 +173,7 @@ func TestMarkScoredRoutesFailureType(t *testing.T) {
 	}{
 		{"item-pass", "pass", StateDone},
 		{"item-trans", "translation", StatePendingTranslate},
-		{"item-fmt", "format", StatePendingFormat},
+		{"item-fmt", "format", StatePendingTranslate}, // has_tags=false → rerouted to translate
 		{"item-both", "both", StatePendingTranslate},
 	}
 
