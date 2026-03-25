@@ -358,7 +358,18 @@ func (s *Store) MarkFormatted(id, koFormatted string) error {
 
 // MarkScored applies score result and routes by failure_type per D-14:
 // "pass"->done, "translation"->pending_translate, "format"->pending_format, "both"->pending_translate.
+// If has_tags=false, "format" is rerouted to "pending_translate" since format stage
+// cannot process items without tags (score LLM sometimes misjudges).
 func (s *Store) MarkScored(id string, scoreFinal float64, failureType, reason string) error {
+	// Check has_tags to prevent routing tagless items to format stage.
+	if failureType == "format" {
+		var hasTags bool
+		err := s.db.QueryRow(s.rebind(`SELECT has_tags FROM pipeline_items_v2 WHERE id = ?`), id).Scan(&hasTags)
+		if err == nil && !hasTags {
+			failureType = "translation" // re-translate instead of format
+		}
+	}
+
 	var newState string
 	switch failureType {
 	case "pass":
