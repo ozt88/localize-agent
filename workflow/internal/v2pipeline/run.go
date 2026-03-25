@@ -2,7 +2,9 @@ package v2pipeline
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -215,6 +217,10 @@ func Run(cfg Config) int {
 
 	fmt.Printf("v2pipeline: started workers (translate=%d, format=%d, score=%d, role=%s)\n",
 		cfg.TranslateConcurrency, cfg.FormatConcurrency, cfg.ScoreConcurrency, role)
+
+	// Launch OpenCode health watchdog — restarts server if unresponsive.
+	llmClients := []*platform.SessionLLMClient{translateLLM, formatLLM, scoreLLM}
+	go openCodeWatchdog(ctx, cfg.TranslateServerURL, llmClients)
 
 	// Wait for all workers.
 	wg.Wait()
@@ -431,6 +437,125 @@ func findRepoRoot() string {
 		}
 		dir = parent
 	}
+}
+
+// openCodeWatchdog periodically probes the OpenCode server and restarts it if unresponsive.
+// After restart, all LLM client sessions are reset so workers create fresh sessions.
+func openCodeWatchdog(ctx context.Context, serverURL string, clients []*platform.SessionLLMClient) {
+	if serverURL == "" {
+		return
+	}
+
+	const (
+		checkInterval  = 2 * time.Minute
+		failThreshold  = 3 // consecutive failures before restart
+		probeTimeout   = 10 * time.Second
+	)
+
+	consecutiveFails := 0
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(checkInterval):
+		}
+
+		// Deep probe: create session + send message, not just TCP connect.
+		if deepProbe(serverURL, probeTimeout) {
+			if consecutiveFails > 0 {
+				fmt.Printf("v2pipeline watchdog: server recovered (was failing for %d checks)\n", consecutiveFails)
+			}
+			consecutiveFails = 0
+			continue
+		}
+
+		consecutiveFails++
+		fmt.Printf("v2pipeline watchdog: probe failed (%d/%d)\n", consecutiveFails, failThreshold)
+
+		if consecutiveFails < failThreshold {
+			continue
+		}
+
+		// Restart OpenCode.
+		fmt.Println("v2pipeline watchdog: restarting OpenCode server...")
+		if err := restartOpenCode(serverURL); err != nil {
+			fmt.Fprintf(os.Stderr, "v2pipeline watchdog: restart failed: %v\n", err)
+			continue
+		}
+
+		// Reset all LLM client sessions so workers create fresh ones.
+		for _, c := range clients {
+			c.ResetAllSessions()
+		}
+		fmt.Println("v2pipeline watchdog: sessions reset, workers will reconnect")
+		consecutiveFails = 0
+	}
+}
+
+// deepProbe creates a session and sends a trivial message to verify end-to-end health.
+func deepProbe(serverURL string, timeout time.Duration) bool {
+	client := &http.Client{Timeout: timeout}
+
+	// Create session.
+	resp, err := client.Post(serverURL+"/session", "application/json", strings.NewReader("{}"))
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	var session struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&session); err != nil || session.ID == "" {
+		return false
+	}
+
+	// Send trivial message.
+	body := `{"model":{"providerID":"openai","modelID":"gpt-5.2"},"parts":[{"type":"text","text":"ping"}]}`
+	resp2, err := client.Post(serverURL+"/session/"+session.ID+"/message", "application/json", strings.NewReader(body))
+	if err != nil {
+		return false
+	}
+	defer resp2.Body.Close()
+	data, _ := io.ReadAll(resp2.Body)
+	return len(data) > 0
+}
+
+// restartOpenCode kills all OpenCode processes and starts a fresh instance.
+func restartOpenCode(serverURL string) error {
+	// Kill existing.
+	killCmd := exec.Command("taskkill", "/F", "/IM", "opencode.exe")
+	killCmd.CombinedOutput() // ignore errors if no process
+
+	time.Sleep(3 * time.Second)
+
+	// Start via manage script.
+	repoRoot := findRepoRoot()
+	if repoRoot == "" {
+		return fmt.Errorf("cannot find repo root")
+	}
+	script := filepath.Join(repoRoot, "scripts", "manage-opencode-serve.ps1")
+	cmd := exec.Command("powershell.exe",
+		"-NoProfile", "-ExecutionPolicy", "Bypass",
+		"-File", script,
+		"-Action", "start",
+	)
+	cmd.Dir = repoRoot
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("start failed: %v\n%s", err, string(out))
+	}
+	fmt.Printf("v2pipeline watchdog: start output: %s\n", strings.TrimSpace(string(out)))
+
+	// Wait for readiness.
+	deadline := time.Now().Add(30 * time.Second)
+	for time.Now().Before(deadline) {
+		if probeServer(serverURL) {
+			return nil
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return fmt.Errorf("server did not become reachable within 30s")
 }
 
 // formatCounts formats state counts for display.

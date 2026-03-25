@@ -114,6 +114,15 @@ func (c *SessionLLMClient) EnsureContext(key string, profile LLMProfile) error {
 	return nil
 }
 
+// ResetAllSessions clears all cached session IDs and warmup state.
+// Called after OpenCode restart to force new sessions.
+func (c *SessionLLMClient) ResetAllSessions() {
+	c.mu.Lock()
+	c.sessionIDs = map[string]string{}
+	c.contextReady = map[string]bool{}
+	c.mu.Unlock()
+}
+
 func (c *SessionLLMClient) SendPrompt(key string, profile LLMProfile, prompt string) (string, error) {
 	if profile.ResetHistory {
 		c.mu.Lock()
