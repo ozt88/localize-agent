@@ -1201,17 +1201,21 @@ public class Plugin : BasePlugin
 
         try
         {
+            var patterns = new[] { "*.txt", "*.json" };
             foreach (var dir in dirs)
             {
-                foreach (var path in Directory.EnumerateFiles(dir, "*.txt", SearchOption.AllDirectories))
+                foreach (var pattern in patterns)
                 {
-                    var name = Path.GetFileNameWithoutExtension(path);
-                    var text = File.ReadAllText(path);
-                    if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(text))
+                    foreach (var path in Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories))
                     {
-                        continue;
+                        var name = Path.GetFileNameWithoutExtension(path);
+                        var text = File.ReadAllText(path);
+                        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(text))
+                        {
+                            continue;
+                        }
+                        TextAssetOverrides[name] = text;
                     }
-                    TextAssetOverrides[name] = text;
                 }
             }
             _textAssetOverrideCount = TextAssetOverrides.Count;
