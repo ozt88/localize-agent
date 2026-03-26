@@ -84,12 +84,52 @@
 **해결**: 다른 계정으로 전환
 **교훈**: OpenCode serve 모드에서 rate limit 시 에러 메시지 없이 조용히 타임아웃됨
 
+## OpenCode Watchdog 자동 재시작
+
+**발견**: 장시간 실행 시 OpenCode가 세션 누적으로 응답 불능 → 수천 건 failed
+**수정**: `openCodeWatchdog` goroutine 추가 — 2분마다 deep probe, 3회 연속 실패 시 자동 kill → restart → 세션 리셋
+**커밋**: `4307dd2`
+
+## Claim 순서 최적화
+
+**발견**: ClaimPending이 sort_index 순으로 claim → 후반부에 여러 batch_id가 섞여서 LLM 호출 횟수 증가
+**시도1**: ClaimBatch (배치 단위 claim) → 작은 배치에서 DB round-trip 오버헤드로 더 느려짐 (revert)
+**시도2**: ClaimPending ORDER BY batch_id, sort_index → 같은 배치 항목이 함께 claim됨 (32→77/분)
+**커밋**: `166be84`, `42e49e3`
+
+## Huge 배치 gate 분할
+
+**발견**: system 타입 배치가 100~200건씩 묶여서 LLM 타임아웃
+**수정**: `splitByGateIfHuge` — 30건 초과 배치만 gate 기준 sub-batch 분할
+**결과**: 9/분 → 175/분
+**커밋**: `81c9618`
+
+## Score 라우팅 수정
+
+**발견**: score LLM이 has_tags=false 항목을 failure_type=format으로 잘못 판정 → format 단계에서 처리 불가
+**수정**: `MarkScored`에서 has_tags=false + format 판정 시 pending_translate로 리라우팅
+**커밋**: `fa8f0f9`
+
+## GPT Pro 주간 한도
+
+**발견**: 2개 계정 모두 주간 사용량 한도 도달 (에러 없이 타임아웃)
+**해결**: 한도 복구 대기 후 재시작
+**교훈**: GPT Pro는 주간 한도가 있으며, 대량 파이프라인 실행 시 계정 관리 필요
+
+## 최종 결과
+
+- **35,036 / 35,036 done (100%)**
+- passthrough: 약 70건 (번역 불가능한 게임 명령어/단일 문자)
+- 총 실행 기간: ~3일 (GPT Pro 한도 대기 포함)
+
 ## 계획 대비 변경 사항 요약
 
 | 원래 계획 | 실제 | 이유 |
 |-----------|------|------|
 | 파서 출력 그대로 사용 | ID 포맷 변경 + 재파싱 | 크로스 파일 ID 충돌 |
-| OpenCode 기존 설정 사용 | agent/directory 제거, 격리 실행 | 호환성 문제 |
+| OpenCode 기존 설정 사용 | agent/directory 제거, 격리 실행, watchdog | 호환성 + 안정성 |
 | 단건 score | 배치 score (10건/호출) | 성능 병목 |
+| 단건 claim | batch_id 정렬 claim | 후반부 성능 저하 |
 | 전량 실행 후 검증 | 실행 중 validation 전략 변경 | failed 비율 과다 |
 | speaker 태그 그대로 보존 | 능력치 prefix 제거 + 말투 가이드 | 게임 렌더링 구조와 불일치 |
+| format 단계 필수 | ko_raw로 직접 복구 가능 | format LLM 파싱 에러 |
