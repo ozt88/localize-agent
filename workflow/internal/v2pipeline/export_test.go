@@ -128,6 +128,77 @@ func TestExportBuildV3Sidecar_EmptyItems(t *testing.T) {
 	}
 }
 
+func TestExportBuildV3Sidecar_ContextualEntries(t *testing.T) {
+	// 3 items: A and B share same SourceRaw "Hello", C has unique "Goodbye"
+	items := []contracts.V2PipelineItem{
+		{ID: "k1/g-0/blk-0", SourceRaw: "Hello", KOFormatted: "안녕", SourceFile: "TS_A.json", ContentType: "dialogue", Speaker: "Braxo"},
+		{ID: "k2/g-0/blk-0", SourceRaw: "Hello", KOFormatted: "안녕", SourceFile: "TS_B.json", ContentType: "dialogue", Speaker: "Xan"},
+		{ID: "k1/g-0/blk-1", SourceRaw: "Goodbye", KOFormatted: "잘가", SourceFile: "TS_A.json", ContentType: "narration", Speaker: ""},
+	}
+
+	sidecar := BuildV3Sidecar(items)
+
+	// entries[] should be deduped: "Hello" once + "Goodbye" once = 2
+	if len(sidecar.Entries) != 2 {
+		t.Fatalf("entries count: got %d, want 2 (deduped by source)", len(sidecar.Entries))
+	}
+	// First-seen-wins: "Hello" entry should have item A's ID
+	if sidecar.Entries[0].ID != "k1/g-0/blk-0" {
+		t.Errorf("entries[0].ID: got %q, want %q (first-seen-wins)", sidecar.Entries[0].ID, "k1/g-0/blk-0")
+	}
+
+	// contextual_entries[] should have ALL 3 items
+	if len(sidecar.ContextualEntries) != 3 {
+		t.Fatalf("contextual_entries count: got %d, want 3 (all items)", len(sidecar.ContextualEntries))
+	}
+	// Metadata preserved for item B
+	if sidecar.ContextualEntries[1].SourceFile != "TS_B.json" {
+		t.Errorf("contextual_entries[1].SourceFile: got %q, want %q", sidecar.ContextualEntries[1].SourceFile, "TS_B.json")
+	}
+	if sidecar.ContextualEntries[1].SpeakerHint != "Xan" {
+		t.Errorf("contextual_entries[1].SpeakerHint: got %q, want %q", sidecar.ContextualEntries[1].SpeakerHint, "Xan")
+	}
+}
+
+func TestExportBuildV3Sidecar_ContextualEntriesEmpty(t *testing.T) {
+	sidecar := BuildV3Sidecar(nil)
+	if sidecar.ContextualEntries == nil {
+		t.Fatal("contextual_entries should not be nil for empty input")
+	}
+	if len(sidecar.ContextualEntries) != 0 {
+		t.Errorf("contextual_entries count: got %d, want 0", len(sidecar.ContextualEntries))
+	}
+}
+
+func TestExportWriteTranslationsJSON_HasContextualEntries(t *testing.T) {
+	items := []contracts.V2PipelineItem{
+		{ID: "k/g-0/blk-0", SourceRaw: "Test", KOFormatted: "테스트", SourceFile: "TS_X.json", ContentType: "dialogue", Speaker: "NPC"},
+	}
+	sidecar := BuildV3Sidecar(items)
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test_contextual.json")
+	if err := WriteTranslationsJSON(path, sidecar); err != nil {
+		t.Fatalf("WriteTranslationsJSON: %v", err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read file: %v", err)
+	}
+
+	var parsed V3Sidecar
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if len(parsed.ContextualEntries) != 1 {
+		t.Fatalf("parsed contextual_entries: got %d, want 1", len(parsed.ContextualEntries))
+	}
+	if parsed.ContextualEntries[0].ID != "k/g-0/blk-0" {
+		t.Errorf("parsed contextual_entries[0].ID: got %q", parsed.ContextualEntries[0].ID)
+	}
+}
+
 func TestExportWriteTranslationsJSON(t *testing.T) {
 	items := []contracts.V2PipelineItem{
 		{
