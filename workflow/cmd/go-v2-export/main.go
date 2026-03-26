@@ -118,11 +118,13 @@ func run() int {
 			return 1
 		}
 
-		// Build source_hash -> ko_formatted map from done items
+		// Build source_hash -> ko_formatted map from done items.
+		// Apply the same LLM escape normalization used in BuildV3Sidecar
+		// so TextAsset injection gets clean text (literal \n → real newline, etc.)
 		hashToKO := make(map[string]string, len(items))
 		for _, item := range items {
 			if item.KOFormatted != "" {
-				hashToKO[item.SourceHash] = item.KOFormatted
+				hashToKO[item.SourceHash] = v2pipeline.CleanTarget(item.KOFormatted)
 			}
 		}
 

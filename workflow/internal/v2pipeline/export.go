@@ -48,13 +48,7 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 	seen := make(map[string]bool)
 	for _, item := range items {
 		target := item.KOFormatted
-		// Strip ability score prefixes that LLM may have included in output.
-		// Game engine reads speaker from ink # tags, not text content.
-		target = abilityPrefixRe.ReplaceAllString(target, "")
-		// Normalize LLM escape artifacts: some translations contain literal
-		// JSON escape sequences (\n, \") instead of actual characters, and
-		// wrapping double-quotes from the LLM treating output as a JSON string.
-		target = normalizeLLMEscapes(target)
+		target = CleanTarget(target)
 
 		entry := V3Entry{
 			ID:          item.ID,
@@ -73,10 +67,19 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 	return sidecar
 }
 
+// CleanTarget applies all target text cleanup: LLM escape normalization
+// followed by ability prefix stripping. Use this for any path that consumes
+// KOFormatted from the DB (translations.json AND TextAsset injection).
+func CleanTarget(s string) string {
+	s = NormalizeLLMEscapes(s)
+	s = abilityPrefixRe.ReplaceAllString(s, "")
+	return s
+}
+
 // normalizeLLMEscapes fixes common LLM output artifacts where the model
 // produces literal JSON escape sequences instead of actual characters.
 // Detected in ~3,360 of 35,030 translations (v2 pipeline, 2026-03).
-func normalizeLLMEscapes(s string) string {
+func NormalizeLLMEscapes(s string) string {
 	// Strip wrapping double-quotes: LLM sometimes wraps entire output in "..."
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
 		s = s[1 : len(s)-1]
