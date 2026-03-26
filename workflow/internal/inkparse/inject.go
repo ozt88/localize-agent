@@ -143,11 +143,24 @@ func (inj *injector) walkFlatContent(arr []any, knot, gate, choice string) {
 		inj.blockCount[path]++
 
 		if ko, ok := inj.translations[hash]; ok {
-			// Replace: first node gets full Korean text, rest get "^"
+			// Split Korean translation by \n and distribute back to original text nodes.
+			// The ink runtime processes ^text nodes sequentially, flushing on \n control
+			// markers. Putting all text in the first node causes the entire block to
+			// render at once; distributing preserves line-by-line rendering.
 			if len(textNodeIndices) > 0 {
-				arr[textNodeIndices[0]] = "^" + ko
-				for _, idx := range textNodeIndices[1:] {
-					arr[idx] = "^"
+				koLines := strings.Split(ko, "\n")
+				for i, idx := range textNodeIndices {
+					if i < len(koLines) {
+						arr[idx] = "^" + koLines[i]
+					} else {
+						arr[idx] = "^"
+					}
+				}
+				// If Korean has more lines than text nodes, merge overflow into the last node
+				if len(koLines) > len(textNodeIndices) {
+					lastIdx := textNodeIndices[len(textNodeIndices)-1]
+					overflow := strings.Join(koLines[len(textNodeIndices)-1:], "\n")
+					arr[lastIdx] = "^" + overflow
 				}
 			}
 			inj.report.Replaced++

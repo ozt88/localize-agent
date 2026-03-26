@@ -100,10 +100,12 @@ func TestInjectMultiNodeBlock(t *testing.T) {
 	knotDict := rootArr[0].(map[string]any)
 	knotArr := knotDict["TestKnot"].([]any)
 
-	// First node should have full Korean text, second should be "^"
+	// Korean text split by \n and distributed across text nodes:
+	// "안녕하세요 세계\n" splits to ["안녕하세요 세계", ""]
+	// First node gets "안녕하세요 세계", second gets "" (empty)
 	first, ok := knotArr[0].(string)
-	if !ok || first != "^안녕하세요 세계\n" {
-		t.Errorf("first node: got %q, want %q", first, "^안녕하세요 세계\n")
+	if !ok || first != "^안녕하세요 세계" {
+		t.Errorf("first node: got %q, want %q", first, "^안녕하세요 세계")
 	}
 	second, ok := knotArr[1].(string)
 	if !ok || second != "^" {
