@@ -83,19 +83,22 @@ func TestExportBuildV3Sidecar_MixedItems(t *testing.T) {
 	}
 }
 
-func TestExportBuildV3Sidecar_NoDedup(t *testing.T) {
-	// D-02: duplicate source_raw with different IDs produce separate entries
+func TestExportBuildV3Sidecar_DedupEntries(t *testing.T) {
+	// D-01: duplicate source_raw deduped in entries[] (first-seen-wins), all in contextual_entries[]
 	items := []contracts.V2PipelineItem{
 		{ID: "k1/g-0/blk-0", SourceRaw: "Same text", KOFormatted: "같은 텍스트", ContentType: "dialogue"},
 		{ID: "k2/g-0/blk-0", SourceRaw: "Same text", KOFormatted: "같은 텍스트", ContentType: "dialogue"},
 	}
 
 	sidecar := BuildV3Sidecar(items)
-	if len(sidecar.Entries) != 2 {
-		t.Fatalf("D-02 violation: entries count: got %d, want 2 (no dedup)", len(sidecar.Entries))
+	if len(sidecar.Entries) != 1 {
+		t.Fatalf("entries count: got %d, want 1 (deduped by source)", len(sidecar.Entries))
 	}
-	if sidecar.Entries[0].ID == sidecar.Entries[1].ID {
-		t.Error("D-02: entries should have different IDs")
+	if sidecar.Entries[0].ID != "k1/g-0/blk-0" {
+		t.Errorf("entries[0].ID: got %q, want %q (first-seen-wins)", sidecar.Entries[0].ID, "k1/g-0/blk-0")
+	}
+	if len(sidecar.ContextualEntries) != 2 {
+		t.Fatalf("contextual_entries count: got %d, want 2 (all items)", len(sidecar.ContextualEntries))
 	}
 }
 
@@ -122,6 +125,12 @@ func TestExportBuildV3Sidecar_EmptyItems(t *testing.T) {
 	}
 	if len(sidecar.Entries) != 0 {
 		t.Errorf("entries count: got %d, want 0", len(sidecar.Entries))
+	}
+	if sidecar.ContextualEntries == nil {
+		t.Fatal("contextual_entries should not be nil for empty input")
+	}
+	if len(sidecar.ContextualEntries) != 0 {
+		t.Errorf("contextual_entries count: got %d, want 0", len(sidecar.ContextualEntries))
 	}
 	if sidecar.Format != V3Format {
 		t.Errorf("format: got %q, want %q", sidecar.Format, V3Format)
