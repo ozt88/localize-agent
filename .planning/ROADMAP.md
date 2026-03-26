@@ -81,7 +81,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- V3 sidecar contextual_entries export (TDD)
+- [x] 04-01-PLAN.md -- V3 sidecar contextual_entries export (TDD)
 - [ ] 04-02-PLAN.md -- Plugin.cs chain reduction (8->4 stages) + TextAsset .json loading
 - [ ] 04-03-PLAN.md -- Patch deployment, game verification, hit rate analysis
 
