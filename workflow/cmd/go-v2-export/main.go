@@ -123,8 +123,12 @@ func run() int {
 		// so TextAsset injection gets clean text (literal \n → real newline, etc.)
 		hashToKO := make(map[string]string, len(items))
 		for _, item := range items {
-			if item.KOFormatted != "" {
-				hashToKO[item.SourceHash] = v2pipeline.CleanTarget(item.KOFormatted)
+			ko := item.KOFormatted
+			if ko == "" && item.KORaw != "" {
+				ko = item.KORaw
+			}
+			if ko != "" {
+				hashToKO[item.SourceHash] = v2pipeline.CleanTarget(ko)
 			}
 		}
 

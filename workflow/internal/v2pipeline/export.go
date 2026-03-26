@@ -49,6 +49,11 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 	seen := make(map[string]bool)
 	for _, item := range items {
 		target := item.KOFormatted
+		// Fallback: if ko_formatted is empty but ko_raw exists (tag-free items
+		// that skipped the formatter stage), use ko_raw directly.
+		if target == "" && item.KORaw != "" {
+			target = item.KORaw
+		}
 		target = CleanTarget(target)
 
 		entry := V3Entry{
