@@ -78,10 +78,12 @@ Plans:
   1. Plugin.cs가 대사 블록 직접 매칭 우선으로 동작하며, TryTranslateTagSeparatedSegments가 제거/강등되어 있다
   2. 직접 매칭 커버리지가 95%+ 달성된다
   3. 패치 적용 후 게임 내에서 bold 누출, color 누출 없이 한국어가 표시된다
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- V3 sidecar contextual_entries export (TDD)
+- [ ] 04-02-PLAN.md -- Plugin.cs chain reduction (8->4 stages) + TextAsset .json loading
+- [ ] 04-03-PLAN.md -- Patch deployment, game verification, hit rate analysis
 
 ## Progress
 
@@ -92,5 +94,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. 소스 준비 & 파서 | 3/3 | Complete |  |
 | 2. 번역 엔진 | 4/4 | Complete   | 2026-03-22 |
-| 3. 패치 출력 & 전량 실행 | 2/3 | In Progress|  |
-| 4. 플러그인 최적화 & 게임 검증 | 0/? | Not started | - |
+| 3. 패치 출력 & 전량 실행 | 3/3 | Complete |  |
+| 4. 플러그인 최적화 & 게임 검증 | 0/3 | Not started | - |
