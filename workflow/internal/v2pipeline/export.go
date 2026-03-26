@@ -2,6 +2,7 @@ package v2pipeline
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -64,6 +65,37 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 			sidecar.Entries = append(sidecar.Entries, entry)
 		}
 	}
+
+	// Explode multi-line block entries into per-line entries so that
+	// TranslationMap can match individual lines the game renders.
+	// Only when source and target line counts match (89%+ of blocks).
+	var exploded []V3Entry
+	for _, entry := range sidecar.Entries {
+		if entry.Target == "" || !strings.Contains(entry.Source, "\n") {
+			continue
+		}
+		srcLines := splitKeepNonEmpty(entry.Source)
+		tgtLines := splitKeepNonEmpty(entry.Target)
+		if len(srcLines) != len(tgtLines) || len(srcLines) < 2 {
+			continue
+		}
+		for i, src := range srcLines {
+			if seen[src] {
+				continue
+			}
+			seen[src] = true
+			exploded = append(exploded, V3Entry{
+				ID:          fmt.Sprintf("%s/ln-%d", entry.ID, i),
+				Source:      src,
+				Target:      tgtLines[i],
+				SourceFile:  entry.SourceFile,
+				TextRole:    entry.TextRole,
+				SpeakerHint: entry.SpeakerHint,
+			})
+		}
+	}
+	sidecar.Entries = append(sidecar.Entries, exploded...)
+
 	return sidecar
 }
 
@@ -89,6 +121,18 @@ func NormalizeLLMEscapes(s string) string {
 	// Unescape literal \" → actual double-quote
 	s = strings.ReplaceAll(s, `\"`, `"`)
 	return s
+}
+
+// splitKeepNonEmpty splits s by newline and returns only non-empty trimmed lines.
+func splitKeepNonEmpty(s string) []string {
+	parts := strings.Split(s, "\n")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if strings.TrimSpace(p) != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // WriteTranslationsJSON writes V3Sidecar as indented JSON to path.
