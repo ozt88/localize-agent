@@ -531,11 +531,10 @@ public class Plugin : BasePlugin
 
                 if (files.Length > 0)
                 {
-                    // Prefer Bold weight
-                    var bold = files.FirstOrDefault(f =>
-                        f.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
-                        f.Contains("-B.", StringComparison.OrdinalIgnoreCase));
-                    return bold ?? files[0];
+                    // Prefer Regular weight — Bold causes all Korean text to render heavy
+                    var regular = files.FirstOrDefault(f =>
+                        f.Contains("Regular", StringComparison.OrdinalIgnoreCase));
+                    return regular ?? files[0];
                 }
             }
         }
