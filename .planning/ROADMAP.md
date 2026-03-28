@@ -115,14 +115,15 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 3. 패치 출력 & 전량 실행 | 3/3 | Complete |  |
 | 4. 플러그인 최적화 & 게임 검증 | 3/5 | In progress | - |
 | 4.1. Plugin.cs v2 재작성 | 2/2 | Complete | 2026-03-29 |
-| 4.2. 소스 정리 & 재export | 0/0 | Planned | - |
+| 4.2. 소스 정리 & 재export | 0/2 | Planned | - |
 
 ### Phase 04.2: 소스 정리 & 재export (INSERTED)
 
-**Goal:** ink 파서에서 게임 변수 태그를 strip하고 passthrough 로직을 개선하여, 깨끗한 소스로 DB를 재구축하고 translations.json을 재생성한다. 기존 번역 재사용, LLM 재호출 없음.
+**Goal:** ink 파서에서 DC/FC 접두사를 strip하여 clean source를 생성하고, DB를 in-place UPDATE한 후 전체 패치 아티팩트를 재생성한다. export.go와 Plugin.cs의 DC/FC 우회 로직을 제거하여 파이프라인을 단순화한다. 기존 번역 재사용, LLM 재호출 없음.
 **Requirements**: PLUGIN-03 (커버리지 95%+)
 **Depends on:** Phase 4.1
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 04.2 to break down)
+- [ ] 04.2-01-PLAN.md -- Parser DC/FC strip + export.go cleanup + Plugin.cs 3-stage + DB migration
+- [ ] 04.2-02-PLAN.md -- Full artifact rebuild, deploy, in-game verification
