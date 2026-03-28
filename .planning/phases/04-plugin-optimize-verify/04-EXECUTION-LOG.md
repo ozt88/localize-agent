@@ -68,6 +68,12 @@
 - Plugin.cs v1 가정: CleanOrphanBoldTags, FindKoreanFontFile 등이 v2 데이터와 호환 안 됨
 - 선택지 렌더링: TMP link 태그 래핑은 인게임에서만 관찰 가능
 
+### 2026-03-28 — 번역 품질 리뷰 도구 추가
+- **요청:** 유저가 v1 대비 v2 번역 품질이 낮다고 판단, 검토 도구 요청
+- **1번 도구 (오프라인):** quality_review.tsv — source→v1_target→v2_target 비교 파일
+- **2번 도구 (인게임):** Plugin.cs에 translation_hits.json 로그 추가 — ENABLE_FULL_CAPTURE 모드에서 source→target 쌍 기록
+- **커밋:** 별도 커밋 예정
+
 ## 현재 상태
 
 - translations.json: 75,789 entries (75,244 with target)

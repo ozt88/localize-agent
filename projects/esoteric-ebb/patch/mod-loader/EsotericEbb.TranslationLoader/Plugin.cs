@@ -68,6 +68,9 @@ public class Plugin : BasePlugin
     private static string? _fullCapturePath;
     private static bool _fullCaptureEnabled;
     private static int _fullCaptureFlushCount;
+    private static string? _translationHitLogPath;
+    private static readonly List<object> _translationHitLog = new();
+    private static int _translationHitLogFlushCount;
     private static string? _statePath;
     private static string? _menuDumpPath;
     private static string? _uiToolkitDumpPath;
@@ -136,6 +139,7 @@ public class Plugin : BasePlugin
         _capturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "untranslated_capture.json");
         _choiceCapturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "choice_capture.json");
         _fullCapturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "full_text_capture.json");
+        _translationHitLogPath = Path.Combine(Paths.GameRootPath, "BepInEx", "translation_hits.json");
         _fullCaptureEnabled = File.Exists(Path.Combine(Paths.GameRootPath, "BepInEx", "ENABLE_FULL_CAPTURE"));
         _statePath = Path.Combine(Paths.GameRootPath, "BepInEx", "translation_loader_state.json");
         _menuDumpPath = Path.Combine(Paths.GameRootPath, "BepInEx", "menu_runtime_dump.json");
@@ -2846,7 +2850,37 @@ public class Plugin : BasePlugin
             _translateHitCount++;
             _lastTranslatedSource = source;
             _lastTranslatedTarget = target;
+
+            if (_fullCaptureEnabled && !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(target))
+            {
+                _translationHitLog.Add(new { source, target });
+                _translationHitLogFlushCount++;
+                if (_translationHitLogFlushCount % 100 == 0)
+                {
+                    FlushTranslationHitLog();
+                }
+            }
         }
+    }
+
+    private static void FlushTranslationHitLog()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_translationHitLogPath) || _translationHitLog.Count == 0)
+                return;
+
+            var payload = new
+            {
+                generated_at = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+                count = _translationHitLog.Count,
+                entries = _translationHitLog
+            };
+            File.WriteAllText(_translationHitLogPath,
+                JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }),
+                System.Text.Encoding.UTF8);
+        }
+        catch { /* silent */ }
     }
 
     private static void RecordTranslationMiss(string source)
@@ -2863,6 +2897,7 @@ public class Plugin : BasePlugin
         lock (StateLock)
         {
             WriteStateUnsafe(phase);
+            FlushTranslationHitLog();
         }
     }
 
