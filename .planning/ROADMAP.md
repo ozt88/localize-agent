@@ -94,10 +94,14 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Plugin.cs가 v2 translations.json v3 sidecar 포맷 전용으로 로딩한다
   2. v1 레거시 코드 없음: StripQuotationMarks, CleanOrphanBoldTags(전체 제거 로직), Bold 폰트 우선, 하드코딩 번역 Stage 1 우선
-  3. TryTranslate 순서: TranslationMap → DC/FC strip → Contextual → GeneratedPattern → RuntimeLexicon
+  3. TryTranslate 순서: TranslationMap → DC/FC strip → Contextual → RuntimeLexicon (4단계, GeneratedPattern은 RuntimeLexicon regex_rules로 통합)
   4. 하드코딩 번역이 runtime_lexicon.json으로 이동됨
   5. 게임 내 인게임 검증 통과 (95%+ 커버리지, 태그 깨짐 없음)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04.1-01-PLAN.md -- runtime_lexicon.json v2 upgrade + Plugin.cs v2 complete rewrite (data loading, TryTranslate 4-stage chain, Harmony patches, font, capture, helpers)
+- [ ] 04.1-02-PLAN.md -- Build, deploy, and in-game verification checkpoint
 
 ## Progress
 
@@ -110,3 +114,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. 번역 엔진 | 4/4 | Complete   | 2026-03-22 |
 | 3. 패치 출력 & 전량 실행 | 3/3 | Complete |  |
 | 4. 플러그인 최적화 & 게임 검증 | 3/5 | In progress | - |
+| 4.1. Plugin.cs v2 재작성 | 0/2 | Planned | - |
