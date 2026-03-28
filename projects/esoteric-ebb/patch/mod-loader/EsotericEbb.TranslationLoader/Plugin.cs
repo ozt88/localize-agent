@@ -1669,6 +1669,24 @@ public class Plugin : BasePlugin
 
         CaptureChoice(text);
 
+        // Choice text arrives wrapped: <#...><line-indent=...><link="N">N.   Body</link></line-indent></color>
+        // Extract body, translate it, then reassemble with original wrapper and numbering.
+        var choiceMatch = System.Text.RegularExpressions.Regex.Match(
+            text, @"^(?<pre>.*<link=""[^""]*"">)(?<num>\d+\.\s+)(?<body>.+?)(?<post></link>.*)$",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        if (choiceMatch.Success)
+        {
+            var body = choiceMatch.Groups["body"].Value;
+            if (TryTranslate(ref body, "ink_choice"))
+            {
+                text = choiceMatch.Groups["pre"].Value
+                     + choiceMatch.Groups["num"].Value
+                     + body
+                     + choiceMatch.Groups["post"].Value;
+            }
+            return;
+        }
+
         TryTranslate(ref text, "ink_choice");
     }
 
