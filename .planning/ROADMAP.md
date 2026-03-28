@@ -87,6 +87,18 @@ Plans:
 - [ ] 04-04-PLAN.md -- Gap closure: clean rebuild of all patch artifacts with bug fixes
 - [ ] 04-05-PLAN.md -- Gap closure: game verification session + formal requirement sign-off
 
+### Phase 4.1: Plugin.cs v2 재작성 (INSERTED)
+**Goal**: v1 레거시 Plugin.cs를 v2 데이터 포맷 전용으로 새로 작성하여 v1 가정으로 인한 연쇄 버그를 근본적으로 해결한다
+**Depends on**: Phase 4
+**Requirements**: PLUGIN-02 (재검증)
+**Success Criteria** (what must be TRUE):
+  1. Plugin.cs가 v2 translations.json v3 sidecar 포맷 전용으로 로딩한다
+  2. v1 레거시 코드 없음: StripQuotationMarks, CleanOrphanBoldTags(전체 제거 로직), Bold 폰트 우선, 하드코딩 번역 Stage 1 우선
+  3. TryTranslate 순서: TranslationMap → DC/FC strip → Contextual → GeneratedPattern → RuntimeLexicon
+  4. 하드코딩 번역이 runtime_lexicon.json으로 이동됨
+  5. 게임 내 인게임 검증 통과 (95%+ 커버리지, 태그 깨짐 없음)
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
