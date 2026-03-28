@@ -917,22 +917,20 @@ public class Plugin : BasePlugin
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // If text contains any Korean characters, strip ALL <b></b> tags.
-        // Our DB translations never use <b> — any <b> present is leaked.
-        bool hasKorean = false;
-        foreach (var c in text)
-        {
-            if (c >= 0xAC00 && c <= 0xD7A3)
-            {
-                hasKorean = true;
-                break;
-            }
-        }
+        // v2: translations include intentional <b> tags from ko_formatted.
+        // Only strip truly orphan tags (unmatched open/close), not all bold.
+        int opens = 0, closes = 0;
+        int idx = 0;
+        while ((idx = text.IndexOf("<b>", idx, StringComparison.Ordinal)) >= 0) { opens++; idx += 3; }
+        idx = 0;
+        while ((idx = text.IndexOf("</b>", idx, StringComparison.Ordinal)) >= 0) { closes++; idx += 4; }
 
-        if (hasKorean && (text.Contains("<b>") || text.Contains("</b>")))
-        {
+        if (opens == closes)
+            return text; // balanced — keep all tags
+
+        // Unbalanced: strip all (safety fallback)
+        if (opens > 0 || closes > 0)
             text = text.Replace("<b>", "").Replace("</b>", "");
-        }
 
         return text;
     }
