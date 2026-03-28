@@ -839,7 +839,7 @@ public class Plugin : BasePlugin
         }
     }
 
-    internal static bool TryTranslate(ref string value, string origin = "unknown", bool stripQuotes = true)
+    internal static bool TryTranslate(ref string value, string origin = "unknown")
     {
         if (string.IsNullOrEmpty(value))
         {
@@ -905,8 +905,6 @@ public class Plugin : BasePlugin
 
         if (found)
         {
-            if (stripQuotes)
-                value = StripQuotationMarks(value);
             value = CleanOrphanBoldTags(value);
             return true;
         }
@@ -914,20 +912,6 @@ public class Plugin : BasePlugin
         RecordTranslationMiss(originalValue);
         CaptureUntranslated(originalValue);
         return false;
-    }
-
-    /// <summary>
-    /// Remove straight double-quote characters from translated Korean text.
-    /// Game dialogue is already visually framed by the UI, so explicit quotes
-    /// look out of place and break immersion.
-    /// </summary>
-    private static string StripQuotationMarks(string text)
-    {
-        if (string.IsNullOrEmpty(text) || text.IndexOf('"') < 0)
-        {
-            return text;
-        }
-        return text.Replace("\"", "");
     }
 
     /// <summary>
@@ -1676,8 +1660,7 @@ public class Plugin : BasePlugin
 
         // AddChoiceText receives plain body text (no link/numbering wrapper).
         // Game adds <link="N">N.   ...</link> AFTER this hook via DialogManager.
-        // Do NOT strip quotes — game uses quote presence for choice formatting/numbering.
-        TryTranslate(ref text, "ink_choice", stripQuotes: false);
+        TryTranslate(ref text, "ink_choice");
     }
 
     private static void TryLogAddChoiceSignature(object? instance)
