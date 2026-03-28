@@ -87,6 +87,11 @@ Recent decisions affecting current work:
 - [Phase 04]: D-01: entries[] deduped by source text (first-seen-wins), contextual_entries[] contains all items for ContextualMap
 - [Phase 04.1]: GeneratedPattern merged into RuntimeLexicon regex_rules, TryTranslate simplified to 4 stages
 - [Phase 04.1]: ContextualMap keyed by raw source text (v2 sources already clean, no normalize needed)
+- [Phase 04.1]: D-14 수정 — 게임이 선택지를 TMP 태그로 래핑한 후 AddChoiceText 호출 (이전 가정과 반대)
+
+### Roadmap Evolution
+
+- Phase 04.2 inserted after Phase 04.1: 소스 정리 & 재export (INSERTED) — ink 파서 게임 태그 strip + passthrough 개선 + DB 재구축 + translations.json 재생성
 
 ### Pending Todos
 

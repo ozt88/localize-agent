@@ -101,7 +101,7 @@ Plans:
 
 Plans:
 - [x] 04.1-01-PLAN.md -- runtime_lexicon.json v2 upgrade + Plugin.cs v2 complete rewrite (data loading, TryTranslate 4-stage chain, Harmony patches, font, capture, helpers)
-- [ ] 04.1-02-PLAN.md -- Build, deploy, and in-game verification checkpoint
+- [x] 04.1-02-PLAN.md -- Build, deploy, and in-game verification checkpoint
 
 ## Progress
 
@@ -114,4 +114,15 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. 번역 엔진 | 4/4 | Complete   | 2026-03-22 |
 | 3. 패치 출력 & 전량 실행 | 3/3 | Complete |  |
 | 4. 플러그인 최적화 & 게임 검증 | 3/5 | In progress | - |
-| 4.1. Plugin.cs v2 재작성 | 0/2 | Planned | - |
+| 4.1. Plugin.cs v2 재작성 | 2/2 | Complete | 2026-03-29 |
+| 4.2. 소스 정리 & 재export | 0/0 | Planned | - |
+
+### Phase 04.2: 소스 정리 & 재export (INSERTED)
+
+**Goal:** ink 파서에서 게임 변수 태그를 strip하고 passthrough 로직을 개선하여, 깨끗한 소스로 DB를 재구축하고 translations.json을 재생성한다. 기존 번역 재사용, LLM 재호출 없음.
+**Requirements**: PLUGIN-03 (커버리지 95%+)
+**Depends on:** Phase 4.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.2 to break down)
