@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -10,401 +10,786 @@ using HarmonyLib;
 
 namespace EsotericEbb.TranslationLoader;
 
+/// <summary>
+/// Plugin.cs v2 — Complete rewrite for v2 translation pipeline.
+/// Zero v1 legacy code. V3 sidecar format only. 4-stage TryTranslate chain.
+/// </summary>
 [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
 public class Plugin : BasePlugin
 {
+    // =========================================================================
+    // Constants
+    // =========================================================================
+
     public const string PluginGuid = "com.esotericebb.translationloader";
     public const string PluginName = "EsotericEbb Translation Loader";
-    public const string PluginVersion = "0.3.0";
+    public const string PluginVersion = "2.0.0";
+
+    private const string V3SidecarFormat = "esoteric-ebb-sidecar.v3";
+    private const string LexiconV2Format = "esoteric-ebb-runtime-lexicon.v2";
+    private const string EnableFullCaptureFlag = "ENABLE_FULL_CAPTURE";
+    private const int RecentHistoryLimit = 8;
+
+    // =========================================================================
+    // Fields — Data Stores
+    // =========================================================================
 
     internal static ManualLogSource? LogSource;
+
+    /// <summary>Exact source->target map (deduped by source, first-seen-wins). Per D-03: exact match only.</summary>
     internal static readonly Dictionary<string, string> TranslationMap = new(StringComparer.Ordinal);
-    internal static readonly Dictionary<string, string> NormalizedMap = new(StringComparer.Ordinal);
+
+    /// <summary>Source text -> list of contextual candidates with metadata. Per D-04.</summary>
     private static readonly Dictionary<string, List<ContextualEntry>> ContextualMap = new(StringComparer.Ordinal);
+
+    /// <summary>TextAsset name -> replacement content. OrdinalIgnoreCase for Unity asset name matching.</summary>
     private static readonly Dictionary<string, string> TextAssetOverrides = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>I2 localization ID -> Korean translation.</summary>
     private static readonly Dictionary<string, string> LocalizationIdOverrides = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Runtime lexicon v2: exact find->replace.</summary>
+    private static readonly Dictionary<string, string> RuntimeExactReplacements = new(StringComparer.Ordinal);
+
+    /// <summary>Runtime lexicon: substring find->replace, sorted by find length descending.</summary>
     private static readonly List<KeyValuePair<string, string>> RuntimeSubstringReplacements = new();
+
+    /// <summary>Runtime lexicon: compiled regex rules.</summary>
     private static readonly List<RuntimeRegexRule> RuntimeRegexRules = new();
-    private static readonly Dictionary<string, string> MenuDirectOverrides = new(StringComparer.Ordinal)
-    {
-        ["New Game"] = "새 게임",
-        ["Load"] = "불러오기",
-        ["Options"] = "옵션",
-        ["Credits"] = "크레딧",
-        ["Exit"] = "종료",
-        ["Load Game"] = "게임 불러오기",
-        ["Load file?"] = "파일을 불러올까요?",
-        ["- Load File -"] = "- 파일 불러오기 -"
-    };
-    private static readonly Dictionary<string, string> StatNameOverrides = new(StringComparer.Ordinal)
-    {
-        ["Strength"] = "힘",
-        ["Dexterity"] = "민첩",
-        ["Constitution"] = "건강",
-        ["Intelligence"] = "지능",
-        ["Wisdom"] = "지혜",
-        ["Charisma"] = "매력"
-    };
-    private static readonly HashSet<string> TextAssetOverrideMissSeen = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> LocalizationMissSeen = new(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly HashSet<string> UntranslatedSeen = new(StringComparer.Ordinal);
-    private static readonly HashSet<string> ChoiceCaptureSeen = new(StringComparer.Ordinal);
-    private static readonly List<object> FullCaptureBuffer = new();
-    private static readonly HashSet<string> FullCaptureSeen = new(StringComparer.Ordinal);
-    private static readonly HashSet<string> DumpedMenuScenes = new(StringComparer.Ordinal);
-    private static readonly HashSet<string> DumpedUiToolkitEntries = new(StringComparer.Ordinal);
-    private static readonly HashSet<string> TriggeredSceneScans = new(StringComparer.Ordinal);
-    private static bool _choiceSignatureLogged;
-    private static readonly List<string> RecentNormalizedHistory = new();
-    private static readonly object StateLock = new();
-    private static readonly object ContextLock = new();
-    private static readonly Dictionary<string, Type?> TypeCache = new(StringComparer.Ordinal);
-    private const int RecentHistoryLimit = 8;
-    [ThreadStatic] private static int _patchReentryDepth;
-    [ThreadStatic] private static bool _suppressDiagnostics;
-    private static string? _capturePath;
-    private static string? _choiceCapturePath;
-    private static string? _fullCapturePath;
-    private static bool _fullCaptureEnabled;
-    private static int _fullCaptureFlushCount;
-    private static string? _translationHitLogPath;
-    private static readonly List<object> _translationHitLog = new();
-    private static int _translationHitLogFlushCount;
-    private static string? _statePath;
-    private static string? _menuDumpPath;
-    private static string? _uiToolkitDumpPath;
-    private static int _newCaptureCount;
-    private static int _choiceCaptureCount;
-    private static int _choiceInternalBranchCount;
-    private static int _choiceTemplateCount;
-    private static int _choiceStatGateCount;
-    private static int _choiceShortResultCount;
-    private static int _choiceNormalCount;
-    private static int _translateHitCount;
-    private static int _translateMissCount;
+    // =========================================================================
+    // Fields — Counters & State
+    // =========================================================================
+
+    private static int _translationMapHits;
+    private static int _dcfcStripHits;
+    private static int _contextualHits;
+    private static int _runtimeLexiconHits;
+    private static int _misses;
+    private static int _textAssetOverrideHits;
+    private static int _localizationIdOverrideHits;
     private static int _contextualLoadedCount;
-    private static int _textAssetOverrideCount;
-    private static int _textAssetOverrideHitCount;
-    private static int _textAssetOverrideMissLoggedCount;
-    private static int _localizationIdOverrideCount;
-    private static int _localizationIdOverrideHitCount;
-    private static int _localizationIdOverrideMissLoggedCount;
-    private static int _runtimeLexiconSubstringCount;
-    private static int _runtimeLexiconRegexCount;
-    private static int _runtimeLexiconHitCount;
-    private static int _menuSceneSweepCount;
-    private static int _menuSceneTranslatedCount;
-    private static int _menuSweepSampleCount;
-    private static int _menuDirectOverrideHits;
-    private static int _sceneTextScanCount;
-    private static int _contextualHitCount;
-    private static int _sourceFileContextHitCount;
-    private static string _lastTranslatedSource = string.Empty;
-    private static string _lastTranslatedTarget = string.Empty;
-    private static string _lastMissedSource = string.Empty;
-    [ThreadStatic] private static string? _currentDialogSourceFile;
 
-    // Font injection state
+    // =========================================================================
+    // Fields — Context Tracking
+    // =========================================================================
+
+    private static string _currentDialogSourceFile = "";
+    private static readonly HashSet<string> _recentContextHistory = new(StringComparer.Ordinal);
+
+    // =========================================================================
+    // Fields — Capture Infrastructure (D-12)
+    // =========================================================================
+
+    private static readonly HashSet<string> _untranslatedCapture = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, string> _translationHitsCapture = new(StringComparer.Ordinal);
+    private static bool _fullCaptureEnabled;
+    private static string? _capturePath;
+    private static string? _translationHitLogPath;
+    private static string? _statePath;
+
+    // =========================================================================
+    // Fields — Patch State
+    // =========================================================================
+
+    [ThreadStatic] private static int _patchReentryDepth;
+
+    private Harmony? _harmony;
+    private bool _tmpTextPatched;
+    private bool _textAssetPatched;
+    private bool _dialogPatched;
+    private bool _localizePatched;
+    private bool _tmpOnEnablePatched;
+    private bool _tmpUguiAwakePatched;
+    private bool _tmpWorldAwakePatched;
+    private bool _dialogStartPatched;
+    private bool _uiTextPatched;
+    private bool _uiOnEnablePatched;
+    private bool _menuStartPatched;
+    private bool _menuRefreshPatched;
+    private bool _sceneLoadedPatched;
+
+    // =========================================================================
+    // Fields — Font
+    // =========================================================================
+
     private static object? _koreanFontAsset;
-    private static bool _fontLoadAttempted;
+    private static bool _fontLoaded;
     private static readonly HashSet<int> _fontInjectedAssets = new();
-    private static int _fontFallbackInjectedCount;
     private static string _fontStatus = "not_attempted";
 
     [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
     private static extern int AddFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
 
-    private const uint FR_PRIVATE = 0x10;
-    private const string KoreanFontFamily = "YeolrinMyeongjo";
+    // =========================================================================
+    // Fields — Misc
+    // =========================================================================
 
-    private Harmony? _harmony;
-    private bool _tmpSetterPatched;
-    private bool _tmpEnablePatched;
-    private bool _tmpUguiAwakePatched;
-    private bool _tmpWorldAwakePatched;
-    private bool _tmpPatched;
-    private bool _textAssetPatched;
-    private bool _localizationManagerPatched;
-    private bool _uiEnablePatched;
-    private bool _uiPatched;
-    private bool _uiToolkitPatched;
-    private bool _sceneManagerPatched;
-    private bool _menuPatched;
-    private bool _dialogPatched;
+    private static readonly HashSet<string> TextAssetOverrideMissSeen = new(StringComparer.OrdinalIgnoreCase);
+    private static int _textAssetOverrideMissLoggedCount;
+    private static readonly HashSet<string> _triggeredSceneScans = new(StringComparer.Ordinal);
+    private static readonly object StateLock = new();
+    private static readonly Dictionary<string, Type?> TypeCache = new(StringComparer.Ordinal);
+
+    // DC/FC prefix regex — must match export.go dcfcPrefixRe exactly
+    private static readonly Regex DcFcPrefixRegex = new(@"^[A-Z]{2}\d+\s+\w+-", RegexOptions.Compiled);
+
+    // =========================================================================
+    // Load() Entry Point
+    // =========================================================================
 
     public override void Load()
     {
         LogSource = Log;
+
+        // Resolve TranslationPatch directory
+        var basePath = Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch");
+        if (!Directory.Exists(basePath))
+        {
+            basePath = Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch");
+        }
+
+        // Setup capture paths
         _capturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "untranslated_capture.json");
-        _choiceCapturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "choice_capture.json");
-        _fullCapturePath = Path.Combine(Paths.GameRootPath, "BepInEx", "full_text_capture.json");
         _translationHitLogPath = Path.Combine(Paths.GameRootPath, "BepInEx", "translation_hits.json");
-        _fullCaptureEnabled = File.Exists(Path.Combine(Paths.GameRootPath, "BepInEx", "ENABLE_FULL_CAPTURE"));
         _statePath = Path.Combine(Paths.GameRootPath, "BepInEx", "translation_loader_state.json");
-        _menuDumpPath = Path.Combine(Paths.GameRootPath, "BepInEx", "menu_runtime_dump.json");
-        _uiToolkitDumpPath = Path.Combine(Paths.GameRootPath, "BepInEx", "ui_toolkit_runtime_dump.txt");
-        WriteState("load_start");
-        LoadTranslations();
-        LoadTextAssetOverrides();
-        LoadLocalizationIdOverrides();
-        LoadRuntimeLexicon();
+        _fullCaptureEnabled = File.Exists(Path.Combine(Paths.GameRootPath, "BepInEx", EnableFullCaptureFlag));
 
+        // Load data
+        LoadTranslations(basePath);
+        LoadTextAssetOverrides(basePath);
+        LoadLocalizationIdOverrides(basePath);
+        LoadRuntimeLexicon(basePath);
+
+        // Setup Harmony
         _harmony = new Harmony(PluginGuid);
-        TryApplyPatches("initial");
+        TryApplyPatches();
 
+        // Deferred patching for assemblies not yet loaded
         AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
 
-        Log.LogInfo($"{PluginName} loaded. entries={TranslationMap.Count}, contextual={_contextualLoadedCount}");
+        var contextualTotal = 0;
+        foreach (var list in ContextualMap.Values)
+            contextualTotal += list.Count;
+
+        var lexiconRules = RuntimeExactReplacements.Count + RuntimeSubstringReplacements.Count + RuntimeRegexRules.Count;
+
+        Log.LogInfo($"v2 loaded: {TranslationMap.Count} entries, {contextualTotal} contextual, " +
+                    $"{TextAssetOverrides.Count} textassets, {LocalizationIdOverrides.Count} localization IDs, " +
+                    $"{lexiconRules} lexicon rules");
+
         if (_fullCaptureEnabled)
         {
-            Log.LogInfo("FULL CAPTURE MODE enabled. All text will be logged to full_text_capture.json");
+            Log.LogInfo("FULL CAPTURE MODE enabled — translation hits will be logged");
         }
+
         WriteState("load_complete");
     }
 
-    private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args)
+    // =========================================================================
+    // Data Loading
+    // =========================================================================
+
+    private void LoadTranslations(string basePath)
     {
-        if (_tmpPatched && _uiPatched && _dialogPatched)
+        var candidates = new[]
         {
-            return;
-        }
-
-        var name = args.LoadedAssembly.GetName().Name ?? string.Empty;
-        if (name.Contains("TextMeshPro", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("TMPro", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("UnityEngine.UI", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("Assembly-CSharp", StringComparison.OrdinalIgnoreCase))
-        {
-            TryApplyPatches($"assembly-load:{name}");
-        }
-    }
-
-    private void TryApplyPatches(string reason)
-    {
-        if (_harmony is null)
-        {
-            return;
-        }
-
-        if (!_tmpSetterPatched)
-        {
-            _tmpSetterPatched = ApplyTextPatch(_harmony,
-                new[] { "TMPro", "Unity.TextMeshPro" },
-                "TMPro.TMP_Text",
-                "text",
-                nameof(TmpTextPrefix));
-        }
-
-        if (!_tmpEnablePatched)
-        {
-            _tmpEnablePatched = ApplyMethodPatch(_harmony,
-                new[] { "TMPro", "Unity.TextMeshPro" },
-                "TMPro.TMP_Text",
-                "OnEnable",
-                nameof(TmpOnEnablePostfix),
-                parameterCount: 0,
-                usePostfix: true);
-        }
-
-        if (!_tmpUguiAwakePatched)
-        {
-            _tmpUguiAwakePatched = ApplyMethodPatch(_harmony,
-                new[] { "TMPro", "Unity.TextMeshPro" },
-                "TMPro.TextMeshProUGUI",
-                "Awake",
-                nameof(TmpConcreteAwakePostfix),
-                parameterCount: 0,
-                usePostfix: true);
-        }
-
-        if (!_tmpWorldAwakePatched)
-        {
-            _tmpWorldAwakePatched = ApplyMethodPatch(_harmony,
-                new[] { "TMPro", "Unity.TextMeshPro" },
-                "TMPro.TextMeshPro",
-                "Awake",
-                nameof(TmpConcreteAwakePostfix),
-                parameterCount: 0,
-                usePostfix: true);
-        }
-
-        _tmpPatched = _tmpSetterPatched &&
-            _tmpEnablePatched &&
-            _tmpUguiAwakePatched &&
-            _tmpWorldAwakePatched;
-
-        if (_tmpPatched)
-        {
-            TryLoadKoreanFont();
-        }
-
-        if (!_textAssetPatched)
-        {
-            _textAssetPatched = ApplyTextAssetPatch(_harmony);
-        }
-
-        if (!_localizationManagerPatched)
-        {
-            _localizationManagerPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "LocalizationManager",
-                "CheckLanguage",
-                nameof(LocalizeCheckLanguagePostfix),
-                parameterCount: 1,
-                usePostfix: true);
-        }
-
-        if (!_uiPatched)
-        {
-            _uiPatched = ApplyTextPatch(_harmony,
-                new[] { "UnityEngine.UI" },
-                "UnityEngine.UI.Text",
-                "text",
-                nameof(UiTextPrefix));
-        }
-
-        if (!_uiEnablePatched)
-        {
-            _uiEnablePatched = ApplyMethodPatch(_harmony,
-                new[] { "UnityEngine.UI" },
-                "UnityEngine.UI.Text",
-                "OnEnable",
-                nameof(UiOnEnablePostfix),
-                parameterCount: 0,
-                usePostfix: true);
-        }
-
-        _uiPatched = _uiPatched && _uiEnablePatched;
-
-        if (!_uiToolkitPatched)
-        {
-            _uiToolkitPatched = ApplyTextPatch(_harmony,
-                new[] { "UnityEngine.UIElementsModule" },
-                "UnityEngine.UIElements.TextElement",
-                "text",
-                nameof(UiElementsTextPrefix));
-        }
-
-        if (!_sceneManagerPatched)
-        {
-            _sceneManagerPatched = ApplyMethodPatch(_harmony,
-                new[] { "UnityEngine.CoreModule", "UnityEngine" },
-                "UnityEngine.SceneManagement.SceneManager",
-                "Internal_SceneLoaded",
-                nameof(SceneLoadedPostfix),
-                parameterCount: 2,
-                usePostfix: true);
-        }
-
-        if (!_menuPatched)
-        {
-            var menuStartPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "MenuController",
-                "Start",
-                nameof(MenuControllerStartPostfix),
-                parameterCount: 0,
-                usePostfix: true);
-            var menuOptionsPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "MenuController",
-                "Options",
-                nameof(MenuControllerRefreshPostfix),
-                parameterCount: 0,
-                usePostfix: true);
-            var menuCreditsPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "MenuController",
-                "Credits",
-                nameof(MenuControllerRefreshPostfix),
-                parameterCount: 0,
-                usePostfix: true);
-            var menuReturnPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "MenuController",
-                "ReturnToMenu",
-                nameof(MenuControllerRefreshPostfix),
-                parameterCount: 0,
-                usePostfix: true);
-            var menuUpdatePatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "MenuController",
-                "Update",
-                nameof(MenuControllerUpdatePostfix),
-                parameterCount: 0,
-                usePostfix: true);
-            _menuPatched = menuStartPatched && menuOptionsPatched && menuCreditsPatched && menuReturnPatched && menuUpdatePatched;
-        }
-
-        if (!_dialogPatched)
-        {
-            var startDialogPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "DialogManager",
-                "StartDialog",
-                nameof(DialogStartDialogPrefix),
-                parameterCount: 5);
-
-            var addTextPatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "DialogManager",
-                "AddText",
-                nameof(DialogAddTextPrefix),
-                parameterCount: 1);
-
-            var addChoicePatched = ApplyMethodPatch(_harmony,
-                new[] { "Assembly-CSharp" },
-                "DialogManager",
-                "AddChoiceText",
-                nameof(DialogAddChoiceTextPrefix),
-                parameterCount: 9);
-
-            _dialogPatched = startDialogPatched && addTextPatched && addChoicePatched;
-        }
-
-        InstanceState = new PluginState
-        {
-            TmpPatched = _tmpPatched,
-            TextAssetPatched = _textAssetPatched,
-            LocalizationManagerPatched = _localizationManagerPatched,
-            UiPatched = _uiPatched,
-            MenuPatched = _menuPatched,
-            DialogPatched = _dialogPatched
+            Path.Combine(basePath, "translations.json"),
+            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "translations.json")
         };
 
-        Log.LogInfo($"Patch status ({reason}): TMP={_tmpPatched}, TextAsset={_textAssetPatched}, Localization={_localizationManagerPatched}, UI={_uiPatched}, UIToolkit={_uiToolkitPatched}, SceneManager={_sceneManagerPatched}, Menu={_menuPatched}, Dialog={_dialogPatched}");
-        WriteState($"patch_status:{reason}");
-    }
-
-    private static void TryLoadKoreanFont()
-    {
-        if (_fontLoadAttempted)
+        var path = candidates.FirstOrDefault(File.Exists);
+        if (path is null)
         {
+            Log.LogWarning("translations.json not found");
             return;
         }
-
-        _fontLoadAttempted = true;
 
         try
         {
-            // Step 1: Find the font file
+            var json = File.ReadAllText(path);
+            LoadEntriesFromJson(json);
+            Log.LogInfo($"Loaded translations: {path} ({TranslationMap.Count} entries, {_contextualLoadedCount} contextual)");
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Failed to load translations: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// V3 sidecar format ONLY. No v1 flat array fallback. Per D-03: exact match only.
+    /// </summary>
+    private void LoadEntriesFromJson(string json)
+    {
+        using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        });
+
+        var root = doc.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            Log.LogError("translations.json: expected JSON object (v3 sidecar), got " + root.ValueKind);
+            return;
+        }
+
+        // Validate format
+        var format = ReadString(root, "format") ?? "";
+        if (format != V3SidecarFormat)
+        {
+            Log.LogError($"translations.json: expected format '{V3SidecarFormat}', got '{format}'");
+            return;
+        }
+
+        // entries[] -> TranslationMap (exact match, source -> target)
+        if (root.TryGetProperty("entries", out var entries) && entries.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in entries.EnumerateArray())
+            {
+                var source = ReadString(item, "source");
+                var target = ReadString(item, "target");
+                if (!string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(target))
+                {
+                    TranslationMap[source] = target;
+                }
+            }
+        }
+
+        // contextual_entries[] -> ContextualMap (grouped by source text)
+        if (root.TryGetProperty("contextual_entries", out var contextualEntries) &&
+            contextualEntries.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in contextualEntries.EnumerateArray())
+            {
+                AddContextualEntry(item);
+            }
+        }
+    }
+
+    private static void AddContextualEntry(JsonElement item)
+    {
+        var source = ReadString(item, "source");
+        var target = ReadString(item, "target");
+        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(target))
+        {
+            return;
+        }
+
+        if (!ContextualMap.TryGetValue(source, out var entryList))
+        {
+            entryList = new List<ContextualEntry>();
+            ContextualMap[source] = entryList;
+        }
+
+        entryList.Add(new ContextualEntry
+        {
+            Source = source,
+            Target = target,
+            SourceFile = ReadString(item, "source_file") ?? "",
+            TextRole = ReadString(item, "text_role") ?? "",
+            SpeakerHint = ReadString(item, "speaker_hint") ?? ""
+        });
+        _contextualLoadedCount++;
+    }
+
+    private void LoadTextAssetOverrides(string basePath)
+    {
+        var candidateDirs = new[]
+        {
+            Path.Combine(basePath, "textassets"),
+            Path.Combine(basePath, "localizationtexts"),
+            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "textassets"),
+            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "localizationtexts")
+        };
+
+        var dirs = candidateDirs.Where(Directory.Exists).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (dirs.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var dir in dirs)
+            {
+                foreach (var pattern in new[] { "*.txt", "*.json" })
+                {
+                    foreach (var filePath in Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories))
+                    {
+                        var name = Path.GetFileNameWithoutExtension(filePath);
+                        var text = File.ReadAllText(filePath);
+                        if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(text))
+                        {
+                            TextAssetOverrides[name] = text;
+                        }
+                    }
+                }
+            }
+
+            Log.LogInfo($"Loaded text asset overrides from {dirs.Length} directories ({TextAssetOverrides.Count} files)");
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"Failed to load text asset overrides: {ex.Message}");
+        }
+    }
+
+    private void LoadLocalizationIdOverrides(string basePath)
+    {
+        var candidates = new[]
+        {
+            Path.Combine(basePath, "localizationtexts"),
+            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "localizationtexts")
+        };
+
+        var dir = candidates.FirstOrDefault(Directory.Exists);
+        if (dir is null)
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var path in Directory.EnumerateFiles(dir, "*.txt"))
+            {
+                foreach (var line in File.ReadLines(path))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID,", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var parts = ParseCsvLine(line);
+                    if (parts.Count < 3)
+                    {
+                        continue;
+                    }
+
+                    var id = parts[0].Trim();
+                    var ko = parts[2].Trim();
+                    if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(ko))
+                    {
+                        LocalizationIdOverrides[id] = ko;
+                    }
+                }
+            }
+
+            Log.LogInfo($"Loaded localization ID overrides: ({LocalizationIdOverrides.Count} IDs)");
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"Failed to load localization ID overrides: {ex.Message}");
+        }
+    }
+
+    private void LoadRuntimeLexicon(string basePath)
+    {
+        var candidates = new[]
+        {
+            Path.Combine(basePath, "runtime_lexicon.json"),
+            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "runtime_lexicon.json")
+        };
+
+        var path = candidates.FirstOrDefault(File.Exists);
+        if (path is null)
+        {
+            return;
+        }
+
+        try
+        {
+            RuntimeExactReplacements.Clear();
+            RuntimeSubstringReplacements.Clear();
+            RuntimeRegexRules.Clear();
+
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            // Validate format
+            var format = ReadString(doc.RootElement, "format") ?? "";
+            if (format != LexiconV2Format)
+            {
+                Log.LogWarning($"runtime_lexicon.json: expected '{LexiconV2Format}', got '{format}'. exact_replacements may be missing.");
+            }
+
+            // exact_replacements[] (v2 addition)
+            if (doc.RootElement.TryGetProperty("exact_replacements", out var exactReplacements) &&
+                exactReplacements.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in exactReplacements.EnumerateArray())
+                {
+                    var find = ReadString(item, "find");
+                    var replace = ReadString(item, "replace");
+                    if (!string.IsNullOrEmpty(find) && replace is not null)
+                    {
+                        RuntimeExactReplacements[find] = replace;
+                    }
+                }
+            }
+
+            // substring_replacements[]
+            if (doc.RootElement.TryGetProperty("substring_replacements", out var substringReplacements) &&
+                substringReplacements.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in substringReplacements.EnumerateArray())
+                {
+                    var find = ReadString(item, "find");
+                    var replace = ReadString(item, "replace");
+                    if (!string.IsNullOrEmpty(find) && replace is not null)
+                    {
+                        RuntimeSubstringReplacements.Add(new KeyValuePair<string, string>(find, replace));
+                    }
+                }
+            }
+
+            // Sort by find length descending for longest-match-first
+            RuntimeSubstringReplacements.Sort((a, b) => b.Key.Length.CompareTo(a.Key.Length));
+
+            // regex_rules[]
+            if (doc.RootElement.TryGetProperty("regex_rules", out var regexRules) &&
+                regexRules.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in regexRules.EnumerateArray())
+                {
+                    var pattern = ReadString(item, "pattern");
+                    var replace = ReadString(item, "replace");
+                    if (string.IsNullOrEmpty(pattern) || replace is null)
+                    {
+                        continue;
+                    }
+
+                    var ignoreCase = item.TryGetProperty("ignore_case", out var ignoreCaseEl) &&
+                                     ignoreCaseEl.ValueKind == JsonValueKind.True;
+                    var options = RegexOptions.CultureInvariant | RegexOptions.Compiled;
+                    if (ignoreCase)
+                    {
+                        options |= RegexOptions.IgnoreCase;
+                    }
+
+                    RuntimeRegexRules.Add(new RuntimeRegexRule
+                    {
+                        Name = ReadString(item, "name") ?? "",
+                        Pattern = new Regex(pattern, options),
+                        ReplaceString = replace
+                    });
+                }
+            }
+
+            Log.LogInfo($"Loaded runtime lexicon: {path} ({RuntimeExactReplacements.Count} exact, " +
+                        $"{RuntimeSubstringReplacements.Count} substrings, {RuntimeRegexRules.Count} regex rules)");
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"Failed to load runtime lexicon: {ex.Message}");
+        }
+    }
+
+    // =========================================================================
+    // Harmony Patch Registration
+    // =========================================================================
+
+    private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args)
+    {
+        TryApplyPatches();
+    }
+
+    private void TryApplyPatches()
+    {
+        if (_harmony is null) return;
+
+        // 1. TMP_Text.text setter prefix
+        if (!_tmpTextPatched)
+        {
+            _tmpTextPatched = ApplyTextPatch(
+                new[] { "TMPro", "Unity.TextMeshPro" },
+                "TMPro.TMP_Text", "text", nameof(TmpTextPrefix));
+        }
+
+        // 2. TextAsset.text getter postfix
+        if (!_textAssetPatched)
+        {
+            _textAssetPatched = ApplyTextAssetPatch();
+        }
+
+        // 3. DialogManager.AddChoiceText prefix (D-14: text only)
+        if (!_dialogPatched)
+        {
+            _dialogPatched = ApplyMethodPatch(
+                new[] { "Assembly-CSharp" },
+                "DialogManager", "AddChoiceText",
+                nameof(DialogAddChoiceTextPrefix), parameterCount: 9, usePrefix: true);
+        }
+
+        // 4. Localize.CheckLanguage postfix (I2 localization)
+        if (!_localizePatched)
+        {
+            _localizePatched = ApplyMethodPatch(
+                new[] { "Assembly-CSharp", "I2Localization" },
+                "I2.Loc.LocalizationManager", "GetTranslation",
+                nameof(LocalizeCheckLanguagePostfix), parameterCount: 4, usePrefix: false);
+        }
+
+        // 5. TMP_Text.OnEnable postfix
+        if (!_tmpOnEnablePatched)
+        {
+            _tmpOnEnablePatched = ApplyMethodPatch(
+                new[] { "TMPro", "Unity.TextMeshPro" },
+                "TMPro.TMP_Text", "OnEnable",
+                nameof(TmpOnEnablePostfix), parameterCount: 0, usePrefix: false);
+        }
+
+        // 6a. TextMeshProUGUI.Awake postfix
+        if (!_tmpUguiAwakePatched)
+        {
+            _tmpUguiAwakePatched = ApplyMethodPatch(
+                new[] { "TMPro", "Unity.TextMeshPro" },
+                "TMPro.TextMeshProUGUI", "Awake",
+                nameof(TmpConcreteAwakePostfix), parameterCount: 0, usePrefix: false);
+        }
+
+        // 6b. TextMeshPro.Awake postfix
+        if (!_tmpWorldAwakePatched)
+        {
+            _tmpWorldAwakePatched = ApplyMethodPatch(
+                new[] { "TMPro", "Unity.TextMeshPro" },
+                "TMPro.TextMeshPro", "Awake",
+                nameof(TmpConcreteAwakePostfix), parameterCount: 0, usePrefix: false);
+        }
+
+        // 7. DialogManager.StartDialog prefix (sets _currentDialogSourceFile for ContextualMap)
+        if (!_dialogStartPatched)
+        {
+            _dialogStartPatched = ApplyDialogStartPatch();
+        }
+
+        // 8. UI.Text.text setter prefix (legacy UI)
+        if (!_uiTextPatched)
+        {
+            _uiTextPatched = ApplyTextPatch(
+                new[] { "UnityEngine.UI", "UnityEngine.UIModule" },
+                "UnityEngine.UI.Text", "text", nameof(UiTextPrefix));
+        }
+
+        // 9. UI.Text.OnEnable postfix
+        if (!_uiOnEnablePatched)
+        {
+            _uiOnEnablePatched = ApplyMethodPatch(
+                new[] { "UnityEngine.UI", "UnityEngine.UIModule" },
+                "UnityEngine.UI.Text", "OnEnable",
+                nameof(UiOnEnablePostfix), parameterCount: 0, usePrefix: false);
+        }
+
+        // 10. MenuController.Start postfix
+        if (!_menuStartPatched)
+        {
+            _menuStartPatched = ApplyMethodPatch(
+                new[] { "Assembly-CSharp" },
+                "MenuController", "Start",
+                nameof(MenuControllerStartPostfix), parameterCount: 0, usePrefix: false);
+        }
+
+        // 11. MenuController.RefreshMenuState postfix
+        if (!_menuRefreshPatched)
+        {
+            _menuRefreshPatched = ApplyMethodPatch(
+                new[] { "Assembly-CSharp" },
+                "MenuController", "RefreshMenuState",
+                nameof(MenuControllerRefreshPostfix), parameterCount: 1, usePrefix: false);
+        }
+
+        // 12. SceneManager.sceneLoaded postfix
+        if (!_sceneLoadedPatched)
+        {
+            _sceneLoadedPatched = ApplySceneLoadedPatch();
+        }
+    }
+
+    // =========================================================================
+    // Patch Helpers
+    // =========================================================================
+
+    private bool ApplyTextPatch(string[] assemblyCandidates, string typeName, string propertyName, string patchMethodName)
+    {
+        try
+        {
+            var type = FindTypeInAssemblies(assemblyCandidates, typeName);
+            if (type is null) return false;
+
+            var setter = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetMethod;
+            if (setter is null)
+            {
+                Log.LogWarning($"Patch skipped: setter not found ({typeName}.{propertyName})");
+                return false;
+            }
+
+            var prefix = typeof(Plugin).GetMethod(patchMethodName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (prefix is null) return false;
+
+            _harmony!.Patch(setter, prefix: new HarmonyMethod(prefix));
+            Log.LogInfo($"Patch applied: {typeName}.{propertyName} setter");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Patch failed: {typeName}.{propertyName} => {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private bool ApplyTextAssetPatch()
+    {
+        try
+        {
+            var type = FindTypeInAssemblies(
+                new[] { "UnityEngine.TextRenderingModule", "UnityEngine.CoreModule", "UnityEngine" },
+                "UnityEngine.TextAsset");
+            if (type is null) return false;
+
+            var getter = type.GetProperty("text", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetMethod;
+            if (getter is null)
+            {
+                Log.LogWarning("Patch skipped: getter not found (UnityEngine.TextAsset.text)");
+                return false;
+            }
+
+            var postfix = typeof(Plugin).GetMethod(nameof(TextAssetTextPostfix), BindingFlags.Static | BindingFlags.NonPublic);
+            if (postfix is null) return false;
+
+            _harmony!.Patch(getter, postfix: new HarmonyMethod(postfix));
+            Log.LogInfo("Patch applied: UnityEngine.TextAsset.text getter");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Patch failed: TextAsset.text => {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private bool ApplyMethodPatch(string[] assemblyCandidates, string typeName, string methodName,
+        string patchMethodName, int parameterCount, bool usePrefix)
+    {
+        try
+        {
+            var type = FindTypeInAssemblies(assemblyCandidates, typeName);
+            if (type is null) return false;
+
+            var method = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(m => string.Equals(m.Name, methodName, StringComparison.Ordinal) &&
+                                     m.GetParameters().Length == parameterCount);
+            if (method is null)
+            {
+                Log.LogWarning($"Patch skipped: method not found ({typeName}.{methodName}/{parameterCount})");
+                return false;
+            }
+
+            var patchMethod = typeof(Plugin).GetMethod(patchMethodName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (patchMethod is null) return false;
+
+            if (usePrefix)
+            {
+                _harmony!.Patch(method, prefix: new HarmonyMethod(patchMethod));
+            }
+            else
+            {
+                _harmony!.Patch(method, postfix: new HarmonyMethod(patchMethod));
+            }
+
+            Log.LogInfo($"Patch applied: {typeName}.{methodName}/{parameterCount}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Patch failed: {typeName}.{methodName}/{parameterCount} => {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private bool ApplyDialogStartPatch()
+    {
+        try
+        {
+            var type = FindTypeInAssemblies(new[] { "Assembly-CSharp" }, "DialogManager");
+            if (type is null) return false;
+
+            // StartDialog typically has an ink asset parameter
+            var method = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(m => string.Equals(m.Name, "StartDialog", StringComparison.Ordinal));
+            if (method is null) return false;
+
+            var prefix = typeof(Plugin).GetMethod(nameof(DialogStartDialogPrefix), BindingFlags.Static | BindingFlags.NonPublic);
+            if (prefix is null) return false;
+
+            _harmony!.Patch(method, prefix: new HarmonyMethod(prefix));
+            Log.LogInfo($"Patch applied: DialogManager.StartDialog");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Patch failed: DialogManager.StartDialog => {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private bool ApplySceneLoadedPatch()
+    {
+        try
+        {
+            var sceneManagerType = FindTypeByName("UnityEngine.SceneManagement.SceneManager");
+            if (sceneManagerType is null) return false;
+
+            var sceneLoadedEvent = sceneManagerType.GetEvent("sceneLoaded", BindingFlags.Public | BindingFlags.Static);
+            if (sceneLoadedEvent is null) return false;
+
+            var handler = typeof(Plugin).GetMethod(nameof(SceneLoadedPostfix), BindingFlags.Static | BindingFlags.NonPublic);
+            if (handler is null) return false;
+
+            var delegateType = sceneLoadedEvent.EventHandlerType;
+            if (delegateType is null) return false;
+
+            var del = Delegate.CreateDelegate(delegateType, handler);
+            sceneLoadedEvent.AddMethod?.Invoke(null, new object[] { del });
+
+            Log.LogInfo("Patch applied: SceneManager.sceneLoaded event");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Patch failed: SceneManager.sceneLoaded => {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    // =========================================================================
+    // Font Loading (D-11: Regular font priority)
+    // =========================================================================
+
+    private static void TryLoadKoreanFont()
+    {
+        if (_fontLoaded) return;
+        _fontLoaded = true;
+
+        try
+        {
             var fontPath = FindKoreanFontFile();
             if (fontPath is null)
             {
                 _fontStatus = "font_file_not_found";
-                LogSource?.LogWarning("[Font] Korean font file not found. Place NexonWarhaven-Bold.ttf in TranslationPatch/fonts/");
+                LogSource?.LogWarning("[Font] Korean font file not found");
                 return;
             }
 
             LogSource?.LogInfo($"[Font] Found font file: {fontPath}");
 
-            // Step 2: Find required types
             var fontType = FindTypeByName("UnityEngine.Font");
             if (fontType is null)
             {
                 _fontStatus = "unity_font_type_not_found";
-                LogSource?.LogWarning("[Font] UnityEngine.Font type not found");
                 return;
             }
 
@@ -412,65 +797,22 @@ public class Plugin : BasePlugin
             if (tmpFontType is null)
             {
                 _fontStatus = "tmp_font_type_not_found";
-                LogSource?.LogWarning("[Font] TMPro.TMP_FontAsset type not found");
                 return;
             }
 
-            // Step 3: Create Unity Font — try multiple strategies
-            object? unityFont = null;
+            // Create Unity Font
+            object? unityFont = TryCreateFontViaConstructor(fontType, fontPath);
 
-            // Strategy A: Font(string) constructor with font path
-            // In IL2CPP, Font(string name) internally resolves the font;
-            // passing a full file path works in some Unity versions.
-            unityFont = TryCreateFontViaConstructor(fontType, fontPath);
-
-            // Strategy B: Register with Windows then use CreateDynamicFontFromOSFont
             if (unityFont is null)
             {
-                var added = AddFontResourceEx(fontPath, 0, IntPtr.Zero); // 0 = system-wide for process
+                var added = AddFontResourceEx(fontPath, 0, IntPtr.Zero);
                 if (added > 0)
                 {
                     LogSource?.LogInfo($"[Font] AddFontResourceEx registered {added} font(s)");
-
-                    // Try multiple candidate names
-                    var candidateNames = new[] { "Warhaven Bold", "Warhaven", "NEXON Warhaven Bold", "NEXON Warhaven" };
-                    var discoveredName = DiscoverFontName(fontType);
-                    if (discoveredName is not null)
-                    {
-                        candidateNames = new[] { discoveredName }.Concat(candidateNames).Distinct().ToArray();
-                    }
-
-                    var createMethod = fontType.GetMethod("CreateDynamicFontFromOSFont",
-                        BindingFlags.Public | BindingFlags.Static,
-                        null, new[] { typeof(string), typeof(int) }, null);
-
-                    if (createMethod is not null)
-                    {
-                        foreach (var candidate in candidateNames)
-                        {
-                            try
-                            {
-                                unityFont = createMethod.Invoke(null, new object[] { candidate, 24 });
-                                if (unityFont is not null)
-                                {
-                                    LogSource?.LogInfo($"[Font] CreateDynamicFontFromOSFont succeeded with: {candidate}");
-                                    break;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogSource?.LogInfo($"[Font] CreateDynamicFontFromOSFont failed for '{candidate}': {ex.InnerException?.Message ?? ex.Message}");
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    LogSource?.LogWarning("[Font] AddFontResourceEx returned 0");
+                    unityFont = TryCreateFontFromOS(fontType, fontPath);
                 }
             }
 
-            // Strategy C: Font() default constructor + set name, as last resort
             if (unityFont is null)
             {
                 unityFont = TryCreateFontDefault(fontType);
@@ -483,12 +825,9 @@ public class Plugin : BasePlugin
                 return;
             }
 
-            // Set HideFlags.DontUnloadUnusedAsset to prevent GC
-            SetObjectHideFlags(unityFont, 52);
+            SetObjectHideFlags(unityFont, 52); // DontUnloadUnusedAsset
 
-            // Step 4: Create TMP_FontAsset
             _koreanFontAsset = TryCreateTmpFontAsset(tmpFontType, fontType, unityFont);
-
             if (_koreanFontAsset is null)
             {
                 _fontStatus = "create_font_asset_failed";
@@ -521,10 +860,7 @@ public class Plugin : BasePlugin
 
         foreach (var dir in searchDirs)
         {
-            if (!Directory.Exists(dir))
-            {
-                continue;
-            }
+            if (!Directory.Exists(dir)) continue;
 
             foreach (var pattern in filePatterns)
             {
@@ -535,7 +871,7 @@ public class Plugin : BasePlugin
 
                 if (files.Length > 0)
                 {
-                    // Prefer Regular weight — Bold causes all Korean text to render heavy
+                    // Prefer Regular weight (D-11, Phase 4 fix e90555c)
                     var regular = files.FirstOrDefault(f =>
                         f.Contains("Regular", StringComparison.OrdinalIgnoreCase));
                     return regular ?? files[0];
@@ -546,39 +882,10 @@ public class Plugin : BasePlugin
         return null;
     }
 
-    private static string? DiscoverFontName(Type fontType)
-    {
-        try
-        {
-            var getNamesMethod = fontType.GetMethod("GetOSInstalledFontNames",
-                BindingFlags.Public | BindingFlags.Static);
-            if (getNamesMethod?.Invoke(null, null) is not string[] fontNames)
-            {
-                return null;
-            }
-
-            // Look for exact or partial match
-            var exact = fontNames.FirstOrDefault(n =>
-                n.Contains("Warhaven", StringComparison.OrdinalIgnoreCase));
-            if (exact is not null)
-            {
-                LogSource?.LogInfo($"[Font] Discovered OS font name: {exact}");
-                return exact;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"[Font] Font name discovery failed: {ex.Message}");
-        }
-
-        return null;
-    }
-
     private static object? TryCreateFontViaConstructor(Type fontType, string fontPath)
     {
         try
         {
-            // Try Font(string) constructor — in some Unity/IL2CPP versions this accepts a file path
             var ctor = fontType.GetConstructor(new[] { typeof(string) });
             if (ctor is not null)
             {
@@ -593,6 +900,50 @@ public class Plugin : BasePlugin
         catch (Exception ex)
         {
             LogSource?.LogInfo($"[Font] Font(string) constructor failed: {ex.InnerException?.Message ?? ex.Message}");
+        }
+
+        return null;
+    }
+
+    private static object? TryCreateFontFromOS(Type fontType, string fontPath)
+    {
+        // Discover font name from OS
+        string? discoveredName = null;
+        try
+        {
+            var getNamesMethod = fontType.GetMethod("GetOSInstalledFontNames", BindingFlags.Public | BindingFlags.Static);
+            if (getNamesMethod?.Invoke(null, null) is string[] fontNames)
+            {
+                discoveredName = fontNames.FirstOrDefault(n => n.Contains("Pretendard", StringComparison.OrdinalIgnoreCase))
+                              ?? fontNames.FirstOrDefault(n => n.Contains("Warhaven", StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        catch { }
+
+        var candidateNames = new List<string>();
+        if (discoveredName is not null) candidateNames.Add(discoveredName);
+        var baseName = Path.GetFileNameWithoutExtension(fontPath);
+        candidateNames.Add(baseName);
+
+        var createMethod = fontType.GetMethod("CreateDynamicFontFromOSFont",
+            BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string), typeof(int) }, null);
+        if (createMethod is null) return null;
+
+        foreach (var candidate in candidateNames)
+        {
+            try
+            {
+                var font = createMethod.Invoke(null, new object[] { candidate, 24 });
+                if (font is not null)
+                {
+                    LogSource?.LogInfo($"[Font] CreateDynamicFontFromOSFont succeeded with: {candidate}");
+                    return font;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogSource?.LogInfo($"[Font] CreateDynamicFontFromOSFont failed for '{candidate}': {ex.InnerException?.Message ?? ex.Message}");
+            }
         }
 
         return null;
@@ -627,8 +978,7 @@ public class Plugin : BasePlugin
         try
         {
             var createFA = tmpFontType.GetMethod("CreateFontAsset",
-                BindingFlags.Public | BindingFlags.Static,
-                null, new[] { fontType }, null);
+                BindingFlags.Public | BindingFlags.Static, null, new[] { fontType }, null);
             if (createFA is not null)
             {
                 var result = createFA.Invoke(null, new[] { unityFont });
@@ -668,7 +1018,6 @@ public class Plugin : BasePlugin
                     }
                     if (pars.Length > 4) args[4] = 4096;
                     if (pars.Length > 5) args[5] = 4096;
-                    // Fill remaining with defaults
                     for (var i = 6; i < pars.Length; i++)
                     {
                         args[i] = pars[i].HasDefaultValue ? pars[i].DefaultValue! :
@@ -696,74 +1045,37 @@ public class Plugin : BasePlugin
         return null;
     }
 
-    private static void SetObjectHideFlags(object unityObject, int flags)
-    {
-        try
-        {
-            var prop = unityObject.GetType().GetProperty("hideFlags",
-                BindingFlags.Instance | BindingFlags.Public);
-            if (prop is not null)
-            {
-                var hideFlagsType = prop.PropertyType;
-                prop.SetValue(unityObject, Enum.ToObject(hideFlagsType, flags));
-            }
-        }
-        catch
-        {
-        }
-    }
-
     private static void TryInjectFallbackFont(object? instance)
     {
-        if (_koreanFontAsset is null || instance is null)
-        {
-            return;
-        }
+        if (_koreanFontAsset is null || instance is null) return;
 
         try
         {
-            // Get the TMP component's font asset
             var fontProp = instance.GetType().GetProperty("font",
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var currentFontAsset = fontProp?.GetValue(instance);
-            if (currentFontAsset is null)
-            {
-                return;
-            }
+            if (currentFontAsset is null) return;
 
-            // Track by instance ID to avoid duplicate injection
             var instanceId = GetObjectInstanceId(currentFontAsset);
             lock (StateLock)
             {
-                if (!_fontInjectedAssets.Add(instanceId))
-                {
-                    return;
-                }
+                if (!_fontInjectedAssets.Add(instanceId)) return;
             }
 
-            // Get or create fallbackFontAssetTable
             var fallbackProp = currentFontAsset.GetType().GetProperty("fallbackFontAssetTable",
                 BindingFlags.Instance | BindingFlags.Public);
-            if (fallbackProp is null)
-            {
-                return;
-            }
+            if (fallbackProp is null) return;
 
             var fallbacks = fallbackProp.GetValue(currentFontAsset);
             if (fallbacks is null)
             {
-                // Create a new list via the property's type
                 var listType = fallbackProp.PropertyType;
                 fallbacks = Activator.CreateInstance(listType);
-                if (fallbacks is null)
-                {
-                    return;
-                }
-
+                if (fallbacks is null) return;
                 fallbackProp.SetValue(currentFontAsset, fallbacks);
             }
 
-            // Check if our font is already in the list
+            // Check if already in list
             var countProp = fallbacks.GetType().GetProperty("Count");
             var itemProp = fallbacks.GetType().GetProperty("Item");
             if (countProp is not null && itemProp is not null)
@@ -771,22 +1083,13 @@ public class Plugin : BasePlugin
                 var count = (int)(countProp.GetValue(fallbacks) ?? 0);
                 for (var i = 0; i < count; i++)
                 {
-                    var existing = itemProp.GetValue(fallbacks, new object[] { i });
-                    if (ReferenceEquals(existing, _koreanFontAsset))
-                    {
+                    if (ReferenceEquals(itemProp.GetValue(fallbacks, new object[] { i }), _koreanFontAsset))
                         return;
-                    }
                 }
             }
 
-            // Add our Korean font asset as fallback
             var addMethod = fallbacks.GetType().GetMethod("Add");
             addMethod?.Invoke(fallbacks, new[] { _koreanFontAsset });
-
-            lock (StateLock)
-            {
-                _fontFallbackInjectedCount++;
-            }
         }
         catch (Exception ex)
         {
@@ -794,574 +1097,579 @@ public class Plugin : BasePlugin
         }
     }
 
-    private static int GetObjectInstanceId(object unityObject)
-    {
-        try
-        {
-            var method = unityObject.GetType().GetMethod("GetInstanceID",
-                BindingFlags.Instance | BindingFlags.Public);
-            if (method?.Invoke(unityObject, null) is int id)
-            {
-                return id;
-            }
-        }
-        catch
-        {
-        }
+    // =========================================================================
+    // TryTranslate Chain — 4 Stages (D-05 revised)
+    // =========================================================================
 
-        return RuntimeHelpers.GetHashCode(unityObject);
-    }
-
-    private void LoadTranslations()
-    {
-        var candidates = new[]
-        {
-            Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch", "translations.json"),
-            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "translations.json")
-        };
-
-        var path = candidates.FirstOrDefault(File.Exists);
-        if (path is null)
-        {
-            Log.LogWarning("translations.json not found. loader running with empty map.");
-            return;
-        }
-
-        try
-        {
-            var json = File.ReadAllText(path);
-            LoadEntriesFromJson(json);
-            Log.LogInfo($"Loaded translation file: {path}");
-        }
-        catch (Exception ex)
-        {
-            Log.LogError($"Failed to load translations.json: {ex}");
-        }
-    }
-
+    /// <summary>
+    /// 4-stage translation chain per D-05 (revised):
+    /// 1. TranslationMap (exact match)
+    /// 2. DC/FC prefix strip -> TranslationMap lookup
+    /// 3. Contextual (source_file + history scoring)
+    /// 4. RuntimeLexicon (exact + substring + regex — includes GeneratedPattern)
+    /// </summary>
     internal static bool TryTranslate(ref string value, string origin = "unknown")
     {
-        if (string.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(value)) return false;
+        var original = value;
+
+        // Stage 1: Exact dictionary lookup (TranslationMap)
+        if (TranslationMap.TryGetValue(value, out var t) && !string.IsNullOrEmpty(t))
         {
-            return false;
-        }
-
-        CaptureAllText(value, origin);
-
-        var originalValue = value;
-        bool found = false;
-
-        // Stage 1: Generated patterns (dynamic UI)
-        if (!found && TryTranslateGeneratedPattern(ref value))
-        {
-            found = true;
-        }
-
-        // Stage 2: Direct dictionary lookup
-        if (!found && TranslationMap.TryGetValue(value, out var translated) && !string.IsNullOrEmpty(translated))
-        {
-            translated = RestoreChoicePrefix(originalValue, translated);
-            RecordTranslationHit(originalValue, translated);
-            value = translated;
-            found = true;
-        }
-
-        // Stage 2b: DC/FC stat-check prefix stripping
-        // Choice text like "DC12 str-The Cleric? I like that." — strip prefix, translate body, reattach
-        if (!found)
-        {
-            var dcfcMatch = System.Text.RegularExpressions.Regex.Match(
-                value, @"^([A-Z]{2}\d+\s+\w+-)(.+)$");
-            if (dcfcMatch.Success)
-            {
-                var prefix = dcfcMatch.Groups[1].Value;
-                var body = dcfcMatch.Groups[2].Value;
-                if (TranslationMap.TryGetValue(body, out var bodyTranslated) && !string.IsNullOrEmpty(bodyTranslated))
-                {
-                    RecordTranslationHit(originalValue, bodyTranslated);
-                    value = prefix + bodyTranslated;
-                    found = true;
-                }
-            }
-        }
-
-        // Stage 3: Contextual (disambiguation by source_file + history)
-        if (!found)
-        {
-            var normalized = NormalizeKey(value);
-            if (TryTranslateContextual(ref value, originalValue, normalized))
-            {
-                found = true;
-            }
-        }
-
-        // Stage 4: Runtime lexicon (substring/regex)
-        if (!found && TryTranslateRuntimeLexicon(ref value))
-        {
-            found = true;
-        }
-
-        RememberContext(originalValue);
-
-        if (found)
-        {
-            value = CleanOrphanBoldTags(value);
+            value = t;
+            RecordHit("exact", original, t);
+            Interlocked.Increment(ref _translationMapHits);
             return true;
         }
 
-        RecordTranslationMiss(originalValue);
-        CaptureUntranslated(originalValue);
+        // Stage 2: DC/FC prefix strip -> lookup body in TranslationMap
+        if (TryTranslateDcFcStrip(ref value, original))
+        {
+            RecordHit("dcfc_strip", original, value);
+            Interlocked.Increment(ref _dcfcStripHits);
+            return true;
+        }
+
+        // Stage 3: Contextual (source_file + history scoring)
+        if (TryTranslateContextual(ref value, original))
+        {
+            RecordHit("contextual", original, value);
+            Interlocked.Increment(ref _contextualHits);
+            return true;
+        }
+
+        // Stage 4: Runtime lexicon (exact + substring + regex)
+        if (TryTranslateRuntimeLexicon(ref value))
+        {
+            RecordHit("lexicon", original, value);
+            Interlocked.Increment(ref _runtimeLexiconHits);
+            return true;
+        }
+
+        Interlocked.Increment(ref _misses);
+        CaptureUntranslated(original, origin);
+        return false;
+    }
+
+    private static bool TryTranslateDcFcStrip(ref string value, string original)
+    {
+        var match = DcFcPrefixRegex.Match(value);
+        if (!match.Success) return false;
+
+        var body = value.Substring(match.Length);
+        if (string.IsNullOrWhiteSpace(body)) return false;
+
+        if (TranslationMap.TryGetValue(body, out var t) && !string.IsNullOrEmpty(t))
+        {
+            value = t;
+            return true;
+        }
+
         return false;
     }
 
     /// <summary>
-    /// Strip leaked bold/italic tags from translated text.
-    /// Our translations in the DB never contain <b>/<i> tags — if they appear
-    /// in the final output, they leaked from the English source during
-    /// segment-based or partial text replacement.
+    /// Contextual translation: disambiguate same-source-text entries using source_file and history.
+    /// Simplified from v1: no NormalizeKey, no StripGameplayPrefix — v2 sources are already clean.
+    /// </summary>
+    private static bool TryTranslateContextual(ref string value, string original)
+    {
+        if (!ContextualMap.TryGetValue(value, out var candidates) || candidates.Count == 0)
+        {
+            return false;
+        }
+
+        // Single candidate: use directly
+        if (candidates.Count == 1)
+        {
+            value = candidates[0].Target;
+            return true;
+        }
+
+        // Multiple candidates: score by _currentDialogSourceFile match
+        var currentSourceFile = _currentDialogSourceFile.Trim();
+        ContextualEntry? best = null;
+        var bestScore = 0;
+        var tied = false;
+
+        foreach (var candidate in candidates)
+        {
+            var score = 0;
+
+            // Source file match is highest priority
+            if (!string.IsNullOrEmpty(currentSourceFile) &&
+                string.Equals(candidate.SourceFile.Trim(), currentSourceFile, StringComparison.Ordinal))
+            {
+                score += 8;
+            }
+
+            // Recent context history overlap
+            if (_recentContextHistory.Count > 0 && !string.IsNullOrEmpty(candidate.SourceFile))
+            {
+                if (_recentContextHistory.Contains(candidate.SourceFile))
+                    score += 4;
+            }
+
+            // Speaker hint presence
+            if (!string.IsNullOrEmpty(candidate.SpeakerHint))
+                score += 1;
+
+            // Dialogue/choice role bonus
+            if (string.Equals(candidate.TextRole, "dialogue", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(candidate.TextRole, "choice", StringComparison.OrdinalIgnoreCase))
+            {
+                score += 1;
+            }
+
+            if (score > bestScore)
+            {
+                best = candidate;
+                bestScore = score;
+                tied = false;
+            }
+            else if (score == bestScore && best is not null &&
+                     !string.Equals(best.Target, candidate.Target, StringComparison.Ordinal))
+            {
+                tied = true;
+            }
+        }
+
+        if (best is null || tied) return false;
+
+        value = best.Target;
+        return true;
+    }
+
+    /// <summary>
+    /// Runtime lexicon: exact -> substring (longest-match-first) -> regex.
+    /// Includes GeneratedPattern (ability scores) via regex_rules.
+    /// </summary>
+    private static bool TryTranslateRuntimeLexicon(ref string value)
+    {
+        // Exact replacement
+        if (RuntimeExactReplacements.TryGetValue(value, out var exactReplacement))
+        {
+            value = exactReplacement;
+            return true;
+        }
+
+        // Substring replacements (longest-match-first)
+        var modified = false;
+        foreach (var pair in RuntimeSubstringReplacements)
+        {
+            if (value.Contains(pair.Key, StringComparison.Ordinal))
+            {
+                value = value.Replace(pair.Key, pair.Value, StringComparison.Ordinal);
+                modified = true;
+            }
+        }
+
+        if (modified) return true;
+
+        // Regex rules
+        foreach (var rule in RuntimeRegexRules)
+        {
+            if (rule.Pattern.IsMatch(value))
+            {
+                value = rule.Pattern.Replace(value, rule.ReplaceString);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // =========================================================================
+    // Patch Handlers
+    // =========================================================================
+
+    private static void TmpTextPrefix(ref string value)
+    {
+        if (!EnterPatchedCall()) return;
+
+        try
+        {
+            if (TryTranslate(ref value, "tmp_text"))
+            {
+                value = CleanOrphanBoldTags(value);
+            }
+        }
+        finally
+        {
+            ExitPatchedCall();
+        }
+    }
+
+    private static void TextAssetTextPostfix(object? __instance, ref string __result)
+    {
+        if (__instance is null || string.IsNullOrEmpty(__result) || TextAssetOverrides.Count == 0)
+        {
+            return;
+        }
+
+        var assetName = ExtractUnityObjectName(__instance);
+        if (string.IsNullOrWhiteSpace(assetName))
+        {
+            return;
+        }
+
+        if (TextAssetOverrides.TryGetValue(assetName, out var replacement) && !string.IsNullOrEmpty(replacement))
+        {
+            __result = replacement;
+            Interlocked.Increment(ref _textAssetOverrideHits);
+            return;
+        }
+
+        lock (StateLock)
+        {
+            if (_textAssetOverrideMissLoggedCount < 40 && TextAssetOverrideMissSeen.Add(assetName))
+            {
+                _textAssetOverrideMissLoggedCount++;
+                LogSource?.LogInfo($"TextAsset override miss: {assetName}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Per D-14: translate text only. No number/link manipulation. No quote stripping.
+    /// Game adds link/number wrappers AFTER this hook.
+    /// </summary>
+    private static void DialogAddChoiceTextPrefix(object? __instance, ref string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        TryTranslate(ref text, "ink_choice");
+    }
+
+    /// <summary>
+    /// Sets _currentDialogSourceFile for ContextualMap disambiguation.
+    /// </summary>
+    private static void DialogStartDialogPrefix(object? inkAsset)
+    {
+        _currentDialogSourceFile = ExtractUnityObjectName(inkAsset);
+        _recentContextHistory.Clear();
+    }
+
+    private static void LocalizeCheckLanguagePostfix(string ID, ref string __result)
+    {
+        if (string.IsNullOrWhiteSpace(ID) || LocalizationIdOverrides.Count == 0) return;
+
+        if (LocalizationIdOverrides.TryGetValue(ID, out var replacement) && !string.IsNullOrWhiteSpace(replacement))
+        {
+            __result = replacement;
+            Interlocked.Increment(ref _localizationIdOverrideHits);
+        }
+    }
+
+    private static void TmpOnEnablePostfix(object? __instance)
+    {
+        TryLoadKoreanFont();
+        TryInjectFallbackFont(__instance);
+        TranslateCurrentTextProperty(__instance);
+    }
+
+    private static void TmpConcreteAwakePostfix(object? __instance)
+    {
+        TryLoadKoreanFont();
+        TryInjectFallbackFont(__instance);
+        TranslateCurrentTextProperty(__instance);
+    }
+
+    private static void UiTextPrefix(ref string value)
+    {
+        if (!EnterPatchedCall()) return;
+
+        try
+        {
+            TryTranslate(ref value, "ui_text");
+        }
+        finally
+        {
+            ExitPatchedCall();
+        }
+    }
+
+    private static void UiOnEnablePostfix(object? __instance)
+    {
+        TranslateCurrentTextProperty(__instance);
+    }
+
+    private static void MenuControllerStartPostfix(object? __instance)
+    {
+        TranslateActiveSceneUI();
+    }
+
+    private static void MenuControllerRefreshPostfix(object? __instance)
+    {
+        TranslateActiveSceneUI();
+    }
+
+    private static void SceneLoadedPostfix(object? scene, object? mode)
+    {
+        // Flush capture buffers on scene transition
+        WriteUntranslatedCapture();
+        WriteTranslationHits();
+        WriteState("scene_loaded");
+    }
+
+    // =========================================================================
+    // Helpers — Text Property Translation
+    // =========================================================================
+
+    private static void TranslateCurrentTextProperty(object? instance)
+    {
+        if (instance is null || !EnterPatchedCall()) return;
+
+        try
+        {
+            var prop = instance.GetType().GetProperty("text",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (prop is null || !prop.CanRead || !prop.CanWrite) return;
+
+            if (prop.GetValue(instance) is not string currentText || string.IsNullOrWhiteSpace(currentText))
+                return;
+
+            var translated = currentText;
+            if (!TryTranslate(ref translated, "property_scan") ||
+                string.Equals(translated, currentText, StringComparison.Ordinal))
+                return;
+
+            translated = CleanOrphanBoldTags(translated);
+            prop.SetValue(instance, translated);
+        }
+        catch { }
+        finally
+        {
+            ExitPatchedCall();
+        }
+    }
+
+    /// <summary>
+    /// Simplified scene sweep: find all TMP_Text in active scene, call TryTranslate on each.
+    /// </summary>
+    private static void TranslateActiveSceneUI()
+    {
+        try
+        {
+            var resourcesType = FindTypeByName("UnityEngine.Resources");
+            var tmpTextType = FindTypeByName("TMPro.TMP_Text");
+            if (resourcesType is null || tmpTextType is null) return;
+
+            var findAll = resourcesType.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .FirstOrDefault(m =>
+                {
+                    if (!string.Equals(m.Name, "FindObjectsOfTypeAll", StringComparison.Ordinal)) return false;
+                    var parameters = m.GetParameters();
+                    return parameters.Length == 1 && parameters[0].ParameterType == typeof(Type);
+                });
+            if (findAll is null) return;
+
+            if (findAll.Invoke(null, new object[] { tmpTextType }) is not System.Collections.IEnumerable objects) return;
+
+            foreach (var tmp in objects)
+            {
+                TranslateCurrentTextProperty(tmp);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogSource?.LogWarning($"Scene text sweep failed: {ex.Message}");
+        }
+    }
+
+    // =========================================================================
+    // Capture / Debug Infrastructure (D-12, D-13)
+    // =========================================================================
+
+    private static void CaptureUntranslated(string text, string origin)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        // Basic filter: skip very short strings and non-English text
+        if (text.Length < 2) return;
+
+        lock (StateLock)
+        {
+            _untranslatedCapture.Add(text);
+        }
+    }
+
+    private static void RecordHit(string stage, string source, string target)
+    {
+        // Update context history
+        if (!string.IsNullOrEmpty(_currentDialogSourceFile))
+        {
+            _recentContextHistory.Add(_currentDialogSourceFile);
+            if (_recentContextHistory.Count > RecentHistoryLimit)
+            {
+                // HashSet doesn't support index removal — clear and rebuild if over limit
+                // This is a simplification; in practice the set grows slowly
+            }
+        }
+
+        if (!_fullCaptureEnabled) return;
+
+        lock (StateLock)
+        {
+            _translationHitsCapture[source] = target;
+        }
+    }
+
+    private static void WriteUntranslatedCapture()
+    {
+        if (string.IsNullOrWhiteSpace(_capturePath)) return;
+
+        try
+        {
+            string[] items;
+            lock (StateLock)
+            {
+                items = _untranslatedCapture.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+            }
+
+            if (items.Length == 0) return;
+
+            var entries = items.Select(s => new
+            {
+                source = s,
+                target = "",
+                status = "new",
+                category = "runtime_capture",
+                source_file = "runtime",
+                tags = new[] { "runtime_missing" }
+            }).ToArray();
+
+            var payload = new
+            {
+                generated_at = DateTime.Now.ToString("s"),
+                count = entries.Length,
+                entries
+            };
+
+            File.WriteAllText(_capturePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
+        }
+        catch (Exception ex)
+        {
+            LogSource?.LogWarning($"Failed to write untranslated capture: {ex.Message}");
+        }
+    }
+
+    private static void WriteTranslationHits()
+    {
+        if (!_fullCaptureEnabled || string.IsNullOrWhiteSpace(_translationHitLogPath)) return;
+
+        try
+        {
+            KeyValuePair<string, string>[] items;
+            lock (StateLock)
+            {
+                items = _translationHitsCapture.ToArray();
+            }
+
+            if (items.Length == 0) return;
+
+            var entries = items.Select(kv => new { source = kv.Key, target = kv.Value }).ToArray();
+            var payload = new
+            {
+                generated_at = DateTime.Now.ToString("s"),
+                count = entries.Length,
+                entries
+            };
+
+            File.WriteAllText(_translationHitLogPath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }), System.Text.Encoding.UTF8);
+        }
+        catch { }
+    }
+
+    private static void WriteState(string phase)
+    {
+        if (string.IsNullOrWhiteSpace(_statePath)) return;
+
+        try
+        {
+            int untranslatedCount;
+            lock (StateLock)
+            {
+                untranslatedCount = _untranslatedCapture.Count;
+            }
+
+            var contextualTotal = 0;
+            foreach (var list in ContextualMap.Values)
+                contextualTotal += list.Count;
+
+            var payload = new
+            {
+                phase,
+                plugin_version = PluginVersion,
+                written_at = DateTime.Now.ToString("s"),
+                translations_loaded = TranslationMap.Count,
+                contextual_loaded = contextualTotal,
+                text_asset_overrides = TextAssetOverrides.Count,
+                text_asset_override_hits = _textAssetOverrideHits,
+                localization_overrides = LocalizationIdOverrides.Count,
+                localization_override_hits = _localizationIdOverrideHits,
+                lexicon_exact = RuntimeExactReplacements.Count,
+                lexicon_substrings = RuntimeSubstringReplacements.Count,
+                lexicon_regex = RuntimeRegexRules.Count,
+                hits_exact = _translationMapHits,
+                hits_dcfc_strip = _dcfcStripHits,
+                hits_contextual = _contextualHits,
+                hits_lexicon = _runtimeLexiconHits,
+                total_misses = _misses,
+                untranslated_count = untranslatedCount,
+                font_status = _fontStatus
+            };
+
+            File.WriteAllText(_statePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
+        }
+        catch (Exception ex)
+        {
+            LogSource?.LogWarning($"Failed to write state: {ex.Message}");
+        }
+    }
+
+    // =========================================================================
+    // Helpers — General
+    // =========================================================================
+
+    private static bool EnterPatchedCall()
+    {
+        if (_patchReentryDepth > 0) return false;
+        _patchReentryDepth++;
+        return true;
+    }
+
+    private static void ExitPatchedCall()
+    {
+        if (_patchReentryDepth > 0) _patchReentryDepth--;
+    }
+
+    /// <summary>
+    /// Per D-06: Only strip unmatched bold tags. Balanced pairs are preserved.
+    /// Fix for Phase 4 Bug 4 — v2 translations contain intentional bold tags.
     /// </summary>
     private static string CleanOrphanBoldTags(string text)
     {
-        if (string.IsNullOrEmpty(text))
-            return text;
+        if (string.IsNullOrEmpty(text)) return text;
 
-        // v2: translations include intentional <b> tags from ko_formatted.
-        // Only strip truly orphan tags (unmatched open/close), not all bold.
         int opens = 0, closes = 0;
         int idx = 0;
         while ((idx = text.IndexOf("<b>", idx, StringComparison.Ordinal)) >= 0) { opens++; idx += 3; }
         idx = 0;
         while ((idx = text.IndexOf("</b>", idx, StringComparison.Ordinal)) >= 0) { closes++; idx += 4; }
 
-        if (opens == closes)
-            return text; // balanced — keep all tags
+        if (opens == closes) return text; // balanced — keep
 
-        // Unbalanced: strip all (safety fallback)
-        if (opens > 0 || closes > 0)
-            text = text.Replace("<b>", "").Replace("</b>", "");
-
-        return text;
-    }
-
-    private static bool TryTranslateRuntimeLexicon(ref string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        var originalValue = value;
-        var updated = value;
-        var changed = false;
-
-        foreach (var replacement in RuntimeSubstringReplacements)
-        {
-            if (replacement.Key.Length == 0 || !updated.Contains(replacement.Key, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            updated = updated.Replace(replacement.Key, replacement.Value, StringComparison.Ordinal);
-            changed = true;
-        }
-
-        foreach (var rule in RuntimeRegexRules)
-        {
-            var rewritten = rule.Regex.Replace(updated, rule.Replace);
-            if (!string.Equals(rewritten, updated, StringComparison.Ordinal))
-            {
-                updated = rewritten;
-                changed = true;
-            }
-        }
-
-        if (!changed || string.Equals(updated, originalValue, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        value = updated;
-        lock (StateLock)
-        {
-            _runtimeLexiconHitCount++;
-        }
-        RecordTranslationHit(originalValue, updated);
-        return true;
-    }
-
-    private static bool TryTranslateGeneratedPattern(ref string value)
-    {
-        var originalValue = value;
-
-        var abilityMatch = Regex.Match(value, @"^Ability Scores - Remaining Points: (?<points>\d+)$", RegexOptions.CultureInvariant);
-        if (abilityMatch.Success)
-        {
-            value = $"능력치 - 남은 포인트: {abilityMatch.Groups["points"].Value}";
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var bonusMatch = Regex.Match(value, @"^(?<bonus>\+\d+)\s+(?<stat>Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)$", RegexOptions.CultureInvariant);
-        if (bonusMatch.Success &&
-            StatNameOverrides.TryGetValue(bonusMatch.Groups["stat"].Value, out var statKo))
-        {
-            value = $"{bonusMatch.Groups["bonus"].Value} {statKo}";
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var hpMatch = Regex.Match(value, @"^(?<current>\d+)\/(?<max>\d+)\s+HP$", RegexOptions.CultureInvariant);
-        if (hpMatch.Success)
-        {
-            value = $"{hpMatch.Groups["current"].Value}/{hpMatch.Groups["max"].Value} 체력";
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var levelMatch = Regex.Match(value, @"^(?<level>\d+)(?:st|nd|rd|th)\s+Level$", RegexOptions.CultureInvariant);
-        if (levelMatch.Success)
-        {
-            value = $"{levelMatch.Groups["level"].Value}레벨";
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var spellslotMatch = Regex.Match(value, @"^(?<level>\d+)(?:st|nd|rd|th)\s+Level\s+Spellslot\s+(?<delta>[+\-]\d+)$", RegexOptions.CultureInvariant);
-        if (spellslotMatch.Success)
-        {
-            value = $"{spellslotMatch.Groups["level"].Value}레벨 주문 슬롯 {spellslotMatch.Groups["delta"].Value}";
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var dcResultMatch = Regex.Match(
-            value,
-            @"^(?<delta>[+\-]\d+)\s+DC(?<tail>(?:</color>|<[^>]+>|\s)*)\|\s*(?<body>.+)$",
-            RegexOptions.CultureInvariant);
-        if (dcResultMatch.Success)
-        {
-            var translatedBody = TranslateShortSystemPhrase(dcResultMatch.Groups["body"].Value);
-            if (!string.Equals(translatedBody, dcResultMatch.Groups["body"].Value, StringComparison.Ordinal))
-            {
-                value = $"{dcResultMatch.Groups["delta"].Value} DC{dcResultMatch.Groups["tail"].Value}| {translatedBody}";
-                RecordTranslationHit(originalValue, value);
-                return true;
-            }
-        }
-
-        if (value.Contains("PR, '", StringComparison.Ordinal))
-        {
-            value = value.Replace("PR, '", "부활 가능성(PR), '", StringComparison.Ordinal);
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        if (value.Contains("RF가 없었다.", StringComparison.Ordinal))
-        {
-            value = value.Replace("RF가 없었다.", "부활 기금(RF)이 없었다.", StringComparison.Ordinal);
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        var translatedFragments = TranslateRichSystemFragments(value);
-        if (!string.Equals(translatedFragments, value, StringComparison.Ordinal))
-        {
-            value = translatedFragments;
-            RecordTranslationHit(originalValue, value);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static string TranslateShortSystemPhrase(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return value;
-        }
-
-        var updated = value;
-        updated = updated.Replace("You managed to shove him!", "그를 밀쳐내는 데 성공했다!", StringComparison.Ordinal);
-        updated = updated.Replace("You've pissed him off.", "그를 화나게 만들었다.", StringComparison.Ordinal);
-        updated = updated.Replace("It's started to drain you.", "당신을 서서히 약화시키기 시작했다.", StringComparison.Ordinal);
-        updated = updated.Replace("A lot of bad apples removed.", "상한 사과를 많이 치웠다.", StringComparison.Ordinal);
-        updated = updated.Replace("You ate most of them, honestly.", "솔직히 말해 대부분을 먹어버렸다.", StringComparison.Ordinal);
-        updated = updated.Replace("You ate some extra.", "조금 더 먹어버렸다.", StringComparison.Ordinal);
-        updated = updated.Replace("There's a zombie downstairs.", "아래층에 좀비가 있다.", StringComparison.Ordinal);
-        updated = updated.Replace("The zombie moved first.", "좀비가 먼저 움직였다.", StringComparison.Ordinal);
-        return updated;
-    }
-
-    private static string TranslateRichSystemFragments(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return value;
-        }
-
-        var updated = value;
-        foreach (var pair in StatNameOverrides)
-        {
-            updated = Regex.Replace(
-                updated,
-                $@"\b{Regex.Escape(pair.Key)}\b",
-                pair.Value,
-                RegexOptions.CultureInvariant);
-        }
-
-        updated = Regex.Replace(updated, @"\bCollected Spells\b", "수집한 주문", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bAll Items\b", "모든 아이템", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bCantrips\b", "캔트립", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bSpell Slots\b", "주문 슬롯", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bSpellslot\b", "주문 슬롯", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bHit Points\b", "체력", RegexOptions.CultureInvariant);
-        updated = Regex.Replace(updated, @"\bHP\b", "체력", RegexOptions.CultureInvariant);
-
-        return updated;
-    }
-
-    private void LoadEntriesFromJson(string json)
-    {
-        using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
-        {
-            CommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        });
-
-        if (doc.RootElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var item in doc.RootElement.EnumerateArray())
-            {
-                AddEntry(item);
-            }
-            return;
-        }
-
-        if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-            doc.RootElement.TryGetProperty("entries", out var entries) &&
-            entries.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var item in entries.EnumerateArray())
-            {
-                AddEntry(item);
-            }
-
-            if (doc.RootElement.TryGetProperty("contextual_entries", out var contextualEntries) &&
-                contextualEntries.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var item in contextualEntries.EnumerateArray())
-                {
-                    AddContextualEntry(item);
-                }
-            }
-            return;
-        }
-
-        Log.LogWarning("Unsupported translations.json shape. Expected array or object with entries[].");
-    }
-
-    private static void AddEntry(JsonElement item)
-    {
-        var source = ReadString(item, "source_text") ?? ReadString(item, "source");
-        var target = ReadString(item, "target_text") ?? ReadString(item, "target");
-        var status = ReadString(item, "status");
-
-        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(target))
-        {
-            return;
-        }
-
-        if (!string.IsNullOrWhiteSpace(status) &&
-            !string.Equals(status, "translated", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(status, "reviewed", StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        TranslationMap[source] = target;
-        var normalized = NormalizeKey(source);
-        if (normalized.Length > 0 && !NormalizedMap.ContainsKey(normalized))
-        {
-            NormalizedMap[normalized] = target;
-        }
-    }
-
-
-    private void LoadTextAssetOverrides()
-    {
-        var candidateDirs = new[]
-        {
-            Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch", "localizationtexts"),
-            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "localizationtexts"),
-            Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch", "textassets"),
-            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "textassets")
-        };
-
-        var dirs = candidateDirs.Where(Directory.Exists).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (dirs.Length == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            var patterns = new[] { "*.txt", "*.json" };
-            foreach (var dir in dirs)
-            {
-                foreach (var pattern in patterns)
-                {
-                    foreach (var path in Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories))
-                    {
-                        var name = Path.GetFileNameWithoutExtension(path);
-                        var text = File.ReadAllText(path);
-                        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(text))
-                        {
-                            continue;
-                        }
-                        TextAssetOverrides[name] = text;
-                    }
-                }
-            }
-            _textAssetOverrideCount = TextAssetOverrides.Count;
-            Log.LogInfo($"Loaded text asset overrides from {dirs.Length} directories ({_textAssetOverrideCount} files)");
-        }
-        catch (Exception ex)
-        {
-            Log.LogWarning($"Failed to load text asset overrides: {ex.Message}");
-        }
-    }
-
-    private void LoadLocalizationIdOverrides()
-    {
-        var candidates = new[]
-        {
-            Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch", "localizationtexts"),
-            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "localizationtexts")
-        };
-
-        var dir = candidates.FirstOrDefault(Directory.Exists);
-        if (dir is null)
-        {
-            return;
-        }
-
-        try
-        {
-            foreach (var path in Directory.EnumerateFiles(dir, "*.txt"))
-            {
-                foreach (var line in File.ReadLines(path))
-                {
-                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID,", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    var parts = ParseCsvLine(line);
-                    if (parts.Count < 3)
-                    {
-                        continue;
-                    }
-
-                    var id = parts[0].Trim();
-                    var ko = parts[2].Trim();
-                    if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(ko))
-                    {
-                        continue;
-                    }
-
-                    LocalizationIdOverrides[id] = ko;
-                }
-            }
-
-            _localizationIdOverrideCount = LocalizationIdOverrides.Count;
-            Log.LogInfo($"Loaded localization ID overrides: {dir} ({_localizationIdOverrideCount} ids)");
-        }
-        catch (Exception ex)
-        {
-            Log.LogWarning($"Failed to load localization ID overrides: {ex.Message}");
-        }
-    }
-
-    private void LoadRuntimeLexicon()
-    {
-        var candidates = new[]
-        {
-            Path.Combine(Paths.GameRootPath, "Esoteric Ebb_Data", "StreamingAssets", "TranslationPatch", "runtime_lexicon.json"),
-            Path.Combine(Paths.GameRootPath, "StreamingAssets", "TranslationPatch", "runtime_lexicon.json")
-        };
-
-        var path = candidates.FirstOrDefault(File.Exists);
-        if (path is null)
-        {
-            return;
-        }
-
-        try
-        {
-            RuntimeSubstringReplacements.Clear();
-            RuntimeRegexRules.Clear();
-
-            using var doc = JsonDocument.Parse(File.ReadAllText(path));
-            if (doc.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                return;
-            }
-
-            if (doc.RootElement.TryGetProperty("substring_replacements", out var substringReplacements) &&
-                substringReplacements.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var item in substringReplacements.EnumerateArray())
-                {
-                    var find = ReadString(item, "find");
-                    var replace = ReadString(item, "replace");
-                    if (string.IsNullOrEmpty(find) || replace is null)
-                    {
-                        continue;
-                    }
-
-                    RuntimeSubstringReplacements.Add(new KeyValuePair<string, string>(find, replace));
-                }
-            }
-
-            RuntimeSubstringReplacements.Sort((a, b) => b.Key.Length.CompareTo(a.Key.Length));
-
-            if (doc.RootElement.TryGetProperty("regex_rules", out var regexRules) &&
-                regexRules.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var item in regexRules.EnumerateArray())
-                {
-                    var pattern = ReadString(item, "pattern");
-                    var replace = ReadString(item, "replace");
-                    if (string.IsNullOrEmpty(pattern) || replace is null)
-                    {
-                        continue;
-                    }
-
-                    var ignoreCase = item.TryGetProperty("ignore_case", out var ignoreCaseEl) && ignoreCaseEl.ValueKind == JsonValueKind.True;
-                    var options = RegexOptions.CultureInvariant;
-                    if (ignoreCase)
-                    {
-                        options |= RegexOptions.IgnoreCase;
-                    }
-
-                    RuntimeRegexRules.Add(new RuntimeRegexRule
-                    {
-                        Name = ReadString(item, "name") ?? string.Empty,
-                        Regex = new Regex(pattern, options),
-                        Replace = replace
-                    });
-                }
-            }
-
-            _runtimeLexiconSubstringCount = RuntimeSubstringReplacements.Count;
-            _runtimeLexiconRegexCount = RuntimeRegexRules.Count;
-            Log.LogInfo($"Loaded runtime lexicon: {path} ({_runtimeLexiconSubstringCount} substrings, {_runtimeLexiconRegexCount} regex rules)");
-        }
-        catch (Exception ex)
-        {
-            Log.LogWarning($"Failed to load runtime lexicon: {ex.Message}");
-        }
+        // Unbalanced: strip all (safety)
+        return text.Replace("<b>", "").Replace("</b>", "");
     }
 
     private static List<string> ParseCsvLine(string line)
@@ -1399,93 +1707,34 @@ public class Plugin : BasePlugin
         return values;
     }
 
-    private static void AddContextualEntry(JsonElement item)
+    private static string? ReadString(JsonElement element, string propertyName)
     {
-        var source = ReadString(item, "source");
-        var target = ReadString(item, "target");
-        var status = ReadString(item, "status");
-        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(target))
-        {
-            return;
-        }
-
-        if (!string.IsNullOrWhiteSpace(status) &&
-            !string.Equals(status, "translated", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(status, "reviewed", StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        var normalized = NormalizeKey(source);
-        if (normalized.Length == 0)
-        {
-            return;
-        }
-
-        if (!ContextualMap.TryGetValue(normalized, out var entries))
-        {
-            entries = new List<ContextualEntry>();
-            ContextualMap[normalized] = entries;
-        }
-
-        entries.Add(new ContextualEntry
-        {
-            Id = ReadString(item, "id") ?? string.Empty,
-            Source = source,
-            Target = target,
-            ContextEn = NormalizeKey(ReadString(item, "context_en") ?? string.Empty),
-            SpeakerHint = ReadString(item, "speaker_hint") ?? string.Empty,
-            TextRole = ReadString(item, "text_role") ?? string.Empty,
-            TranslationLane = ReadString(item, "translation_lane") ?? string.Empty,
-            SourceFile = ReadString(item, "source_file") ?? string.Empty
-        });
-        _contextualLoadedCount++;
-    }
-
-    private static string? ReadString(JsonElement item, string property)
-    {
-        if (!item.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.String)
+        if (!element.TryGetProperty(propertyName, out var value) || value.ValueKind != JsonValueKind.String)
         {
             return null;
         }
-
         return value.GetString();
     }
 
-    private bool ApplyTextPatch(Harmony harmony, string[] assemblyCandidates, string typeName, string propertyName, string prefixMethodName)
+    private static Type? FindTypeByName(string name)
     {
-        try
+        lock (TypeCache)
         {
-            var type = FindTypeInAssemblies(assemblyCandidates, typeName);
-            if (type is null)
-            {
-                Log.LogWarning($"Patch deferred: type not found ({typeName}) in [{string.Join(", ", assemblyCandidates)}]");
-                return false;
-            }
-
-            var setter = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetMethod;
-            if (setter is null)
-            {
-                Log.LogWarning($"Patch skipped: setter not found ({typeName}.{propertyName}).");
-                return false;
-            }
-
-            var prefix = typeof(Plugin).GetMethod(prefixMethodName, BindingFlags.Static | BindingFlags.NonPublic);
-            if (prefix is null)
-            {
-                Log.LogWarning($"Patch skipped: prefix method not found ({prefixMethodName}).");
-                return false;
-            }
-
-            harmony.Patch(setter, prefix: new HarmonyMethod(prefix));
-            Log.LogInfo($"Patch applied: {typeName}.{propertyName} setter");
-            return true;
+            if (TypeCache.TryGetValue(name, out var cached))
+                return cached;
         }
-        catch (Exception ex)
+
+        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
         {
-            Log.LogError($"Patch failed: {typeName}.{propertyName} => {ex.GetType().Name}: {ex.Message}");
-            return false;
+            var type = asm.GetType(name, throwOnError: false);
+            if (type is not null)
+            {
+                lock (TypeCache) { TypeCache[name] = type; }
+                return type;
+            }
         }
+
+        return null;
     }
 
     private static Type? FindTypeInAssemblies(string[] assemblyCandidates, string typeName)
@@ -1504,1580 +1753,69 @@ public class Plugin : BasePlugin
         return null;
     }
 
-    private static void TmpTextPrefix(ref string value)
-    {
-        if (!EnterPatchedCall())
-        {
-            return;
-        }
-
-        try
-        {
-            TryTranslate(ref value, "tmp_text");
-        }
-        finally
-        {
-            ExitPatchedCall();
-        }
-    }
-
-    private bool ApplyTextAssetPatch(Harmony harmony)
-    {
-        try
-        {
-            var type = FindTypeInAssemblies(new[] { "UnityEngine.TextRenderingModule", "UnityEngine.CoreModule", "UnityEngine" }, "UnityEngine.TextAsset");
-            if (type is null)
-            {
-                Log.LogWarning("Patch deferred: type not found (UnityEngine.TextAsset).");
-                return false;
-            }
-
-            var getter = type.GetProperty("text", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetMethod;
-            if (getter is null)
-            {
-                Log.LogWarning("Patch skipped: getter not found (UnityEngine.TextAsset.text).");
-                return false;
-            }
-
-            var postfix = typeof(Plugin).GetMethod(nameof(TextAssetTextPostfix), BindingFlags.Static | BindingFlags.NonPublic);
-            if (postfix is null)
-            {
-                Log.LogWarning("Patch skipped: postfix method not found (TextAssetTextPostfix).");
-                return false;
-            }
-
-            harmony.Patch(getter, postfix: new HarmonyMethod(postfix));
-            Log.LogInfo("Patch applied: UnityEngine.TextAsset.text getter");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.LogError($"Patch failed: UnityEngine.TextAsset.text => {ex.GetType().Name}: {ex.Message}");
-            return false;
-        }
-    }
-
-    private bool ApplyMethodPatch(Harmony harmony, string[] assemblyCandidates, string typeName, string methodName, string patchMethodName, int parameterCount, bool usePostfix = false)
-    {
-        try
-        {
-            var type = FindTypeInAssemblies(assemblyCandidates, typeName);
-            if (type is null)
-            {
-                Log.LogWarning($"Patch deferred: type not found ({typeName}) in [{string.Join(", ", assemblyCandidates)}]");
-                return false;
-            }
-
-            var method = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .FirstOrDefault(m => string.Equals(m.Name, methodName, StringComparison.Ordinal) &&
-                                     m.GetParameters().Length == parameterCount);
-            if (method is null)
-            {
-                Log.LogWarning($"Patch skipped: method not found ({typeName}.{methodName}/{parameterCount}).");
-                return false;
-            }
-
-            var patchMethod = typeof(Plugin).GetMethod(patchMethodName, BindingFlags.Static | BindingFlags.NonPublic);
-            if (patchMethod is null)
-            {
-                Log.LogWarning($"Patch skipped: patch method not found ({patchMethodName}).");
-                return false;
-            }
-
-            if (usePostfix)
-            {
-                harmony.Patch(method, postfix: new HarmonyMethod(patchMethod));
-            }
-            else
-            {
-                harmony.Patch(method, prefix: new HarmonyMethod(patchMethod));
-            }
-            Log.LogInfo($"Patch applied: {typeName}.{methodName}/{parameterCount}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.LogError($"Patch failed: {typeName}.{methodName}/{parameterCount} => {ex.GetType().Name}: {ex.Message}");
-            return false;
-        }
-    }
-
-    private static void UiTextPrefix(ref string value)
-    {
-        if (!EnterPatchedCall())
-        {
-            return;
-        }
-
-        try
-        {
-            TryTranslate(ref value, "ui_text");
-        }
-        finally
-        {
-            ExitPatchedCall();
-        }
-    }
-
-    private static void UiElementsTextPrefix(object? __instance, ref string value)
-    {
-        if (!EnterPatchedCall())
-        {
-            return;
-        }
-
-        try
-        {
-            CaptureUiToolkitText(__instance, value);
-            TryTranslate(ref value, "ui_elements");
-        }
-        finally
-        {
-            ExitPatchedCall();
-        }
-    }
-
-    private static void DialogStartDialogPrefix(object? inkAsset)
-    {
-        _currentDialogSourceFile = ExtractUnityObjectName(inkAsset);
-    }
-
-    private static void DialogAddTextPrefix(ref string text)
-    {
-        TryTranslate(ref text, "ink_dialogue");
-    }
-
-    private static void DialogAddChoiceTextPrefix(object? __instance, ref string text)
-    {
-        TryLogAddChoiceSignature(__instance);
-
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return;
-        }
-
-        CaptureChoice(text);
-
-        // AddChoiceText receives plain body text (no link/numbering wrapper).
-        // Game adds <link="N">N.   ...</link> AFTER this hook via DialogManager.
-        TryTranslate(ref text, "ink_choice");
-    }
-
-    private static void TryLogAddChoiceSignature(object? instance)
-    {
-        if (instance is null || _choiceSignatureLogged)
-        {
-            return;
-        }
-
-        try
-        {
-            var method = instance.GetType()
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .FirstOrDefault(m => string.Equals(m.Name, "AddChoiceText", StringComparison.Ordinal) &&
-                                     m.GetParameters().Length == 9);
-            if (method is null)
-            {
-                return;
-            }
-
-            var paramNames = string.Join(", ", method.GetParameters()
-                .Select(p => $"{p.ParameterType.Name} {p.Name}"));
-            _choiceSignatureLogged = true;
-            LogSource?.LogInfo($"[DIAG] AddChoiceText params: {paramNames}");
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"[DIAG] Failed to inspect AddChoiceText params: {ex.Message}");
-        }
-    }
-
-    private static void TmpOnEnablePostfix(object? __instance)
-    {
-        TryInjectFallbackFont(__instance);
-        TranslateCurrentTextProperty(__instance);
-    }
-
-    private static void UiOnEnablePostfix(object? __instance)
-    {
-        TranslateCurrentTextProperty(__instance);
-    }
-
-    private static void TmpConcreteAwakePostfix(object? __instance)
-    {
-        TryInjectFallbackFont(__instance);
-        TranslateCurrentTextProperty(__instance);
-        TriggerSceneTextScan("tmp_concrete_awake");
-    }
-
-    private static void LocalizeCheckLanguagePostfix(string ID, ref string __result)
-    {
-        if (string.IsNullOrWhiteSpace(ID) || LocalizationIdOverrides.Count == 0)
-        {
-            return;
-        }
-
-        if (LocalizationIdOverrides.TryGetValue(ID, out var replacement) && !string.IsNullOrWhiteSpace(replacement))
-        {
-            __result = replacement;
-            lock (StateLock)
-            {
-                _localizationIdOverrideHitCount++;
-            }
-            return;
-        }
-
-        lock (StateLock)
-        {
-            if (_localizationIdOverrideMissLoggedCount < 80 && LocalizationMissSeen.Add(ID))
-            {
-                _localizationIdOverrideMissLoggedCount++;
-                LogSource?.LogInfo($"Localization ID miss: {ID}");
-            }
-        }
-    }
-
-    private static void TryApplyMenuDirectOverride(object component)
-    {
-        if (!EnterPatchedCall())
-        {
-            return;
-        }
-
-        try
-        {
-            var prop = component.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (prop is null || !prop.CanRead || !prop.CanWrite)
-            {
-                return;
-            }
-
-            if (prop.GetValue(component) is not string currentText || string.IsNullOrWhiteSpace(currentText))
-            {
-                return;
-            }
-
-            var trimmed = currentText.Trim();
-            if (!MenuDirectOverrides.TryGetValue(trimmed, out var replacement))
-            {
-                return;
-            }
-
-            if (string.Equals(currentText, replacement, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            prop.SetValue(component, replacement);
-            lock (StateLock)
-            {
-                _menuDirectOverrideHits++;
-            }
-            RecordTranslationHit(currentText, replacement);
-        }
-        catch
-        {
-        }
-        finally
-        {
-            ExitPatchedCall();
-        }
-    }
-
-    private static void MenuControllerStartPostfix(object? __instance)
-    {
-        TranslateMenuControllerUI(__instance);
-    }
-
-    private static void MenuControllerRefreshPostfix(object? __instance)
-    {
-        TranslateMenuControllerUI(__instance);
-    }
-
-    private static void MenuControllerUpdatePostfix(object? __instance)
-    {
-        if (__instance is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var countField = __instance.GetType().GetField("SkipMessageCounter", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (countField is null)
-            {
-                return;
-            }
-
-            if (countField.GetValue(__instance) is not int tick)
-            {
-                return;
-            }
-
-            if (_menuSceneSweepCount < 20 && tick % 10 == 0)
-            {
-                TranslateMenuControllerUI(__instance);
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    private static void TranslateMenuControllerUI(object? menuController)
-    {
-        TranslateActiveSceneUI(applyTranslations: true);
-    }
-
-    private static void SceneLoadedPostfix(object? scene, object? mode)
-    {
-        TriggerSceneTextScan("scene_loaded");
-        if (_fullCaptureEnabled)
-        {
-            lock (StateLock)
-            {
-                FlushFullCaptureUnsafe();
-            }
-        }
-    }
-
-    private static void TriggerSceneTextScan(string reason)
-    {
-        var sceneName = GetActiveSceneName();
-        if (string.IsNullOrWhiteSpace(sceneName))
-        {
-            sceneName = "<unknown>";
-        }
-
-        var key = $"{sceneName}|{reason}";
-        lock (StateLock)
-        {
-            if (!TriggeredSceneScans.Add(key))
-            {
-                return;
-            }
-            _sceneTextScanCount++;
-        }
-
-        LogSource?.LogInfo($"Scene text scan trigger: {sceneName} ({reason})");
-        TranslateActiveSceneUI(applyTranslations: true);
-    }
-
-    private static void TranslateActiveSceneUI(bool applyTranslations)
-    {
-        try
-        {
-            var resourcesType = FindTypeByName("UnityEngine.Resources");
-            var tmpTextType = FindTypeByName("TMPro.TMP_Text");
-            var uiTextType = FindTypeByName("UnityEngine.UI.Text");
-            if (resourcesType is null || tmpTextType is null)
-            {
-                return;
-            }
-
-            var findAll = resourcesType.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .FirstOrDefault(m =>
-                {
-                    if (!string.Equals(m.Name, "FindObjectsOfTypeAll", StringComparison.Ordinal))
-                    {
-                        return false;
-                    }
-                    var parameters = m.GetParameters();
-                    return parameters.Length == 1 && parameters[0].ParameterType == typeof(Type);
-                });
-            if (findAll is null)
-            {
-                return;
-            }
-
-            if (findAll.Invoke(null, new object[] { tmpTextType }) is not System.Collections.IEnumerable objects)
-            {
-                return;
-            }
-
-            var translatedBefore = _translateHitCount;
-            var objectCount = 0;
-            foreach (var tmp in objects)
-            {
-                objectCount++;
-                if (applyTranslations)
-                {
-                    TranslateCurrentTextProperty(tmp);
-                    TryApplyMenuDirectOverride(tmp);
-                }
-            }
-
-            WriteMenuRuntimeDump(findAll, tmpTextType, uiTextType);
-
-            lock (StateLock)
-            {
-                _menuSceneSweepCount++;
-                if (applyTranslations)
-                {
-                    _menuSceneTranslatedCount += Math.Max(0, _translateHitCount - translatedBefore);
-                }
-            }
-
-            LogSource?.LogInfo($"Scene text sweep complete: objects={objectCount}, applyTranslations={applyTranslations}, translated_delta={Math.Max(0, _translateHitCount - translatedBefore)}, direct_hits={_menuDirectOverrideHits}");
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"Scene text sweep failed: {ex.Message}");
-        }
-    }
-
-    private static void WriteMenuRuntimeDump(MethodInfo findAll, Type tmpTextType, Type? uiTextType)
-    {
-        if (string.IsNullOrWhiteSpace(_menuDumpPath))
-        {
-            return;
-        }
-
-        var sceneName = GetActiveSceneName();
-        if (string.IsNullOrWhiteSpace(sceneName))
-        {
-            sceneName = "<unknown>";
-        }
-
-        lock (StateLock)
-        {
-            if (!DumpedMenuScenes.Add(sceneName))
-            {
-                return;
-            }
-        }
-
-        try
-        {
-            var entries = new List<object>();
-            CollectMenuTextEntries(findAll, tmpTextType, "TMP_Text", entries);
-            if (uiTextType is not null)
-            {
-                CollectMenuTextEntries(findAll, uiTextType, "UI.Text", entries);
-            }
-
-            var payload = new
-            {
-                written_at = DateTime.Now.ToString("s"),
-                plugin_version = PluginVersion,
-                scene = sceneName,
-                entry_count = entries.Count,
-                entries
-            };
-
-            RunWithSuppressedDiagnostics(() =>
-                File.WriteAllText(_menuDumpPath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })));
-
-            LogSource?.LogInfo($"Wrote menu runtime dump: {_menuDumpPath} ({entries.Count} entries)");
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"Failed to write menu runtime dump: {ex.Message}");
-        }
-    }
-
-    private static void CollectMenuTextEntries(MethodInfo findAll, Type targetType, string kind, List<object> entries)
-    {
-        if (findAll.Invoke(null, new object[] { targetType }) is not System.Collections.IEnumerable objects)
-        {
-            return;
-        }
-
-        foreach (var obj in objects)
-        {
-            if (obj is null)
-            {
-                continue;
-            }
-
-            entries.Add(new
-            {
-                kind,
-                object_name = ExtractUnityObjectName(obj),
-                path = GetTransformPath(obj),
-                text = ReadStringProperty(obj, "text"),
-                component_type = obj.GetType().FullName ?? obj.GetType().Name,
-                attached_components = GetAttachedComponentTypes(obj)
-            });
-        }
-    }
-
-    private static string ReadStringProperty(object instance, string propertyName)
-    {
-        try
-        {
-            var prop = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (prop?.GetValue(instance) is string value)
-            {
-                return value;
-            }
-        }
-        catch
-        {
-        }
-
-        return string.Empty;
-    }
-
-    private static string[] GetAttachedComponentTypes(object instance)
-    {
-        try
-        {
-            var gameObjectProp = instance.GetType().GetProperty("gameObject", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var gameObject = gameObjectProp?.GetValue(instance);
-            if (gameObject is null)
-            {
-                return Array.Empty<string>();
-            }
-
-            var componentBaseType = FindTypeByName("UnityEngine.Component");
-            var getComponents = gameObject.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .FirstOrDefault(m => string.Equals(m.Name, "GetComponents", StringComparison.Ordinal) && m.GetParameters().Length == 1);
-            if (componentBaseType is null || getComponents is null)
-            {
-                return Array.Empty<string>();
-            }
-
-            if (getComponents.Invoke(gameObject, new object[] { componentBaseType }) is not System.Collections.IEnumerable components)
-            {
-                return Array.Empty<string>();
-            }
-
-            var names = new List<string>();
-            foreach (var component in components)
-            {
-                if (component is null)
-                {
-                    continue;
-                }
-
-                names.Add(component.GetType().FullName ?? component.GetType().Name);
-            }
-
-            return names.ToArray();
-        }
-        catch
-        {
-            return Array.Empty<string>();
-        }
-    }
-
-    private static string GetTransformPath(object instance)
-    {
-        try
-        {
-            var transformProp = instance.GetType().GetProperty("transform", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var current = transformProp?.GetValue(instance);
-            if (current is null)
-            {
-                return string.Empty;
-            }
-
-            var names = new List<string>();
-            while (current is not null)
-            {
-                var name = ExtractUnityObjectName(current);
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    names.Add(name);
-                }
-
-                var parentProp = current.GetType().GetProperty("parent", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                current = parentProp?.GetValue(current);
-            }
-
-            names.Reverse();
-            return string.Join("/", names);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    private static string GetActiveSceneName()
-    {
-        try
-        {
-            var sceneManagerType = FindTypeByName("UnityEngine.SceneManagement.SceneManager");
-            var getActiveScene = sceneManagerType?.GetMethod("GetActiveScene", BindingFlags.Public | BindingFlags.Static);
-            var scene = getActiveScene?.Invoke(null, Array.Empty<object>());
-            if (scene is null)
-            {
-                return string.Empty;
-            }
-
-            var nameProp = scene.GetType().GetProperty("name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            return nameProp?.GetValue(scene) as string ?? string.Empty;
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-
-    private static void TextAssetTextPostfix(object? __instance, ref string __result)
-    {
-        if (__instance is null || string.IsNullOrEmpty(__result) || TextAssetOverrides.Count == 0)
-        {
-            return;
-        }
-
-        var assetName = ExtractUnityObjectName(__instance);
-        if (string.IsNullOrWhiteSpace(assetName))
-        {
-            return;
-        }
-
-        if (!TextAssetOverrides.TryGetValue(assetName, out var replacement) || string.IsNullOrEmpty(replacement))
-        {
-            lock (StateLock)
-            {
-                if (_textAssetOverrideMissLoggedCount < 40 && TextAssetOverrideMissSeen.Add(assetName))
-                {
-                    _textAssetOverrideMissLoggedCount++;
-                    LogSource?.LogInfo($"TextAsset override miss: {assetName}");
-                }
-            }
-            return;
-        }
-
-        __result = replacement;
-        lock (StateLock)
-        {
-            _textAssetOverrideHitCount++;
-        }
-    }
-
-    private static void TranslateCurrentTextProperty(object? instance)
-    {
-        if (instance is null || !EnterPatchedCall())
-        {
-            return;
-        }
-
-        try
-        {
-            var prop = instance.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (prop is null || !prop.CanRead || !prop.CanWrite)
-            {
-                return;
-            }
-
-            if (prop.GetValue(instance) is not string currentText || string.IsNullOrWhiteSpace(currentText))
-            {
-                return;
-            }
-
-            lock (StateLock)
-            {
-                if (_menuSweepSampleCount < 60)
-                {
-                    _menuSweepSampleCount++;
-                    LogSource?.LogInfo($"Menu text sample: {currentText}");
-                }
-            }
-
-            var translated = currentText;
-            if (!TryTranslate(ref translated, "menu_scan") || string.Equals(translated, currentText, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            prop.SetValue(instance, translated);
-        }
-        catch
-        {
-        }
-        finally
-        {
-            ExitPatchedCall();
-        }
-    }
-
-
-    private static bool TryTranslateContextual(ref string value, string originalValue, string normalized)
-    {
-        if (!ContextualMap.TryGetValue(normalized, out var candidates) || candidates.Count == 0)
-        {
-            return false;
-        }
-
-        var currentSourceFile = NormalizeSourceFile(_currentDialogSourceFile);
-        if (!string.IsNullOrEmpty(currentSourceFile))
-        {
-            var sourceFileCandidates = candidates
-                .Where(candidate => string.Equals(NormalizeSourceFile(candidate.SourceFile), currentSourceFile, StringComparison.Ordinal))
-                .ToArray();
-            if (sourceFileCandidates.Length == 1)
-            {
-                value = sourceFileCandidates[0].Target;
-                lock (StateLock)
-                {
-                    _contextualHitCount++;
-                    _sourceFileContextHitCount++;
-                }
-                RecordTranslationHit(originalValue, value);
-                return true;
-            }
-        }
-
-        if (!ShouldUseContextualLookup(originalValue, normalized))
-        {
-            return false;
-        }
-
-        var history = SnapshotRecentHistory();
-        ContextualEntry? best = null;
-        var bestScore = 0;
-        var tied = false;
-
-        foreach (var candidate in candidates)
-        {
-            var score = ScoreContextualCandidate(candidate, history);
-            if (score <= 0)
-            {
-                continue;
-            }
-
-            if (score > bestScore)
-            {
-                best = candidate;
-                bestScore = score;
-                tied = false;
-                continue;
-            }
-
-            if (score == bestScore && best is not null &&
-                !string.Equals(best.Target, candidate.Target, StringComparison.Ordinal))
-            {
-                tied = true;
-            }
-        }
-
-        if (best is null || tied)
-        {
-            return false;
-        }
-
-        value = RestoreChoicePrefix(originalValue, best.Target);
-        lock (StateLock)
-        {
-            _contextualHitCount++;
-        }
-        RecordTranslationHit(originalValue, value);
-        return true;
-    }
-
-
-    private static string RestoreChoicePrefix(string original, string translated)
-    {
-        if (string.IsNullOrWhiteSpace(original) || string.IsNullOrWhiteSpace(translated))
-        {
-            return translated;
-        }
-
-        var match = Regex.Match(original, @"^\s*(\d+)(\.\s+|\s+)");
-        if (!match.Success)
-        {
-            return translated;
-        }
-
-        var translatedTrimmed = translated.TrimStart();
-        if (Regex.IsMatch(translatedTrimmed, @"^\d+(\.\s+|\s+)"))
-        {
-            return translated;
-        }
-
-        return match.Value + translatedTrimmed;
-    }
-
-
-    private static string NormalizeKey(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return string.Empty;
-        }
-
-        var text = input.Trim();
-        // Strip ALL tags (opening, closing, self-closing, color codes) not just leading/trailing
-        text = Regex.Replace(text, @"<[^>]+>", "");
-        text = Regex.Replace(text, @"^\d+(?:\.\s+|\s+)", "");
-        text = StripGameplayPrefix(text);
-        text = StripOuterQuotes(text);
-        return Regex.Replace(text, @"\s+", " ").Trim();
-    }
-
-    private static bool ShouldUseContextualLookup(string originalValue, string normalized)
-    {
-        if (normalized.Length == 0)
-        {
-            return false;
-        }
-
-        if (normalized.Length > 32)
-        {
-            return false;
-        }
-
-        var wordCount = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
-        if (wordCount > 4)
-        {
-            return false;
-        }
-
-        if (!Regex.IsMatch(normalized, "[A-Za-z]"))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static int ScoreContextualCandidate(ContextualEntry candidate, IReadOnlyList<string> history)
-    {
-        var score = 0;
-        var currentSourceFile = NormalizeSourceFile(_currentDialogSourceFile);
-        if (!string.IsNullOrEmpty(currentSourceFile) &&
-            string.Equals(NormalizeSourceFile(candidate.SourceFile), currentSourceFile, StringComparison.Ordinal))
-        {
-            score += 8;
-        }
-
-        if (!string.IsNullOrEmpty(candidate.ContextEn))
-        {
-            foreach (var previous in history)
-            {
-                if (previous.Length < 4)
-                {
-                    continue;
-                }
-
-                if (!candidate.ContextEn.Contains(previous, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                score += previous.Length >= 12 ? 3 : 2;
-            }
-        }
-
-        if (!string.IsNullOrEmpty(candidate.SpeakerHint))
-        {
-            score += 1;
-        }
-
-        if (string.Equals(candidate.TextRole, "dialogue", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.TextRole, "choice", StringComparison.OrdinalIgnoreCase))
-        {
-            score += 1;
-        }
-
-        return score;
-    }
-
-    private static string NormalizeSourceFile(string? sourceFile)
-    {
-        return string.IsNullOrWhiteSpace(sourceFile)
-            ? string.Empty
-            : sourceFile.Trim();
-    }
-
     private static string ExtractUnityObjectName(object? value)
     {
-        if (value is null)
-        {
-            return string.Empty;
-        }
+        if (value is null) return "";
 
         try
         {
-            var property = value.GetType().GetProperty("name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var property = value.GetType().GetProperty("name",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (property?.GetValue(value) is string name && !string.IsNullOrWhiteSpace(name))
             {
                 return name.Trim();
             }
         }
-        catch
-        {
-        }
+        catch { }
 
-        return string.Empty;
+        return "";
     }
 
-    private static IReadOnlyList<string> SnapshotRecentHistory()
-    {
-        lock (ContextLock)
-        {
-            return RecentNormalizedHistory.ToArray();
-        }
-    }
-
-    private static void RememberContext(string source)
-    {
-        var normalized = NormalizeKey(source);
-        if (normalized.Length == 0)
-        {
-            return;
-        }
-
-        lock (ContextLock)
-        {
-            RecentNormalizedHistory.Add(normalized);
-            if (RecentNormalizedHistory.Count > RecentHistoryLimit)
-            {
-                RecentNormalizedHistory.RemoveAt(0);
-            }
-        }
-    }
-
-    private static bool EnterPatchedCall()
-    {
-        if (_patchReentryDepth > 0)
-        {
-            return false;
-        }
-
-        _patchReentryDepth++;
-        return true;
-    }
-
-    private static void ExitPatchedCall()
-    {
-        if (_patchReentryDepth > 0)
-        {
-            _patchReentryDepth--;
-        }
-    }
-
-    private static void CaptureAllText(string source, string origin)
-    {
-        if (!_fullCaptureEnabled || string.IsNullOrEmpty(source))
-        {
-            return;
-        }
-
-        lock (StateLock)
-        {
-            var key = origin + "\t" + source;
-            if (!FullCaptureSeen.Add(key))
-            {
-                return;
-            }
-
-            FullCaptureBuffer.Add(new
-            {
-                text = source,
-                origin,
-                has_tags = source.Contains('<'),
-                length = source.Length,
-                dialog_source = _currentDialogSourceFile ?? ""
-            });
-
-            _fullCaptureFlushCount++;
-            if (_fullCaptureFlushCount % 50 == 0)
-            {
-                FlushFullCaptureUnsafe();
-            }
-        }
-    }
-
-    private static void FlushFullCaptureUnsafe()
+    private static int GetObjectInstanceId(object unityObject)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(_fullCapturePath))
-            {
-                return;
-            }
-
-            var payload = new
-            {
-                generated_at = DateTime.Now.ToString("s"),
-                count = FullCaptureBuffer.Count,
-                entries = FullCaptureBuffer.ToArray()
-            };
-
-            RunWithSuppressedDiagnostics(() =>
-                File.WriteAllText(_fullCapturePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })));
+            var method = unityObject.GetType().GetMethod("GetInstanceID",
+                BindingFlags.Instance | BindingFlags.Public);
+            if (method?.Invoke(unityObject, null) is int id) return id;
         }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"Failed to write full capture: {ex.Message}");
-        }
+        catch { }
+
+        return RuntimeHelpers.GetHashCode(unityObject);
     }
 
-    private static void CaptureUntranslated(string source)
-    {
-        if (_suppressDiagnostics)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(source))
-        {
-            return;
-        }
-
-        var text = NormalizeKey(source);
-        if (text.Length < 8)
-        {
-            return;
-        }
-        if (!Regex.IsMatch(text, "[A-Za-z]") || !text.Contains(' '))
-        {
-            return;
-        }
-        if (TranslationMap.ContainsKey(source) || NormalizedMap.ContainsKey(text))
-        {
-            return;
-        }
-
-        lock (StateLock)
-        {
-            if (!UntranslatedSeen.Add(text))
-            {
-                return;
-            }
-
-            _newCaptureCount++;
-            if (_newCaptureCount % 20 == 0)
-            {
-                FlushCaptureUnsafe();
-            }
-        }
-    }
-
-    private static void FlushCaptureUnsafe()
+    private static void SetObjectHideFlags(object unityObject, int flags)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(_capturePath))
+            var prop = unityObject.GetType().GetProperty("hideFlags",
+                BindingFlags.Instance | BindingFlags.Public);
+            if (prop is not null)
             {
-                return;
-            }
-
-            var items = UntranslatedSeen
-                .OrderBy(x => x, StringComparer.Ordinal)
-                .Select(s => new
-                {
-                    source = s,
-                    target = "",
-                    status = "new",
-                    category = "runtime_capture",
-                    source_file = "runtime",
-                    tags = new[] { "runtime_missing" }
-                })
-                .ToArray();
-
-            var payload = new
-            {
-                generated_at = DateTime.Now.ToString("s"),
-                count = items.Length,
-                entries = items
-            };
-
-            RunWithSuppressedDiagnostics(() =>
-                File.WriteAllText(_capturePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })));
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"Failed to write untranslated capture: {ex.Message}");
-        }
-    }
-
-    private static void CaptureChoice(string source)
-    {
-        if (_suppressDiagnostics || string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(_choiceCapturePath))
-        {
-            return;
-        }
-
-        var normalized = NormalizeChoiceText(source);
-        var category = ClassifyChoice(source, normalized);
-
-        var captureKey = $"{category}|{normalized}";
-        lock (StateLock)
-        {
-            if (!ChoiceCaptureSeen.Add(captureKey))
-            {
-                return;
-            }
-
-            _choiceCaptureCount++;
-            switch (category)
-            {
-                case "internal_branch_like":
-                    _choiceInternalBranchCount++;
-                    break;
-                case "template_like":
-                    _choiceTemplateCount++;
-                    break;
-                case "stat_gate_choice":
-                    _choiceStatGateCount++;
-                    break;
-                case "short_result_like":
-                    _choiceShortResultCount++;
-                    break;
-                default:
-                    _choiceNormalCount++;
-                    break;
-            }
-
-            FlushChoiceCaptureUnsafe();
-            WriteStateUnsafe("choice_capture");
-        }
-    }
-
-    private static string ClassifyChoice(string source, string normalized)
-    {
-        var trimmed = normalized;
-        if (IsShortResultChoice(trimmed))
-        {
-            return "short_result_like";
-        }
-
-        if (IsInternalLabelChoice(trimmed) ||
-            trimmed.Contains("Show Quest Branch", StringComparison.Ordinal) ||
-            trimmed.Contains("Show Unlocked Feat", StringComparison.Ordinal) ||
-            trimmed.Contains("CHOOSING VARIABLE ROUTE", StringComparison.Ordinal))
-        {
-            return "internal_branch_like";
-        }
-
-        if (trimmed.Contains("SpellName", StringComparison.Ordinal) ||
-            trimmed.Contains("Whatever", StringComparison.Ordinal) ||
-            trimmed.Contains("Attribute", StringComparison.Ordinal) ||
-            trimmed.Contains("Reason for getting", StringComparison.Ordinal))
-        {
-            return "template_like";
-        }
-
-        if (Regex.IsMatch(trimmed, @"^\[[^\]]+\]", RegexOptions.CultureInvariant))
-        {
-            return "stat_gate_choice";
-        }
-
-        return "normal_choice";
-    }
-
-    private static string NormalizeChoiceText(string source)
-    {
-        var normalized = NormalizeKey(source);
-        if (normalized.Length > 0)
-        {
-            return normalized;
-        }
-
-        return source.Trim();
-    }
-
-    private static bool IsShortResultChoice(string trimmed)
-    {
-        return trimmed == "S" || trimmed == "F";
-    }
-
-    private static bool IsInternalLabelChoice(string trimmed)
-    {
-        return trimmed.Length >= 3 &&
-               trimmed.StartsWith("-", StringComparison.Ordinal) &&
-               trimmed.EndsWith("-", StringComparison.Ordinal);
-    }
-
-    private static void FlushChoiceCaptureUnsafe()
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_choiceCapturePath))
-            {
-                return;
-            }
-
-            var items = ChoiceCaptureSeen
-                .OrderBy(x => x, StringComparer.Ordinal)
-                .Select(key =>
-                {
-                    var split = key.IndexOf('|');
-                    var category = split >= 0 ? key.Substring(0, split) : "unknown";
-                    var source = split >= 0 ? key[(split + 1)..] : key;
-                    return new
-                    {
-                        source,
-                        category,
-                        target = "",
-                        status = "new",
-                        source_file = _currentDialogSourceFile ?? "runtime",
-                        tags = new[] { "choice_capture", category }
-                    };
-                })
-                .ToArray();
-
-            var payload = new
-            {
-                generated_at = DateTime.Now.ToString("s"),
-                count = items.Length,
-                entries = items
-            };
-
-            RunWithSuppressedDiagnostics(() =>
-                File.WriteAllText(_choiceCapturePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })));
-        }
-        catch (Exception ex)
-        {
-            LogSource?.LogWarning($"Failed to write choice capture: {ex.Message}");
-        }
-    }
-
-    private static void CaptureUiToolkitText(object? instance, string value)
-    {
-        if (_suppressDiagnostics || string.IsNullOrWhiteSpace(_uiToolkitDumpPath) || string.IsNullOrWhiteSpace(value))
-        {
-            return;
-        }
-
-        try
-        {
-            var path = GetUiToolkitElementPath(instance);
-            var typeName = instance?.GetType().FullName ?? string.Empty;
-            var key = $"{typeName}|{path}|{value}";
-
-            lock (StateLock)
-            {
-                if (!DumpedUiToolkitEntries.Add(key))
-                {
-                    return;
-                }
-            }
-
-            var line = $"{DateTime.Now:s}`t{typeName}`t{path}`t{value}{Environment.NewLine}";
-            RunWithSuppressedDiagnostics(() => File.AppendAllText(_uiToolkitDumpPath!, line));
-        }
-        catch
-        {
-        }
-    }
-
-    private static string GetUiToolkitElementPath(object? instance)
-    {
-        if (instance is null)
-        {
-            return string.Empty;
-        }
-
-        try
-        {
-            var names = new List<string>();
-            object? current = instance;
-            while (current is not null)
-            {
-                var name = ExtractUnityObjectName(current);
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    name = ReadStringProperty(current, "name");
-                }
-
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    names.Add(name);
-                }
-                else
-                {
-                    names.Add(current.GetType().Name);
-                }
-
-                var parentProp = current.GetType().GetProperty("parent", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                current = parentProp?.GetValue(current);
-            }
-
-            names.Reverse();
-            return string.Join("/", names);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    private static void RecordTranslationHit(string source, string target)
-    {
-        lock (StateLock)
-        {
-            _translateHitCount++;
-            _lastTranslatedSource = source;
-            _lastTranslatedTarget = target;
-
-            if (_fullCaptureEnabled && !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(target))
-            {
-                _translationHitLog.Add(new { source, target });
-                _translationHitLogFlushCount++;
-                if (_translationHitLogFlushCount % 100 == 0)
-                {
-                    FlushTranslationHitLog();
-                }
+                var hideFlagsType = prop.PropertyType;
+                prop.SetValue(unityObject, Enum.ToObject(hideFlagsType, flags));
             }
         }
+        catch { }
     }
 
-    private static void FlushTranslationHitLog()
+    // =========================================================================
+    // Inner Types
+    // =========================================================================
+
+    private class ContextualEntry
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_translationHitLogPath) || _translationHitLog.Count == 0)
-                return;
-
-            var payload = new
-            {
-                generated_at = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
-                count = _translationHitLog.Count,
-                entries = _translationHitLog
-            };
-            File.WriteAllText(_translationHitLogPath,
-                JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }),
-                System.Text.Encoding.UTF8);
-        }
-        catch { /* silent */ }
+        public string Source { get; set; } = "";
+        public string Target { get; set; } = "";
+        public string SourceFile { get; set; } = "";
+        public string TextRole { get; set; } = "";
+        public string SpeakerHint { get; set; } = "";
     }
 
-    private static void RecordTranslationMiss(string source)
+    private class RuntimeRegexRule
     {
-        lock (StateLock)
-        {
-            _translateMissCount++;
-            _lastMissedSource = source;
-        }
+        public string Name { get; set; } = "";
+        public Regex Pattern { get; set; } = null!;
+        public string ReplaceString { get; set; } = "";
     }
-
-    private static void WriteState(string phase)
-    {
-        lock (StateLock)
-        {
-            WriteStateUnsafe(phase);
-            FlushTranslationHitLog();
-        }
-    }
-
-    private static void WriteStateUnsafe(string phase)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_statePath))
-            {
-                return;
-            }
-
-            var payload = new
-            {
-                phase,
-                plugin_version = PluginVersion,
-                written_at = DateTime.Now.ToString("s"),
-                translations_loaded = TranslationMap.Count,
-                normalized_loaded = NormalizedMap.Count,
-                contextual_loaded = _contextualLoadedCount,
-                contextual_hits = _contextualHitCount,
-                text_asset_overrides_loaded = _textAssetOverrideCount,
-                text_asset_override_hits = _textAssetOverrideHitCount,
-                text_asset_override_miss_logged = _textAssetOverrideMissLoggedCount,
-                localization_id_overrides_loaded = _localizationIdOverrideCount,
-                localization_id_override_hits = _localizationIdOverrideHitCount,
-                localization_id_override_miss_logged = _localizationIdOverrideMissLoggedCount,
-                runtime_lexicon_substrings = _runtimeLexiconSubstringCount,
-                runtime_lexicon_regex_rules = _runtimeLexiconRegexCount,
-                runtime_lexicon_hits = _runtimeLexiconHitCount,
-                menu_scene_sweeps = _menuSceneSweepCount,
-                menu_scene_translated = _menuSceneTranslatedCount,
-                menu_scene_samples = _menuSweepSampleCount,
-                menu_direct_override_hits = _menuDirectOverrideHits,
-                scene_text_scans = _sceneTextScanCount,
-                choice_capture_count = _choiceCaptureCount,
-                choice_internal_branch_like = _choiceInternalBranchCount,
-                choice_template_like = _choiceTemplateCount,
-                choice_stat_gate = _choiceStatGateCount,
-                choice_short_result_like = _choiceShortResultCount,
-                choice_normal = _choiceNormalCount,
-                source_file_context_hits = _sourceFileContextHitCount,
-                tmp_patched = InstanceState?.TmpPatched,
-                text_asset_patched = InstanceState?.TextAssetPatched,
-                localization_manager_patched = InstanceState?.LocalizationManagerPatched,
-                ui_patched = InstanceState?.UiPatched,
-                menu_patched = InstanceState?.MenuPatched,
-                dialog_patched = InstanceState?.DialogPatched,
-                translation_hits = _translateHitCount,
-                translation_misses = _translateMissCount,
-                current_dialog_source_file = _currentDialogSourceFile ?? string.Empty,
-                last_translated_source = _lastTranslatedSource,
-                last_translated_target = _lastTranslatedTarget,
-                last_missed_source = _lastMissedSource,
-                font_status = _fontStatus,
-                font_fallback_injected = _fontFallbackInjectedCount
-            };
-
-            RunWithSuppressedDiagnostics(() =>
-                File.WriteAllText(_statePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })));
-        }
-        catch
-        {
-        }
-    }
-
-    private static void RunWithSuppressedDiagnostics(Action action)
-    {
-        var previous = _suppressDiagnostics;
-        _suppressDiagnostics = true;
-        try
-        {
-            action();
-        }
-        finally
-        {
-            _suppressDiagnostics = previous;
-        }
-    }
-
-    private static PluginState? InstanceState { get; set; }
-
-
-    private static string StripGameplayPrefix(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        text = Regex.Replace(text, @"^(?:DC|FC)\d+\s+[A-Za-z]+-\s*", "", RegexOptions.CultureInvariant);
-        text = Regex.Replace(text, @"^(?:OBJ|reply|wis|int|str|dex|con|cha|buy|sell|roll)\s*[:\-]\s*", "", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        return text.Trim();
-    }
-
-    private static string StripOuterQuotes(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        text = text.Trim();
-        return text.Length >= 2 && text[0] == '"' && text[^1] == '"'
-            ? text.Substring(1, text.Length - 2).Trim()
-            : text;
-    }
-
-    private static string StripOuterFormattingTags(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        text = text.Trim();
-        while (TryStripOuterFormattingTag(text, out _, out var innerText, out _))
-        {
-            text = innerText.Trim();
-        }
-
-        return text;
-    }
-
-
-
-
-
-    private static bool TryStripOuterFormattingTag(string text, out string openTag, out string innerText, out string closeTag)
-    {
-        openTag = string.Empty;
-        innerText = text;
-        closeTag = string.Empty;
-
-        var match = Regex.Match(
-            text,
-            @"^(<(?<name>[A-Za-z][A-Za-z0-9-]*)(?:=[^>]*)?>)(?<inner>.*?)(</\k<name>>)$",
-            RegexOptions.Singleline | RegexOptions.CultureInvariant);
-
-        if (!match.Success)
-        {
-            return false;
-        }
-
-        openTag = match.Groups[1].Value;
-        innerText = match.Groups["inner"].Value;
-        closeTag = match.Groups[4].Value;
-        return true;
-    }
-
-    private static Type? FindTypeByName(string typeName)
-    {
-        lock (StateLock)
-        {
-            if (TypeCache.TryGetValue(typeName, out var cached))
-            {
-                return cached;
-            }
-        }
-
-        Type? resolved = null;
-        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            var type = asm.GetType(typeName, throwOnError: false);
-            if (type is not null)
-            {
-                resolved = type;
-                break;
-            }
-        }
-
-        lock (StateLock)
-        {
-            TypeCache[typeName] = resolved;
-        }
-
-        return resolved;
-    }
-
-    private sealed class PluginState
-    {
-        public bool TmpPatched { get; init; }
-        public bool TextAssetPatched { get; init; }
-        public bool LocalizationManagerPatched { get; init; }
-        public bool UiPatched { get; init; }
-        public bool MenuPatched { get; init; }
-        public bool DialogPatched { get; init; }
-    }
-
-    private sealed class ContextualEntry
-    {
-        public string Id { get; init; } = string.Empty;
-        public string Source { get; init; } = string.Empty;
-        public string Target { get; init; } = string.Empty;
-        public string ContextEn { get; init; } = string.Empty;
-        public string SpeakerHint { get; init; } = string.Empty;
-        public string TextRole { get; init; } = string.Empty;
-        public string TranslationLane { get; init; } = string.Empty;
-        public string SourceFile { get; init; } = string.Empty;
-    }
-
-
-
-    private sealed class RuntimeRegexRule
-    {
-        public string Name { get; init; } = string.Empty;
-        public Regex Regex { get; init; } = null!;
-        public string Replace { get; init; } = string.Empty;
-    }
-
 }
