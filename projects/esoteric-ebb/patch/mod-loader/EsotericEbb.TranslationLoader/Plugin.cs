@@ -134,6 +134,12 @@ public class Plugin : BasePlugin
     // DC/FC prefix regex — must match export.go dcfcPrefixRe exactly
     private static readonly Regex DcFcPrefixRegex = new(@"^[A-Z]{2}\d+\s+\w+-", RegexOptions.Compiled);
 
+    // Choice text arrives pre-wrapped: <#FFFFFFFF><line-indent=-10%><link="N">N.   BODY</link></line-indent></color>
+    // We need to extract BODY, translate it, and re-wrap.
+    private static readonly Regex ChoiceWrapperRegex = new(
+        @"^((?:<[^>]+>)*\d+\.\s+)(.*?)(</link>.*)$",
+        RegexOptions.Compiled | RegexOptions.Singleline);
+
     // =========================================================================
     // Load() Entry Point
     // =========================================================================
@@ -1331,13 +1337,36 @@ public class Plugin : BasePlugin
     }
 
     /// <summary>
-    /// Per D-14: translate text only. No number/link manipulation. No quote stripping.
-    /// Game adds link/number wrappers AFTER this hook.
+    /// Game sends choice text pre-wrapped with TMP tags:
+    ///   &lt;#FFFFFFFF&gt;&lt;line-indent=-10%&gt;&lt;link="N"&gt;N.   BODY&lt;/link&gt;&lt;/line-indent&gt;&lt;/color&gt;
+    /// Extract body, translate, re-wrap.
     /// </summary>
     private static void DialogAddChoiceTextPrefix(object? __instance, ref string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
-        TryTranslate(ref text, "ink_choice");
+
+        var match = ChoiceWrapperRegex.Match(text);
+        if (match.Success)
+        {
+            var prefix = match.Groups[1].Value;  // tags + "N.   "
+            var body = match.Groups[2].Value;     // choice body text
+            var suffix = match.Groups[3].Value;   // </link></line-indent></color>
+
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                var originalBody = body;
+                TryTranslate(ref body, "ink_choice");
+                if (body != originalBody)
+                {
+                    text = prefix + body + suffix;
+                }
+            }
+        }
+        else
+        {
+            // Fallback: no wrapper detected, try direct translation
+            TryTranslate(ref text, "ink_choice");
+        }
     }
 
     /// <summary>
