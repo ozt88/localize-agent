@@ -66,6 +66,8 @@ public class Plugin : BasePlugin
     private static int _contextualHits;
     private static int _runtimeLexiconHits;
     private static int _misses;
+    private static int _totalTranslateAttempts;
+    private static int _lastFlushAttempt;
     private static int _textAssetOverrideHits;
     private static int _localizationIdOverrideHits;
     private static int _contextualLoadedCount;
@@ -190,6 +192,31 @@ public class Plugin : BasePlugin
         }
 
         WriteState("load_complete");
+
+        // Register quit handler for final state flush
+        try
+        {
+            var appType = FindTypeByName("UnityEngine.Application");
+            var quittingEvent = appType?.GetEvent("quitting", BindingFlags.Public | BindingFlags.Static);
+            if (quittingEvent != null)
+            {
+                var handler = new Action(OnApplicationQuitting);
+                quittingEvent.AddMethod?.Invoke(null, new object[] { handler });
+                Log.LogInfo("Registered Application.quitting handler for capture flush");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"Could not register quit handler: {ex.Message}");
+        }
+    }
+
+    private static void OnApplicationQuitting()
+    {
+        WriteUntranslatedCapture();
+        WriteTranslationHits();
+        WriteState("quit");
+        LogSource?.LogInfo($"Final state flushed on quit: {_translationMapHits} exact, {_dcfcStripHits} dcfc, {_contextualHits} contextual, {_runtimeLexiconHits} lexicon, {_misses} misses");
     }
 
     // =========================================================================
@@ -1118,6 +1145,19 @@ public class Plugin : BasePlugin
     {
         if (string.IsNullOrEmpty(value)) return false;
         var original = value;
+
+        // Periodic flush every 500 attempts
+        var attempts = Interlocked.Increment(ref _totalTranslateAttempts);
+        if (attempts - _lastFlushAttempt >= 500)
+        {
+            _lastFlushAttempt = attempts;
+            try
+            {
+                WriteUntranslatedCapture();
+                WriteState("periodic");
+            }
+            catch { /* best-effort */ }
+        }
 
         // Stage 1: Exact dictionary lookup (TranslationMap)
         if (TranslationMap.TryGetValue(value, out var t) && !string.IsNullOrEmpty(t))
