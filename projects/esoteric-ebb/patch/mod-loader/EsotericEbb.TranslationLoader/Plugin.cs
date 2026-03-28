@@ -862,6 +862,25 @@ public class Plugin : BasePlugin
             found = true;
         }
 
+        // Stage 2b: DC/FC stat-check prefix stripping
+        // Choice text like "DC12 str-The Cleric? I like that." — strip prefix, translate body, reattach
+        if (!found)
+        {
+            var dcfcMatch = System.Text.RegularExpressions.Regex.Match(
+                value, @"^([A-Z]{2}\d+\s+\w+-)(.+)$");
+            if (dcfcMatch.Success)
+            {
+                var prefix = dcfcMatch.Groups[1].Value;
+                var body = dcfcMatch.Groups[2].Value;
+                if (TranslationMap.TryGetValue(body, out var bodyTranslated) && !string.IsNullOrEmpty(bodyTranslated))
+                {
+                    RecordTranslationHit(originalValue, bodyTranslated);
+                    value = prefix + bodyTranslated;
+                    found = true;
+                }
+            }
+        }
+
         // Stage 3: Contextual (disambiguation by source_file + history)
         if (!found)
         {
