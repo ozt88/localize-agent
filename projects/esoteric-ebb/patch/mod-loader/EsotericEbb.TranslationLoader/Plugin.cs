@@ -62,7 +62,6 @@ public class Plugin : BasePlugin
     // =========================================================================
 
     private static int _translationMapHits;
-    private static int _dcfcStripHits;
     private static int _contextualHits;
     private static int _runtimeLexiconHits;
     private static int _misses;
@@ -132,9 +131,6 @@ public class Plugin : BasePlugin
     private static readonly HashSet<string> _triggeredSceneScans = new(StringComparer.Ordinal);
     private static readonly object StateLock = new();
     private static readonly Dictionary<string, Type?> TypeCache = new(StringComparer.Ordinal);
-
-    // DC/FC prefix regex — must match export.go dcfcPrefixRe exactly
-    private static readonly Regex DcFcPrefixRegex = new(@"^[A-Z]{2}\d+\s+\w+-", RegexOptions.Compiled);
 
     // Choice text arrives pre-wrapped: <#FFFFFFFF><line-indent=-10%><link="N">N.   BODY</link></line-indent></color>
     // We need to extract BODY, translate it, and re-wrap.
@@ -216,7 +212,7 @@ public class Plugin : BasePlugin
         WriteUntranslatedCapture();
         WriteTranslationHits();
         WriteState("quit");
-        LogSource?.LogInfo($"Final state flushed on quit: {_translationMapHits} exact, {_dcfcStripHits} dcfc, {_contextualHits} contextual, {_runtimeLexiconHits} lexicon, {_misses} misses");
+        LogSource?.LogInfo($"Final state flushed on quit: {_translationMapHits} exact, {_contextualHits} contextual, {_runtimeLexiconHits} lexicon, {_misses} misses");
     }
 
     // =========================================================================
@@ -1135,11 +1131,10 @@ public class Plugin : BasePlugin
     // =========================================================================
 
     /// <summary>
-    /// 4-stage translation chain per D-05 (revised):
+    /// 3-stage translation chain (DC/FC strip removed — parser now produces clean sources):
     /// 1. TranslationMap (exact match)
-    /// 2. DC/FC prefix strip -> TranslationMap lookup
-    /// 3. Contextual (source_file + history scoring)
-    /// 4. RuntimeLexicon (exact + substring + regex — includes GeneratedPattern)
+    /// 2. Contextual (source_file + history scoring)
+    /// 3. RuntimeLexicon (exact + substring + regex — includes GeneratedPattern)
     /// </summary>
     internal static bool TryTranslate(ref string value, string origin = "unknown")
     {
@@ -1168,15 +1163,7 @@ public class Plugin : BasePlugin
             return true;
         }
 
-        // Stage 2: DC/FC prefix strip -> lookup body in TranslationMap
-        if (TryTranslateDcFcStrip(ref value, original))
-        {
-            RecordHit("dcfc_strip", original, value);
-            Interlocked.Increment(ref _dcfcStripHits);
-            return true;
-        }
-
-        // Stage 3: Contextual (source_file + history scoring)
+        // Stage 2: Contextual (source_file + history scoring)
         if (TryTranslateContextual(ref value, original))
         {
             RecordHit("contextual", original, value);
@@ -1184,7 +1171,7 @@ public class Plugin : BasePlugin
             return true;
         }
 
-        // Stage 4: Runtime lexicon (exact + substring + regex)
+        // Stage 3: Runtime lexicon (exact + substring + regex)
         if (TryTranslateRuntimeLexicon(ref value))
         {
             RecordHit("lexicon", original, value);
@@ -1194,23 +1181,6 @@ public class Plugin : BasePlugin
 
         Interlocked.Increment(ref _misses);
         CaptureUntranslated(original, origin);
-        return false;
-    }
-
-    private static bool TryTranslateDcFcStrip(ref string value, string original)
-    {
-        var match = DcFcPrefixRegex.Match(value);
-        if (!match.Success) return false;
-
-        var body = value.Substring(match.Length);
-        if (string.IsNullOrWhiteSpace(body)) return false;
-
-        if (TranslationMap.TryGetValue(body, out var t) && !string.IsNullOrEmpty(t))
-        {
-            value = t;
-            return true;
-        }
-
         return false;
     }
 
@@ -1686,7 +1656,6 @@ public class Plugin : BasePlugin
                 lexicon_substrings = RuntimeSubstringReplacements.Count,
                 lexicon_regex = RuntimeRegexRules.Count,
                 hits_exact = _translationMapHits,
-                hits_dcfc_strip = _dcfcStripHits,
                 hits_contextual = _contextualHits,
                 hits_lexicon = _runtimeLexiconHits,
                 total_misses = _misses,

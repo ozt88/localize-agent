@@ -6,8 +6,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+// dcfcPrefixRe matches DC/FC stat-check prefixes in choice text.
+// Example: "DC12 str-" or "FC8 int-" — game system markers, not display text.
+var dcfcPrefixRe = regexp.MustCompile(`^([A-Z]{2}\d+)\s+(\w+)-`)
 
 // utf8BOM is the UTF-8 byte order mark.
 var utf8BOM = []byte{0xEF, 0xBB, 0xBF}
@@ -139,19 +144,24 @@ func (w *walker) walkFlatContent(arr []any, knot, gate, choice string) {
 		if text == "" {
 			return
 		}
+		cleanText, extraTags := stripDCFCPrefix(text)
+		allTags := tags
+		if len(extraTags) > 0 {
+			allTags = append(append([]string{}, tags...), extraTags...)
+		}
 		idx := w.blockCount[path]
 		w.blockCount[path]++
 		block := DialogueBlock{
 			ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
 			Path:       path,
-			Text:       text,
-			SourceHash: SourceHash(text),
+			Text:       cleanText,
+			SourceHash: SourceHash(cleanText),
 			SourceFile: w.sourceFile,
 			Knot:       knot,
 			Gate:       gate,
 			Choice:     choice,
 			Speaker:    speaker,
-			Tags:       tags,
+			Tags:       allTags,
 			BlockIndex: idx,
 		}
 		w.result.Blocks = append(w.result.Blocks, block)
@@ -293,6 +303,7 @@ func (w *walker) tryExtractChoiceText(remaining []any, knot, gate string) {
 	if flg&0x2 != 0 && sContent != nil {
 		text := extractTextFromArray(sContent)
 		if text != "" {
+			cleanText, extraTags := stripDCFCPrefix(text)
 			choiceID := extractChoiceIDFromPath(choicePath)
 			path := buildPath(knot, gate, choiceID)
 			idx := w.blockCount[path]
@@ -300,18 +311,34 @@ func (w *walker) tryExtractChoiceText(remaining []any, knot, gate string) {
 			block := DialogueBlock{
 				ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
 				Path:       path,
-				Text:       text,
-				SourceHash: SourceHash(text),
+				Text:       cleanText,
+				SourceHash: SourceHash(cleanText),
 				SourceFile: w.sourceFile,
 				Knot:       knot,
 				Gate:       gate,
 				Choice:     choiceID,
+				Tags:       extraTags,
 				BlockIndex: idx,
 			}
 			w.result.Blocks = append(w.result.Blocks, block)
 			w.result.TotalTextEntries++
 		}
 	}
+}
+
+// stripDCFCPrefix strips DC/FC stat-check prefixes from choice text.
+// Returns the cleaned text and any extra tags (ability type) extracted.
+// If the body after stripping would be empty, returns the original text unchanged.
+func stripDCFCPrefix(text string) (string, []string) {
+	m := dcfcPrefixRe.FindStringSubmatch(text)
+	if m == nil {
+		return text, nil
+	}
+	body := text[len(m[0]):]
+	if body == "" {
+		return text, nil // don't strip if body would be empty
+	}
+	return body, []string{m[2]}
 }
 
 // isSpeakerTag checks if a tag is a speaker/character name tag

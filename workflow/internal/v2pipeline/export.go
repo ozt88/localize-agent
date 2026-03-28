@@ -16,10 +16,6 @@ import (
 // are not affected — LLM already omits those correctly.
 var abilityPrefixRe = regexp.MustCompile(`^(?:wis|str|int|con|dex|cha):\s*`)
 
-// dcfcPrefixRe matches DC/FC stat-check prefixes in choice text.
-// Example: "DC12 str-" or "FC8 int-" — game system markers, not display text.
-var dcfcPrefixRe = regexp.MustCompile(`^[A-Z]{2}\d+\s+\w+-`)
-
 // V3Format is the format identifier for esoteric-ebb sidecar v3.
 const V3Format = "esoteric-ebb-sidecar.v3"
 
@@ -105,32 +101,6 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 	}
 	sidecar.Entries = append(sidecar.Entries, exploded...)
 
-	// Add DC/FC-stripped body entries so TranslationMap matches
-	// when Plugin.cs strips the prefix before lookup.
-	var dcfcBodies []V3Entry
-	for _, entry := range sidecar.Entries {
-		if entry.Target == "" {
-			continue
-		}
-		bodySource := dcfcPrefixRe.ReplaceAllString(entry.Source, "")
-		if bodySource == entry.Source || bodySource == "" {
-			continue // no prefix found or empty body
-		}
-		if seen[bodySource] {
-			continue
-		}
-		seen[bodySource] = true
-		dcfcBodies = append(dcfcBodies, V3Entry{
-			ID:          entry.ID + "/body",
-			Source:      bodySource,
-			Target:      entry.Target,
-			SourceFile:  entry.SourceFile,
-			TextRole:    entry.TextRole,
-			SpeakerHint: entry.SpeakerHint,
-		})
-	}
-	sidecar.Entries = append(sidecar.Entries, dcfcBodies...)
-
 	return sidecar
 }
 
@@ -140,9 +110,6 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 func CleanTarget(s string) string {
 	s = NormalizeLLMEscapes(s)
 	s = abilityPrefixRe.ReplaceAllString(s, "")
-	// Strip DC/FC stat-check prefixes from translated choice text.
-	// The game parses these from the SOURCE; translation should only contain the body.
-	s = dcfcPrefixRe.ReplaceAllString(s, "")
 	return s
 }
 

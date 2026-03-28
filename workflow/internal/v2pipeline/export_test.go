@@ -179,7 +179,53 @@ func TestExportBuildV3Sidecar_ContextualEntriesEmpty(t *testing.T) {
 	}
 }
 
-func TestExportWriteTranslationsJSON_HasContextualEntries(t *testing.T) {
+func TestExportBuildV3Sidecar_NoDcFcBodyEntries(t *testing.T) {
+	// After DC/FC strip moved to parser, BuildV3Sidecar should NOT generate /body entries
+	items := []contracts.V2PipelineItem{
+		{
+			ID:          "k/g-0/c-0/blk-0",
+			SourceRaw:   "DC12 str-The Cleric?",
+			KOFormatted: "성직자?",
+			ContentType: "dialogue",
+		},
+	}
+	sidecar := BuildV3Sidecar(items)
+	for _, e := range sidecar.Entries {
+		if e.Source == "The Cleric?" {
+			t.Fatalf("should NOT generate body-only entry for DC/FC source, found: %+v", e)
+		}
+	}
+}
+
+func TestExportCleanTarget_NoDcFcStrip(t *testing.T) {
+	// CleanTarget should NOT strip DC/FC prefixes anymore
+	input := "DC12 str-성직자?"
+	got := CleanTarget(input)
+	if got != input {
+		t.Fatalf("CleanTarget should not strip DC/FC: got %q, want %q", got, input)
+	}
+}
+
+func TestExportBuildV3Sidecar_DcFcCleanSourceNoBody(t *testing.T) {
+	// With parser-cleaned source (no DC/FC prefix), entries should just pass through
+	items := []contracts.V2PipelineItem{
+		{
+			ID:          "k/g-0/c-0/blk-0",
+			SourceRaw:   "<i>Ragn?</i>",
+			KOFormatted: "<i>라근?</i>",
+			ContentType: "dialogue",
+		},
+	}
+	sidecar := BuildV3Sidecar(items)
+	if len(sidecar.Entries) != 1 {
+		t.Fatalf("entries count: got %d, want 1", len(sidecar.Entries))
+	}
+	if sidecar.Entries[0].Source != "<i>Ragn?</i>" {
+		t.Errorf("source: got %q, want %q", sidecar.Entries[0].Source, "<i>Ragn?</i>")
+	}
+}
+
+func TestExportBuildV3Sidecar_HasContextualEntries(t *testing.T) {
 	items := []contracts.V2PipelineItem{
 		{ID: "k/g-0/blk-0", SourceRaw: "Test", KOFormatted: "테스트", SourceFile: "TS_X.json", ContentType: "dialogue", Speaker: "NPC"},
 	}

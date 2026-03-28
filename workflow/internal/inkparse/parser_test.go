@@ -729,6 +729,48 @@ func TestParse_RealFile_AR_CoastMap(t *testing.T) {
 	}
 }
 
+// --- DC/FC prefix strip tests ---
+
+func TestStripDCFCPrefix_FC(t *testing.T) {
+	text, extraTags := stripDCFCPrefix("FC8 int-<i>Ragn?</i>")
+	if text != "<i>Ragn?</i>" {
+		t.Fatalf("text: got %q, want %q", text, "<i>Ragn?</i>")
+	}
+	if len(extraTags) != 1 || extraTags[0] != "int" {
+		t.Fatalf("extraTags: got %v, want [int]", extraTags)
+	}
+}
+
+func TestStripDCFCPrefix_DC(t *testing.T) {
+	text, extraTags := stripDCFCPrefix("DC12 str-The Cleric?")
+	if text != "The Cleric?" {
+		t.Fatalf("text: got %q, want %q", text, "The Cleric?")
+	}
+	if len(extraTags) != 1 || extraTags[0] != "str" {
+		t.Fatalf("extraTags: got %v, want [str]", extraTags)
+	}
+}
+
+func TestStripDCFCPrefix_NormalText(t *testing.T) {
+	text, extraTags := stripDCFCPrefix("Normal text")
+	if text != "Normal text" {
+		t.Fatalf("text: got %q, want %q", text, "Normal text")
+	}
+	if extraTags != nil {
+		t.Fatalf("extraTags: got %v, want nil", extraTags)
+	}
+}
+
+func TestStripDCFCPrefix_EmptyBody(t *testing.T) {
+	text, extraTags := stripDCFCPrefix("DC5 wis-")
+	if text != "DC5 wis-" {
+		t.Fatalf("text: got %q, want %q (no strip when body empty)", text, "DC5 wis-")
+	}
+	if extraTags != nil {
+		t.Fatalf("extraTags: got %v, want nil", extraTags)
+	}
+}
+
 // helper
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
