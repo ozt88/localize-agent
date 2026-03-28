@@ -839,7 +839,7 @@ public class Plugin : BasePlugin
         }
     }
 
-    internal static bool TryTranslate(ref string value, string origin = "unknown")
+    internal static bool TryTranslate(ref string value, string origin = "unknown", bool stripQuotes = true)
     {
         if (string.IsNullOrEmpty(value))
         {
@@ -905,7 +905,8 @@ public class Plugin : BasePlugin
 
         if (found)
         {
-            value = StripQuotationMarks(value);
+            if (stripQuotes)
+                value = StripQuotationMarks(value);
             value = CleanOrphanBoldTags(value);
             return true;
         }
@@ -1675,8 +1676,8 @@ public class Plugin : BasePlugin
 
         // AddChoiceText receives plain body text (no link/numbering wrapper).
         // Game adds <link="N">N.   ...</link> AFTER this hook via DialogManager.
-        // Just translate the body — game handles numbering independently.
-        TryTranslate(ref text, "ink_choice");
+        // Do NOT strip quotes — game uses quote presence for choice formatting/numbering.
+        TryTranslate(ref text, "ink_choice", stripQuotes: false);
     }
 
     private static void TryLogAddChoiceSignature(object? instance)
