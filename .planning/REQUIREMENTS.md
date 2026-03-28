@@ -50,7 +50,7 @@
 ### 플러그인 (PLUGIN)
 
 - [x] **PLUGIN-01**: Plugin.cs 매칭 로직을 대사 블록 단위 직접 매칭 우선으로 변경
-- [ ] **PLUGIN-02**: TryTranslateTagSeparatedSegments 제거 또는 최하위 폴백으로 강등
+- [x] **PLUGIN-02**: TryTranslateTagSeparatedSegments 제거 또는 최하위 폴백으로 강등
 - [ ] **PLUGIN-03**: 직접 매칭 커버리지 95%+ 달성 확인
 
 ### 통합 검증 (VERIFY)
@@ -105,7 +105,7 @@
 | PATCH-02 | Phase 3 | Complete |
 | PATCH-03 | Phase 3 | Complete |
 | PLUGIN-01 | Phase 4 | Complete |
-| PLUGIN-02 | Phase 4 | Pending |
+| PLUGIN-02 | Phase 4 | Complete |
 | PLUGIN-03 | Phase 4 | Pending |
 | VERIFY-01 | Phase 3 | Complete |
 | VERIFY-02 | Phase 4 | Pending |

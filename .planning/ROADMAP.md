@@ -100,7 +100,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04.1-01-PLAN.md -- runtime_lexicon.json v2 upgrade + Plugin.cs v2 complete rewrite (data loading, TryTranslate 4-stage chain, Harmony patches, font, capture, helpers)
+- [x] 04.1-01-PLAN.md -- runtime_lexicon.json v2 upgrade + Plugin.cs v2 complete rewrite (data loading, TryTranslate 4-stage chain, Harmony patches, font, capture, helpers)
 - [ ] 04.1-02-PLAN.md -- Build, deploy, and in-game verification checkpoint
 
 ## Progress

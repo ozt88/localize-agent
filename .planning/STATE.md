@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-26T03:14:52.123Z"
+stopped_at: Completed 04.1-01-PLAN.md
+last_updated: "2026-03-28T12:49:47.744Z"
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 11
+  total_plans: 17
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 04 — plugin-optimize-verify
+**Current focus:** Phase 04.1 — plugin-cs-v2-inserted
 
 ## Current Position
 
-Phase: 04 (plugin-optimize-verify) — EXECUTING
-Plan: 2 of 3
+Phase: 04.1 (plugin-cs-v2-inserted) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: 2 of 3
 | Phase 03 P02 | 3min | 2 tasks | 2 files |
 | Phase 03 P03 | 4min | 4 tasks | 3 files |
 | Phase 04 P01 | 2min | 1 tasks | 2 files |
+| Phase 04.1 P01 | 7min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 03]: TextAsset output .json extension (D-06); Plugin.cs update deferred to Phase 4
 - [Phase 03]: CSV translation uses high_llm profile; fail rate >5% warning, >20% abort
 - [Phase 04]: D-01: entries[] deduped by source text (first-seen-wins), contextual_entries[] contains all items for ContextualMap
+- [Phase 04.1]: GeneratedPattern merged into RuntimeLexicon regex_rules, TryTranslate simplified to 4 stages
+- [Phase 04.1]: ContextualMap keyed by raw source text (v2 sources already clean, no normalize needed)
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T03:14:52.119Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-28T12:49:47.741Z
+Stopped at: Completed 04.1-01-PLAN.md
 Resume file: None
