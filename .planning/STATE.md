@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-29T03:49:09.278Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-29T03:51:51.375Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 22
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 05 (untranslated-coverage) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Plan: 2 of 3
 | Phase 04.2 P01 | 7min | 2 tasks | 6 files |
 | Phase 04.2 P02 | multi-session | 2 tasks | 0 files |
 | Phase 05 P01 | 2min | 2 tasks | 1 files |
+| Phase 05 P02 | 4min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Recent decisions affecting current work:
 - [Phase 04.2]: 101 DC/FC-prefixed rows remain in DB (collision duplicates) — clean body entries exist under other IDs
 - [Phase 04.2]: translations_loaded 75,204 (75,789 -> -585): DC/FC body-only removal confirmed, no regression
 - [Phase 05]: TryTranslateCore extracted as separate method for wrapper/non-wrapper paths; inline tags stripped but NOT re-wrapped
+- [Phase 05]: Lexicon expanded 42->281 rules: passthrough proper nouns find==replace, regex fallbacks for all numeric/template patterns
 
 ### Roadmap Evolution
 
@@ -113,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T03:49:09.269Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-29T03:51:51.371Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
