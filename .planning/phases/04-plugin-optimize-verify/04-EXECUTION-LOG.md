@@ -68,6 +68,14 @@
 - Plugin.cs v1 가정: CleanOrphanBoldTags, FindKoreanFontFile 등이 v2 데이터와 호환 안 됨
 - 선택지 렌더링: TMP link 태그 래핑은 인게임에서만 관찰 가능
 
+### 2026-03-28 — 선택지 번호 문제 심층 조사
+- **발견:** 스크린샷에서 2, 3번 선택지에 번호 없음
+- **조사:** AddChoiceText 시그니처 확인 — 9개 파라미터 (text, color, holder, **index**, ...)
+- **핵심:** `ink_choice` 캡처 101건 **전부** `<link>` 래핑 없음. 게임이 Plugin 훅 **이후** 번호+link를 추가
+- **이전 수정 (217dabe):** `<link>` regex가 절대 매칭 안 됨 → 불필요한 코드
+- **수정 (6977155):** regex 제거, 단순 TryTranslate로 변경. 번호는 게임이 독립적으로 처리
+- **추가 발견 (f17185e):** `StripQuotationMarks`가 선택지 따옴표 제거 → 게임의 번호 매칭 실패. ink_choice에서는 따옴표 보존하도록 `stripQuotes: false` 추가
+
 ### 2026-03-28 — 번역 품질 리뷰 도구 추가
 - **요청:** 유저가 v1 대비 v2 번역 품질이 낮다고 판단, 검토 도구 요청
 - **1번 도구 (오프라인):** quality_review.tsv — source→v1_target→v2_target 비교 파일
