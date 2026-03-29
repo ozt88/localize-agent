@@ -138,19 +138,9 @@ public class Plugin : BasePlugin
         @"^((?:<[^>]+>)*\d+\.\s+)(.*?)(</link>.*)$",
         RegexOptions.Compiled | RegexOptions.Singleline);
 
-    /// <summary>Empty noparse pair: &lt;noparse&gt;&lt;/noparse&gt; (D-01 1b: 30 cases)</summary>
-    private static readonly Regex NoparseEmptyRegex = new(
-        @"<noparse>\s*</noparse>",
-        RegexOptions.Compiled);
-
-    /// <summary>Color wrapper: &lt;#hex&gt;...&lt;/color&gt; or &lt;color=X&gt;...&lt;/color&gt; (D-01 1a: 77 cases)</summary>
-    private static readonly Regex ColorWrapperRegex = new(
-        @"^(<(?:#[0-9A-Fa-f]{6,8}|color=[^>]+)>)(.*?)(</color>)$",
-        RegexOptions.Compiled | RegexOptions.Singleline);
-
-    /// <summary>Inline TMP tags: &lt;i&gt;, &lt;/i&gt;, &lt;b&gt;, &lt;/b&gt;, &lt;size=N&gt;, &lt;/size&gt; (D-06: 41 cases)</summary>
-    private static readonly Regex InlineTagRegex = new(
-        @"</?(?:i|b|size(?:=[^>]*)?)>",
+    /// <summary>All known TMP rendering tags — used for stripping before translation lookup.</summary>
+    private static readonly Regex AllTmpTagRegex = new(
+        @"</?(?:color|noparse|line-indent|link|smallcaps|b|i|size|mark|s|u|sup|sub|#[0-9A-Fa-f]{6,8})(?:=[^>]*)?>",
         RegexOptions.Compiled);
 
     // =========================================================================
@@ -1169,24 +1159,38 @@ public class Plugin : BasePlugin
             catch { /* best-effort */ }
         }
 
-        // Phase 5 D-01: Strip rendering wrappers before lookup
-        var (stripped, wrapper) = StripRenderingWrapper(value);
-        if (wrapper != null)
+        // Phase 5: Strip ALL TMP rendering tags before lookup.
+        // Game engine wraps text in complex nested tags (<line-indent>, <color>, <link>, <smallcaps>).
+        // The translation DB stores plain text without these wrappers.
+        // Strategy: strip tags → lookup plain text → if hit, replace inner text in original.
+        var stripped = StripAllTmpTags(value);
+        if (stripped != value)
         {
-            // Try translating the stripped inner text through all 3 stages
-            var inner = stripped;
-            if (TryTranslateCore(ref inner, stripped, origin))
+            // Text had TMP tags — try translating the stripped inner text
+            if (!string.IsNullOrWhiteSpace(stripped))
             {
-                value = wrapper.Value.Rewrap(inner);
-                return true;
+                var inner = stripped;
+                if (TryTranslateCore(ref inner, stripped, origin))
+                {
+                    // Replace the plain text portion in the original, preserving tags
+                    value = ReplacePlainText(value, stripped, inner);
+                    return true;
+                }
+
+                // D-08: If stripped text already contains Korean, it's already translated
+                // (game re-renders translated text with fresh tags). Don't capture as miss.
+                if (ContainsKorean(stripped))
+                {
+                    return true; // passthrough — already translated
+                }
             }
-            // D-08: Capture inner text (not wrapped original) as untranslated
+            // Truly untranslated — capture stripped text (not the tagged original)
             Interlocked.Increment(ref _misses);
             CaptureUntranslated(stripped, origin);
             return false;
         }
 
-        // No wrapper — standard path
+        // No tags — standard path
         return TryTranslateCore(ref value, value, origin);
     }
 
@@ -1757,84 +1761,71 @@ public class Plugin : BasePlugin
     }
 
     /// <summary>
-    /// Stores stripped rendering wrapper info for re-wrapping after translation.
-    /// Strip order: noparse (outermost) -> color -> inline tags (innermost).
-    /// Re-wrap order: reverse (inline tags not re-wrapped, color first, noparse last).
+    /// Strip all TMP rendering tags from text, returning plain text content.
+    /// Handles: color (#hex, color=X), line-indent, link, smallcaps, noparse, b, i, size, mark, s, u, sup, sub.
     /// </summary>
-    private readonly struct RenderingWrapper
+    private static string StripAllTmpTags(string text)
     {
-        public readonly string? NoparseRemoved;   // the matched noparse text that was stripped
-        public readonly string? ColorOpen;        // e.g. "<#DB5B2CFF>"
-        public readonly string? ColorClose;       // e.g. "</color>"
-
-        public RenderingWrapper(string? noparseRemoved, string? colorOpen, string? colorClose)
-        {
-            NoparseRemoved = noparseRemoved;
-            ColorOpen = colorOpen;
-            ColorClose = colorClose;
-        }
-
-        public string Rewrap(string inner)
-        {
-            // Re-wrap in reverse strip order: color first (innermost wrapper), then noparse
-            var result = inner;
-            if (ColorOpen != null)
-            {
-                result = ColorOpen + result + (ColorClose ?? "</color>");
-            }
-            if (NoparseRemoved != null)
-            {
-                result = NoparseRemoved + result;
-            }
-            return result;
-        }
+        return AllTmpTagRegex.Replace(text, "");
     }
 
     /// <summary>
-    /// Strip runtime rendering wrappers from text.
-    /// Order: noparse empty pairs -> color wrapper -> inline tags.
-    /// Returns (stripped_text, wrapper_or_null). If wrapper is null, no stripping occurred.
+    /// Replace the plain text portion within a tagged string, preserving all tags.
+    /// Walks through the tagged string, identifies the plain text segments,
+    /// and replaces the concatenated plain text with the translation.
     /// </summary>
-    private static (string stripped, RenderingWrapper? wrapper) StripRenderingWrapper(string text)
+    private static string ReplacePlainText(string tagged, string originalPlain, string translatedPlain)
     {
-        string? noparseRemoved = null;
-        string? colorOpen = null;
-        string? colorClose = null;
-        var current = text;
-        var anyStripped = false;
-
-        // Step 1: Strip empty <noparse></noparse> pairs (outermost)
-        if (NoparseEmptyRegex.IsMatch(current))
+        // Simple case: if the translated text is the same length structure, do direct replacement
+        // For complex multi-segment tagged strings, replace the first occurrence of the plain text
+        var stripped = StripAllTmpTags(tagged);
+        if (stripped == originalPlain)
         {
-            noparseRemoved = "<noparse></noparse>";
-            current = NoparseEmptyRegex.Replace(current, "").Trim();
-            anyStripped = true;
+            // Build result by walking through tagged string, replacing text segments
+            var sb = new System.Text.StringBuilder(tagged.Length + translatedPlain.Length);
+            var transIdx = 0;
+            var i = 0;
+            while (i < tagged.Length)
+            {
+                if (tagged[i] == '<')
+                {
+                    // Copy tag verbatim
+                    var end = tagged.IndexOf('>', i);
+                    if (end < 0) { sb.Append(tagged[i]); i++; continue; }
+                    sb.Append(tagged, i, end - i + 1);
+                    i = end + 1;
+                }
+                else
+                {
+                    // Text character — replace with translated character if available
+                    if (transIdx < translatedPlain.Length)
+                    {
+                        sb.Append(translatedPlain[transIdx]);
+                        transIdx++;
+                    }
+                    i++;
+                }
+            }
+            // Append any remaining translation text
+            if (transIdx < translatedPlain.Length)
+            {
+                sb.Append(translatedPlain, transIdx, translatedPlain.Length - transIdx);
+            }
+            return sb.ToString();
         }
 
-        // Step 2: Strip color wrapper <#hex>...</color> or <color=X>...</color>
-        var colorMatch = ColorWrapperRegex.Match(current);
-        if (colorMatch.Success)
-        {
-            colorOpen = colorMatch.Groups[1].Value;
-            colorClose = colorMatch.Groups[3].Value;
-            current = colorMatch.Groups[2].Value;
-            anyStripped = true;
-        }
+        // Fallback: return translated text without tags (game re-applies its own rendering)
+        return translatedPlain;
+    }
 
-        // Step 3: Strip inline tags <i>, </i>, <b>, </b>, <size=N>, </size> (D-06)
-        if (InlineTagRegex.IsMatch(current))
+    /// <summary>Check if text contains Korean characters (Hangul syllables U+AC00-U+D7A3).</summary>
+    private static bool ContainsKorean(string text)
+    {
+        foreach (var ch in text)
         {
-            current = InlineTagRegex.Replace(current, "");
-            anyStripped = true;
-            // Note: inline tags are NOT re-wrapped (they cause the mismatch, game adds them fresh)
+            if (ch >= '\uAC00' && ch <= '\uD7A3') return true;
         }
-
-        if (!anyStripped || string.IsNullOrWhiteSpace(current))
-        {
-            return (text, null);
-        }
-
-        return (current, new RenderingWrapper(noparseRemoved, colorOpen, colorClose));
+        return false;
     }
 
     private static List<string> ParseCsvLine(string line)
