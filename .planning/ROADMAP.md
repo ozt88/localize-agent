@@ -127,3 +127,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 Plans:
 - [x] 04.2-01-PLAN.md -- Parser DC/FC strip + export.go cleanup + Plugin.cs 3-stage + DB migration
 - [x] 04.2-02-PLAN.md -- Full artifact rebuild, deploy, in-game verification
+
+### Phase 5: 미번역 커버리지 개선
+
+**Goal:** 렌더링 래퍼 strip, UI 라벨 번역, passthrough 확장으로 미번역 497건을 해결하여 플레이어 체감 품질을 높인다
+**Requirements**: PLUGIN-03 (커버리지 95%+)
+**Depends on:** Phase 04.2
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 5 to break down)

@@ -97,6 +97,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 04.2 inserted after Phase 04.1: 소스 정리 & 재export (INSERTED) — ink 파서 게임 태그 strip + passthrough 개선 + DB 재구축 + translations.json 재생성
+- Phase 5 added: 미번역 커버리지 개선 — 렌더링 래퍼 strip, UI 라벨 번역, passthrough 확장 (497건 해결 목표)
 
 ### Pending Todos
 
