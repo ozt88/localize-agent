@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04.2-01-PLAN.md
-last_updated: "2026-03-28T16:54:05.301Z"
+stopped_at: Completed 04.2-02-PLAN.md
+last_updated: "2026-03-29T02:36:05.929Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 19
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Plan: 2 of 2
 | Phase 04 P01 | 2min | 1 tasks | 2 files |
 | Phase 04.1 P01 | 7min | 2 tasks | 3 files |
 | Phase 04.2 P01 | 7min | 2 tasks | 6 files |
+| Phase 04.2 P02 | multi-session | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 04.1]: D-14 수정 — 게임이 선택지를 TMP 태그로 래핑한 후 AddChoiceText 호출 (이전 가정과 반대)
 - [Phase 04.2]: Collision-safe migration: skip 5,049 rows where stripped body already exists in DB, update only 537 unique rows
 - [Phase 04.2]: 101 DC/FC-prefixed rows remain in DB (collision duplicates) — clean body entries exist under other IDs
+- [Phase 04.2]: translations_loaded 75,204 (75,789 -> -585): DC/FC body-only removal confirmed, no regression
 
 ### Roadmap Evolution
 
@@ -108,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T16:54:05.296Z
-Stopped at: Completed 04.2-01-PLAN.md
+Last session: 2026-03-29T02:36:05.926Z
+Stopped at: Completed 04.2-02-PLAN.md
 Resume file: None
