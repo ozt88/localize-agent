@@ -140,7 +140,7 @@ public class Plugin : BasePlugin
 
     /// <summary>All known TMP rendering tags — used for stripping before translation lookup.</summary>
     private static readonly Regex AllTmpTagRegex = new(
-        @"</?(?:color|noparse|line-indent|link|smallcaps|b|i|size|mark|s|u|sup|sub|#[0-9A-Fa-f]{6,8})(?:=[^>]*)?>",
+        @"</?(?:color|noparse|line-indent|link|smallcaps|shake|b|i|s|u|sup|sub|size|mark|#[0-9A-Fa-f]{6,8})(?:=[^>]*)?>",
         RegexOptions.Compiled);
 
     // =========================================================================
@@ -1160,30 +1160,27 @@ public class Plugin : BasePlugin
         }
 
         // Phase 5: Strip ALL TMP rendering tags before lookup.
-        // Game engine wraps text in complex nested tags (<line-indent>, <color>, <link>, <smallcaps>).
+        // Game engine wraps text in complex nested tags (<line-indent>, <color>, <link>, <smallcaps>, <shake>).
         // The translation DB stores plain text without these wrappers.
-        // Strategy: strip tags → lookup plain text → if hit, replace inner text in original.
         var stripped = StripAllTmpTags(value);
-        if (stripped != value)
+        if (stripped != value && !string.IsNullOrWhiteSpace(stripped))
         {
-            // Text had TMP tags — try translating the stripped inner text
-            if (!string.IsNullOrWhiteSpace(stripped))
+            // Already contains Korean → game already rendered translated text with its own tags.
+            // Passthrough without modification — don't corrupt tags, don't capture as miss.
+            if (ContainsKorean(stripped))
             {
-                var inner = stripped;
-                if (TryTranslateCore(ref inner, stripped, origin))
-                {
-                    // Replace the plain text portion in the original, preserving tags
-                    value = ReplacePlainText(value, stripped, inner);
-                    return true;
-                }
-
-                // D-08: If stripped text already contains Korean, it's already translated
-                // (game re-renders translated text with fresh tags). Don't capture as miss.
-                if (ContainsKorean(stripped))
-                {
-                    return true; // passthrough — already translated
-                }
+                return true;
             }
+
+            // Pure English with tags — try translating the stripped text.
+            // Return plain translated text (no tags). Game re-applies rendering after SetText.
+            var inner = stripped;
+            if (TryTranslateCore(ref inner, stripped, origin))
+            {
+                value = inner;
+                return true;
+            }
+
             // Truly untranslated — capture stripped text (not the tagged original)
             Interlocked.Increment(ref _misses);
             CaptureUntranslated(stripped, origin);
@@ -1767,55 +1764,6 @@ public class Plugin : BasePlugin
     private static string StripAllTmpTags(string text)
     {
         return AllTmpTagRegex.Replace(text, "");
-    }
-
-    /// <summary>
-    /// Replace the plain text portion within a tagged string, preserving all tags.
-    /// Walks through the tagged string, identifies the plain text segments,
-    /// and replaces the concatenated plain text with the translation.
-    /// </summary>
-    private static string ReplacePlainText(string tagged, string originalPlain, string translatedPlain)
-    {
-        // Simple case: if the translated text is the same length structure, do direct replacement
-        // For complex multi-segment tagged strings, replace the first occurrence of the plain text
-        var stripped = StripAllTmpTags(tagged);
-        if (stripped == originalPlain)
-        {
-            // Build result by walking through tagged string, replacing text segments
-            var sb = new System.Text.StringBuilder(tagged.Length + translatedPlain.Length);
-            var transIdx = 0;
-            var i = 0;
-            while (i < tagged.Length)
-            {
-                if (tagged[i] == '<')
-                {
-                    // Copy tag verbatim
-                    var end = tagged.IndexOf('>', i);
-                    if (end < 0) { sb.Append(tagged[i]); i++; continue; }
-                    sb.Append(tagged, i, end - i + 1);
-                    i = end + 1;
-                }
-                else
-                {
-                    // Text character — replace with translated character if available
-                    if (transIdx < translatedPlain.Length)
-                    {
-                        sb.Append(translatedPlain[transIdx]);
-                        transIdx++;
-                    }
-                    i++;
-                }
-            }
-            // Append any remaining translation text
-            if (transIdx < translatedPlain.Length)
-            {
-                sb.Append(translatedPlain, transIdx, translatedPlain.Length - transIdx);
-            }
-            return sb.ToString();
-        }
-
-        // Fallback: return translated text without tags (game re-applies its own rendering)
-        return translatedPlain;
     }
 
     /// <summary>Check if text contains Korean characters (Hangul syllables U+AC00-U+D7A3).</summary>
