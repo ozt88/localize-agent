@@ -133,7 +133,9 @@ Plans:
 **Goal:** 렌더링 래퍼 strip, UI 라벨 번역, passthrough 확장으로 미번역 497건을 해결하여 플레이어 체감 품질을 높인다
 **Requirements**: PLUGIN-03 (커버리지 95%+)
 **Depends on:** Phase 04.2
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 5 to break down)
+- [ ] 05-01-PLAN.md -- Plugin.cs rendering wrapper strip (color/noparse/inline tags) + capture false positive fix
+- [ ] 05-02-PLAN.md -- Runtime lexicon expansion (~200 new rules: UI labels, game terms, passthrough, templates)
+- [ ] 05-03-PLAN.md -- Build, deploy, and in-game verification checkpoint
