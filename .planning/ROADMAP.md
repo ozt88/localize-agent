@@ -136,6 +136,6 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Plugin.cs rendering wrapper strip (color/noparse/inline tags) + capture false positive fix
+- [x] 05-01-PLAN.md -- Plugin.cs rendering wrapper strip (color/noparse/inline tags) + capture false positive fix
 - [ ] 05-02-PLAN.md -- Runtime lexicon expansion (~200 new rules: UI labels, game terms, passthrough, templates)
 - [ ] 05-03-PLAN.md -- Build, deploy, and in-game verification checkpoint

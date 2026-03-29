@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04.2-02-PLAN.md
-last_updated: "2026-03-29T02:43:08.911Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-29T03:49:09.278Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 5
-  total_plans: 19
-  completed_plans: 16
+  total_plans: 22
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 04.2 — source-cleanup-reexport
+**Current focus:** Phase 05 — untranslated-coverage
 
 ## Current Position
 
-Phase: 04.2
-Plan: Not started
+Phase: 05 (untranslated-coverage) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Plan: Not started
 | Phase 04.1 P01 | 7min | 2 tasks | 3 files |
 | Phase 04.2 P01 | 7min | 2 tasks | 6 files |
 | Phase 04.2 P02 | multi-session | 2 tasks | 0 files |
+| Phase 05 P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase 04.2]: Collision-safe migration: skip 5,049 rows where stripped body already exists in DB, update only 537 unique rows
 - [Phase 04.2]: 101 DC/FC-prefixed rows remain in DB (collision duplicates) — clean body entries exist under other IDs
 - [Phase 04.2]: translations_loaded 75,204 (75,789 -> -585): DC/FC body-only removal confirmed, no regression
+- [Phase 05]: TryTranslateCore extracted as separate method for wrapper/non-wrapper paths; inline tags stripped but NOT re-wrapped
 
 ### Roadmap Evolution
 
@@ -111,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T02:36:05.926Z
-Stopped at: Completed 04.2-02-PLAN.md
+Last session: 2026-03-29T03:49:09.269Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
