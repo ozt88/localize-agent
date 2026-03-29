@@ -138,6 +138,21 @@ public class Plugin : BasePlugin
         @"^((?:<[^>]+>)*\d+\.\s+)(.*?)(</link>.*)$",
         RegexOptions.Compiled | RegexOptions.Singleline);
 
+    /// <summary>Empty noparse pair: &lt;noparse&gt;&lt;/noparse&gt; (D-01 1b: 30 cases)</summary>
+    private static readonly Regex NoparseEmptyRegex = new(
+        @"<noparse>\s*</noparse>",
+        RegexOptions.Compiled);
+
+    /// <summary>Color wrapper: &lt;#hex&gt;...&lt;/color&gt; or &lt;color=X&gt;...&lt;/color&gt; (D-01 1a: 77 cases)</summary>
+    private static readonly Regex ColorWrapperRegex = new(
+        @"^(<(?:#[0-9A-Fa-f]{6,8}|color=[^>]+)>)(.*?)(</color>)$",
+        RegexOptions.Compiled | RegexOptions.Singleline);
+
+    /// <summary>Inline TMP tags: &lt;i&gt;, &lt;/i&gt;, &lt;b&gt;, &lt;/b&gt;, &lt;size=N&gt;, &lt;/size&gt; (D-06: 41 cases)</summary>
+    private static readonly Regex InlineTagRegex = new(
+        @"</?(?:i|b|size(?:=[^>]*)?)>",
+        RegexOptions.Compiled);
+
     // =========================================================================
     // Load() Entry Point
     // =========================================================================
@@ -1708,6 +1723,87 @@ public class Plugin : BasePlugin
 
         // Unbalanced: strip all (safety)
         return text.Replace("<b>", "").Replace("</b>", "");
+    }
+
+    /// <summary>
+    /// Stores stripped rendering wrapper info for re-wrapping after translation.
+    /// Strip order: noparse (outermost) -> color -> inline tags (innermost).
+    /// Re-wrap order: reverse (inline tags not re-wrapped, color first, noparse last).
+    /// </summary>
+    private readonly struct RenderingWrapper
+    {
+        public readonly string? NoparseRemoved;   // the matched noparse text that was stripped
+        public readonly string? ColorOpen;        // e.g. "<#DB5B2CFF>"
+        public readonly string? ColorClose;       // e.g. "</color>"
+
+        public RenderingWrapper(string? noparseRemoved, string? colorOpen, string? colorClose)
+        {
+            NoparseRemoved = noparseRemoved;
+            ColorOpen = colorOpen;
+            ColorClose = colorClose;
+        }
+
+        public string Rewrap(string inner)
+        {
+            // Re-wrap in reverse strip order: color first (innermost wrapper), then noparse
+            var result = inner;
+            if (ColorOpen != null)
+            {
+                result = ColorOpen + result + (ColorClose ?? "</color>");
+            }
+            if (NoparseRemoved != null)
+            {
+                result = NoparseRemoved + result;
+            }
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Strip runtime rendering wrappers from text.
+    /// Order: noparse empty pairs -> color wrapper -> inline tags.
+    /// Returns (stripped_text, wrapper_or_null). If wrapper is null, no stripping occurred.
+    /// </summary>
+    private static (string stripped, RenderingWrapper? wrapper) StripRenderingWrapper(string text)
+    {
+        string? noparseRemoved = null;
+        string? colorOpen = null;
+        string? colorClose = null;
+        var current = text;
+        var anyStripped = false;
+
+        // Step 1: Strip empty <noparse></noparse> pairs (outermost)
+        if (NoparseEmptyRegex.IsMatch(current))
+        {
+            noparseRemoved = "<noparse></noparse>";
+            current = NoparseEmptyRegex.Replace(current, "").Trim();
+            anyStripped = true;
+        }
+
+        // Step 2: Strip color wrapper <#hex>...</color> or <color=X>...</color>
+        var colorMatch = ColorWrapperRegex.Match(current);
+        if (colorMatch.Success)
+        {
+            colorOpen = colorMatch.Groups[1].Value;
+            colorClose = colorMatch.Groups[3].Value;
+            current = colorMatch.Groups[2].Value;
+            anyStripped = true;
+        }
+
+        // Step 3: Strip inline tags <i>, </i>, <b>, </b>, <size=N>, </size> (D-06)
+        if (InlineTagRegex.IsMatch(current))
+        {
+            current = InlineTagRegex.Replace(current, "");
+            anyStripped = true;
+            // Note: inline tags are NOT re-wrapped (they cause the mismatch, game adds them fresh)
+        }
+
+        if (!anyStripped || string.IsNullOrWhiteSpace(current))
+        {
+            return (text, null);
+        }
+
+        return (current, new RenderingWrapper(noparseRemoved, colorOpen, colorClose));
     }
 
     private static List<string> ParseCsvLine(string line)
