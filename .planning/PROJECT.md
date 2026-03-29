@@ -24,7 +24,7 @@ Esoteric Ebb(내러티브 cRPG, Ink 스크립트 기반)의 한국어 번역 파
 - [ ] 씬 단위 클러스터 번역 — 태그 없이 스크립트 형식으로 번역
 - [ ] 포맷터 LLM (codex-mini) — 번역 결과에 태그 복원
 - [ ] 콘텐츠 유형별 입력 설계 — 대사/주문/UI/아이템/시스템 각각 최적 형식
-- [ ] Plugin.cs 매칭 로직 최적화 — 대사 블록 단위 매칭, 불필요한 폴백 제거
+- ✓ Plugin.cs 매칭 로직 최적화 — 3-stage TryTranslate, DC/FC strip 제거. Validated in Phase 04.2: source-cleanup-reexport
 - [ ] 패치 출력 생성 — v2 소스 형식에 맞는 translations.json + textassets 생성
 - [ ] 전량 재번역 실행 — 40,067건+ v2 파이프라인 통과
 - [ ] 게임 내 검증 — 패치 적용 후 태그 깨짐 없이 한국어 표시
@@ -123,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 after Phase 02 completion — translation engine (cluster translate, tag format, score LLM, pipeline orchestrator) complete*
+*Last updated: 2026-03-29 after Phase 04.2 completion — parser DC/FC strip, export.go/Plugin.cs 3-stage 단순화, DB 마이그레이션 완료. 커버리지 98.8%*
