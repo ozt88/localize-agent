@@ -25,13 +25,15 @@ Esoteric Ebb(내러티브 cRPG, Ink 스크립트 기반)의 한국어 번역 파
 - [ ] 포맷터 LLM (codex-mini) — 번역 결과에 태그 복원
 - [ ] 콘텐츠 유형별 입력 설계 — 대사/주문/UI/아이템/시스템 각각 최적 형식
 - ✓ Plugin.cs 매칭 로직 최적화 — 3-stage TryTranslate, DC/FC strip 제거. Validated in Phase 04.2: source-cleanup-reexport
+- ✓ Plugin.cs TMP 태그 strip — StripAllTmpTags로 모든 렌더링 태그 strip, ContainsKorean passthrough. Validated in Phase 05: untranslated-coverage
+- ✓ 패치 빌드 파이프라인 — build_patch_package_unified.ps1 → go-v2-export. Validated in Phase 05: untranslated-coverage
 - [ ] 패치 출력 생성 — v2 소스 형식에 맞는 translations.json + textassets 생성
 - [ ] 전량 재번역 실행 — 40,067건+ v2 파이프라인 통과
-- [ ] 게임 내 검증 — 패치 적용 후 태그 깨짐 없이 한국어 표시
+- ✓ 게임 내 검증 — 패치 적용 후 태그 깨짐 없이 한국어 표시, 커버리지 99.8%. Validated in Phase 05: untranslated-coverage
 
 ### Out of Scope
 
-- 패치 빌드 스크립트 수정 (BepInEx/doorstop/fonts 보존 문제) — v2 이후 별도 처리
+- 패치 빌드 스크립트 자동화 개선 — Phase 05에서 Go v2 export 전환 완료, 추가 자동화는 별도
 - 새로운 게임 버전 대응 — 현재 1.1.3 기준
 - 다른 언어 지원 — 한국어 전용
 - 웹 UI/대시보드 — CLI 파이프라인 유지
