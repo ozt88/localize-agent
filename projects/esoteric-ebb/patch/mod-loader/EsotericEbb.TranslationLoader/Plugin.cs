@@ -1146,15 +1146,15 @@ public class Plugin : BasePlugin
     // =========================================================================
 
     /// <summary>
-    /// 3-stage translation chain (DC/FC strip removed — parser now produces clean sources):
-    /// 1. TranslationMap (exact match)
-    /// 2. Contextual (source_file + history scoring)
-    /// 3. RuntimeLexicon (exact + substring + regex — includes GeneratedPattern)
+    /// 3-stage translation chain with rendering wrapper pre-processing (Phase 5 D-01, D-06, D-08):
+    /// 1. Strip runtime rendering wrappers (color, noparse, inline tags)
+    /// 2. Translate stripped inner text via TryTranslateCore (3 stages)
+    /// 3. Re-wrap translated text if wrapper was stripped
+    /// Miss capture records stripped inner text (not wrapped original) to fix 341 false positives.
     /// </summary>
     internal static bool TryTranslate(ref string value, string origin = "unknown")
     {
         if (string.IsNullOrEmpty(value)) return false;
-        var original = value;
 
         // Periodic flush every 500 attempts
         var attempts = Interlocked.Increment(ref _totalTranslateAttempts);
@@ -1168,6 +1168,37 @@ public class Plugin : BasePlugin
             }
             catch { /* best-effort */ }
         }
+
+        // Phase 5 D-01: Strip rendering wrappers before lookup
+        var (stripped, wrapper) = StripRenderingWrapper(value);
+        if (wrapper != null)
+        {
+            // Try translating the stripped inner text through all 3 stages
+            var inner = stripped;
+            if (TryTranslateCore(ref inner, stripped, origin))
+            {
+                value = wrapper.Value.Rewrap(inner);
+                return true;
+            }
+            // D-08: Capture inner text (not wrapped original) as untranslated
+            Interlocked.Increment(ref _misses);
+            CaptureUntranslated(stripped, origin);
+            return false;
+        }
+
+        // No wrapper — standard path
+        return TryTranslateCore(ref value, value, origin);
+    }
+
+    /// <summary>
+    /// Core 3-stage translation chain. Extracted from TryTranslate for wrapper pre-processing support.
+    /// 1. TranslationMap (exact match)
+    /// 2. Contextual (source_file + history scoring)
+    /// 3. RuntimeLexicon (exact + substring + regex — includes GeneratedPattern)
+    /// </summary>
+    private static bool TryTranslateCore(ref string value, string originalForCapture, string origin)
+    {
+        var original = value;
 
         // Stage 1: Exact dictionary lookup (TranslationMap)
         if (TranslationMap.TryGetValue(value, out var t) && !string.IsNullOrEmpty(t))
@@ -1195,7 +1226,7 @@ public class Plugin : BasePlugin
         }
 
         Interlocked.Increment(ref _misses);
-        CaptureUntranslated(original, origin);
+        CaptureUntranslated(originalForCapture, origin);
         return false;
     }
 
