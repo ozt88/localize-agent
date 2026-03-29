@@ -44,14 +44,16 @@
 - **발견:** 146건 짧은 텍스트/고유명사/단일단어가 lexicon에 없음
 - **상태:** 규칙 추가 필요
 
-## 현재 상태 (Bug 3/4 수정 전)
+## 최종 상태
 
-| 항목 | 이전 (Phase 4 완료) | 현재 | 목표 |
-|------|---------------------|------|------|
-| translations_loaded | 75,204 | 75,204 | 75,204 |
-| untranslated_count | 838 | 692 | < 100 |
-| hits_exact | 46 | 135 | ↑ |
-| hits_lexicon | 206 | 3,739 | ↑ |
+| 항목 | Phase 4 완료 | 최종 | 변화 |
+|------|-------------|------|------|
+| translations_loaded | 75,204 | 75,204 | - |
+| untranslated_count | 838 | 154 | -684 (81%) |
+| total_misses | 2,747 | 520 | -2,227 |
+| hits_exact | 46 | 90 | +44 |
+| hits_lexicon | 206 | 2,556 | +2,350 |
+| coverage | 98.9% | 99.8% | +0.9% |
 
 ## 미번역 692건 분류
 
@@ -73,10 +75,10 @@
 | X3: 번역 품질 (혼합 텍스트) | 4 | 재번역 필요 |
 | X4: 특수 color 포맷 (stat 테이블) | 3 | 별도 처리 |
 
-## 남은 작업
+## 완료된 작업
 
-1. **P1-P3 수정:** StripRenderingWrapper 재설계 — 다중 중첩 래퍼 순차 strip
-2. **P4 수정:** runtime_lexicon.json에 146건 규칙 추가
-3. **재빌드/재배포:** build_patch_package_unified.ps1 실행
-4. **재검증:** 인게임 untranslated_count 확인
-5. **05-03 Task 2 완료:** SUMMARY.md 작성, STATE/ROADMAP 업데이트
+1. ✓ **P1-P3 수정:** StripAllTmpTags 재설계 + ContainsKorean 우선 체크 + ReplacePlainText 삭제
+2. ✓ **P4 수정:** runtime_lexicon.json 39건 규칙 추가 (281→320)
+3. ✓ **빌드 스크립트:** build_patch_package_unified.ps1 → Go v2 export 전환
+4. ✓ **재빌드/재배포:** 인게임 검증 완료 (838→154)
+5. ✓ **05-03 SUMMARY.md 작성**
