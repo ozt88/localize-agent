@@ -1,379 +1,388 @@
-# Architecture Research
+# Architecture Research: Context-Aware Retranslation Integration
 
-**Domain:** Game localization pipeline -- ink JSON parsing, 2-stage LLM translation, BepInEx patching
-**Researched:** 2026-03-22
-**Confidence:** HIGH (based on existing v1 codebase analysis, validated v2 experiments, ink runtime specification)
+**Domain:** LLM translation pipeline enhancement (context injection + selective retranslation)
+**Researched:** 2026-04-06
+**Confidence:** HIGH (based on direct code analysis of all relevant packages)
 
-## System Overview
-
-```
-                              v2 Pipeline Architecture
-==========================================================================
-
- SOURCE EXTRACTION LAYER
- +-----------------------------------------------------------------+
- |  ink JSON files (286 TextAssets)                                 |
- |       |                                                          |
- |  [Ink Tree Parser] -----> Dialogue Block Source (scene scripts)  |
- |       |                                                          |
- |  [Content Classifier] --> Content-typed batches                  |
- |       |                   (dialogue/spell/UI/item/system)        |
- +-----------------------------------------------------------------+
-       |
-       | scene scripts + metadata (source_file, knot, speaker, tags)
-       v
- TRANSLATION LAYER (2-stage LLM)
- +-----------------------------------------------------------------+
- |  Stage 1: Cluster Translator (gpt-5.4)                          |
- |    Input:  tag-free scene script (10-30 lines)                   |
- |    Output: Korean script (same line count, no tags)              |
- |       |                                                          |
- |  [Line Splitter + ID Mapper] (code)                              |
- |       |                                                          |
- |  Stage 2: Tag Formatter (codex-mini)                             |
- |    Input:  EN source with tags + KO translation (tag-needing)    |
- |    Output: KO with tags restored                                 |
- |       |                                                          |
- |  [Tag Count Validator] (code)                                    |
- +-----------------------------------------------------------------+
-       |
-       | translated items (id -> source_raw -> ko_with_tags)
-       v
- PIPELINE STATE LAYER
- +-----------------------------------------------------------------+
- |  PostgreSQL (pipeline_items table)                               |
- |    States: pending_translate -> working_translate ->             |
- |            pending_format -> working_format ->                   |
- |            pending_validate -> done | failed                     |
- |                                                                  |
- |  [Pipeline Orchestrator] (lease-based worker pools)              |
- +-----------------------------------------------------------------+
-       |
-       | done items with final_ko
-       v
- PATCH OUTPUT LAYER
- +-----------------------------------------------------------------+
- |  [Patch Builder]                                                 |
- |    translations.json  -- source->target sidecar map              |
- |    textassets/         -- ink JSON with KO injected (285 files)  |
- |    localizationtexts/  -- CSV overrides (feats, spells, UI)      |
- |    runtime_lexicon.json -- substring/regex runtime rules         |
- +-----------------------------------------------------------------+
-       |
-       v
- GAME RUNTIME LAYER
- +-----------------------------------------------------------------+
- |  BepInEx Plugin (Plugin.cs)                                      |
- |    TranslationMap    -- direct source->target lookup              |
- |    NormalizedMap     -- tag-stripped fallback lookup               |
- |    ContextualMap     -- source_file-scoped lookup                 |
- |    TextAsset patches -- ink JSON replacement at load time         |
- |    Localization CSV  -- ID-based override                         |
- |    RuntimeLexicon    -- substring/regex live replacement          |
- |    Font injection    -- Korean font fallback into TMP assets      |
- +-----------------------------------------------------------------+
-```
-
-## Component Responsibilities
-
-| Component | Responsibility | Existing Code | v2 Changes |
-|-----------|----------------|---------------|------------|
-| **Ink Tree Parser** | Walk ink JSON tree, merge `"^text"` entries into dialogue blocks, preserve knot/gate/choice structure | `go-esoteric-adapt-in` (v1: line-level) | NEW: block-level merging, branch structure preservation |
-| **Content Classifier** | Assign content types (dialogue/spell/UI/item/system), determine batch grouping strategy | `extract_scene_texts.py` classify_text | EXTEND: per-type batching format |
-| **Cluster Translator** | Translate scene scripts as coherent units via gpt-5.4, tag-free input | `translation/skill.go` (v1: per-item) | NEW: scene-script prompt format, 10-30 line batches |
-| **Tag Formatter** | Restore markup tags from EN source into KO translation via codex-mini | None (v1 tried inline) | NEW: dedicated stage |
-| **Line Splitter / ID Mapper** | Parse LLM cluster output back to individual lines, map to source IDs | None | NEW |
-| **Tag Count Validator** | Verify tag counts match between EN source and formatted KO | `postprocess_validation.go` | ADAPT: tag-count-only mode |
-| **Pipeline Orchestrator** | DB state machine with lease-based worker pools | `translationpipeline/` | EXTEND: new states for format stage |
-| **Patch Builder** | Generate translations.json, textassets/, localizationtexts/ from done items | `go-esoteric-apply-out` | ADAPT: block-level output format |
-| **BepInEx Plugin** | Runtime text interception and replacement in Unity game | `Plugin.cs` | SIMPLIFY: remove TryTranslateTagSeparatedSegments, optimize for block matching |
-
-## Recommended v2 Project Structure
-
-New code fits within the existing layered architecture. No structural reorganization needed.
+## Existing Architecture Summary
 
 ```
-workflow/
-  cmd/
-    go-ink-parse/              # NEW: ink JSON tree -> dialogue block source
-    go-cluster-translate/      # NEW: scene-cluster translation runner
-    go-tag-format/             # NEW: tag restoration runner
-    go-translation-pipeline/   # EXTEND: add format stage to state machine
-  internal/
-    inkparse/                  # NEW: ink JSON tree walker + block merger
-    clustertranslate/          # NEW: cluster translation domain (prompt, parse, validate)
-    tagformat/                 # NEW: tag formatter domain (prompt, validate)
-    contracts/                 # EXTEND: new interfaces for format stage
-    translation/               # KEEP: shared prompt/validation utilities
-    translationpipeline/       # EXTEND: new pipeline states
-  pkg/
-    platform/                  # KEEP: LLM client, DB stores (possibly extend for format checkpoint)
-    shared/                    # KEEP: project config, utilities
-
-projects/esoteric-ebb/
-  cmd/
-    go-esoteric-adapt-in/      # REPLACE: v2 version using inkparse package
-  context/
-    cluster_translate_*.md     # NEW: system prompts for cluster translation
-    tag_format_*.md            # NEW: system prompts for tag formatting
-  source/
-    dialogue_blocks/           # NEW: parsed dialogue block source files
+ink JSON files
+  |
+  v
+[inkparse]  Parse() -> DialogueBlock[] (speaker, gate, choice, tags extracted)
+  |
+  v
+[inkparse]  BuildBatches() -> Batch[] (gate-boundary clustering, content-type grouping)
+  |
+  v
+[v2pipeline/store]  Seed() -> pipeline_items_v2 (PostgreSQL, state machine)
+  |
+  v
+[v2pipeline/worker]  TranslateWorker -> FormatWorker -> ScoreWorker
+  |                       |                |               |
+  |  [clustertranslate]   |  [tagformat]   |  [scorellm]   |
+  |  BuildScriptPrompt()  |  BuildFormat   |  BuildScore   |
+  |  ParseNumberedOutput() |  Prompt()     |  Prompt()     |
+  v                       v                v               v
+pipeline_items_v2: pending_translate -> translated -> formatted -> done/retry
 ```
 
-### Structure Rationale
+### Current Data Already Available in Pipeline
 
-- **`inkparse/` as separate domain package:** Ink tree walking is pure data transformation with no LLM or DB dependencies. Isolating it makes it testable with fixture JSON files and reusable across games that use ink.
-- **`clustertranslate/` and `tagformat/` as separate domains:** The 2-stage LLM pattern has distinct prompt formats, output parsers, and validation rules. Separating them prevents entanglement and allows independent iteration.
-- **Existing `translationpipeline/` extended rather than replaced:** The lease-based state machine is proven infrastructure. Adding `pending_format`/`working_format` states is simpler than building a new orchestrator.
+| Data | Where Extracted | Where Stored | Where Used in Prompt |
+|------|----------------|--------------|---------------------|
+| Speaker | `inkparse.parser.go` `isSpeakerTag()` | `V2PipelineItem.Speaker` + DB `speaker` col | `clustertranslate.prompt.go` line 92: `Speaker: "text"` format |
+| Gate context | `V2PipelineStore.GetPrevGateLines()` | Queried at translate time | `clustertranslate.prompt.go` line 69: `[CONTEXT]` block |
+| Content type | `inkparse.classifier.go` `Classify()` | `V2PipelineItem.ContentType` | `clustertranslate.prompt.go` `BuildContentSuffix()` |
+| Choice marker | `inkparse.parser.go` | `V2PipelineItem.Choice` | `clustertranslate.prompt.go` line 89: `[CHOICE]` marker |
+| Glossary | `glossary.LoadGlossary()` | In-memory `GlossarySet` | Warmup + per-batch `## Batch Glossary` |
+| Ability voices | Static in `v2_base_prompt.md` | LLM warmup session | Rules for wis/str/int/con/dex/cha tone |
 
-## Architectural Patterns
+**Key observation:** Speaker extraction already exists and flows through the entire pipeline. The gap is not extraction -- it is (1) richer context injection and (2) the ability to selectively retranslate based on quality scores.
 
-### Pattern 1: Dialogue Block Extraction (Ink JSON Tree Walk)
+## Integration Analysis: Feature by Feature
 
-**What:** Recursive walk of ink JSON tree to produce dialogue blocks that match game rendering units. Each block is the concatenation of consecutive `"^text"` entries within a single gate/choice container.
+### 1. Speaker Extraction Enhancement
 
-**When to use:** Source extraction phase. Run once per game version to produce the canonical source set.
+**Current state:** `inkparse.parser.go` `isSpeakerTag()` extracts speaker from ink `#` tags. Already stored in `V2PipelineItem.Speaker` and DB `speaker` column. Already formatted in prompt as `[NN] Speaker: "text"`.
 
-**Trade-offs:** Block-level source means fewer, larger translation units (better context) but requires careful handling of branch points where the tree forks.
+**Gap:** Speaker data is per-block, not per-scene. The LLM sees one speaker label per line but has no character profile or tone guidance beyond the ability-score voices in `v2_base_prompt.md`. Named NPCs (Braxo, She'lia, Captain Morgan, etc.) have no character voice descriptions.
 
-**Key implementation detail:**
-```
-ink JSON node types:
-  "^text"     -> text content (accumulate into current block)
-  "#tag"      -> metadata tag (speaker, DC check -- attach to block)
-  "ev" / "out" -> evaluation frame (skip, not translatable)
-  "->knot"    -> divert (block boundary)
-  ["c-N",...]  -> choice container (each choice = new block with OPTION marker)
-  ["g-N",...]  -> gate container (sequential blocks within)
-```
+**Integration approach -- MODIFY existing, no new package:**
+- **Modify:** `projects/esoteric-ebb/context/v2_base_prompt.md` -- add NPC character voice profiles (same pattern as ability-score voices section)
+- **Modify:** `clustertranslate/prompt.go` `BuildScriptPrompt()` -- inject per-batch speaker summary when batch contains named speakers
+- **New file (data only):** `projects/esoteric-ebb/context/character_voices.json` -- structured speaker-to-personality mapping
 
-The parser must track the **path** (e.g., `TS_Snell_Meeting/g-2/c-4`) because this path is the canonical ID prefix for all lines in that block. This path also becomes the `segment_id` used by the plugin's contextual matching.
+**No new Go package needed.** Speaker extraction code is already solid. The improvement is in prompt content, not parser logic.
 
-### Pattern 2: 2-Stage LLM Translation (Translate then Format)
+### 2. Branch Context Tracking
 
-**What:** Separate translation quality from markup fidelity. Stage 1 (gpt-5.4) receives tag-free text and focuses on natural Korean. Stage 2 (codex-mini) receives the EN-with-tags plus the KO-without-tags and mechanically restores tags.
+**Current state:** `GetPrevGateLines(knot, currentGate, limit=3)` fetches last 3 source_raw texts from the previous gate in the same knot. Injected as `[CONTEXT]` block in prompt. Choice blocks are marked with `[CHOICE]` in prompt.
 
-**When to use:** Any content with inline markup (bold, color, links). Content without tags skips Stage 2 entirely.
+**Gap:** When dialogue branches after a choice (e.g., player selects option A, NPC responds differently), the LLM only sees the previous gate's raw text -- it does not know which choice led to this branch. The gate/choice tree structure (knot -> gate -> choice) is in the DB but not used to build branch-aware context.
 
-**Trade-offs:**
-- Pro: Eliminates the tag-corruption problem that caused 99.7% of v1 retry failures
-- Pro: Stage 2 uses a cheaper/faster model (codex-mini)
-- Con: Two LLM calls per tagged item increases total latency
-- Con: Line-mapping between cluster output and source IDs must be exact (off-by-one = wrong tag on wrong line)
-
-**Validated by experiment:** 4/4 tag restoration accuracy, 8/8 line mapping accuracy.
-
-### Pattern 3: Content-Type-Aware Batching
-
-**What:** Different content types get different prompt formats and batch sizes optimized for their structure.
-
-**When to use:** Always. This is the core batching strategy for v2.
-
-| Content Type | Batch Format | Size | LLM Prompt Style |
-|-------------|-------------|------|-------------------|
-| Dialogue/narration/choice | Scene script (numbered lines) | 10-30 lines | "Translate this scene script" |
-| Spells/tooltips | Structured cards (name + desc) | 5-10 items | "Translate these spell cards" |
-| UI labels | Dictionary (key: value pairs) | 50-100 items | "Translate this UI dictionary" |
-| Item/quest descriptions | Cards with context | 5-10 items | "Translate these item descriptions" |
-| System/tutorial text | Full document | Entire section | "Translate this document" |
-
-**Trade-off:** More prompt templates to maintain, but dramatically better translation quality per type. The v1 one-size-fits-all JSON prompt was a core quality limitation.
-
-### Pattern 4: Lease-Based Pipeline State Machine
-
-**What:** DB-driven state machine where worker pools claim items by setting `claimed_by + lease_until` atomically. Stale leases are reclaimed automatically.
-
-**When to use:** Pipeline orchestration. Already proven in v1.
-
-**v2 extension:** Add states for the format stage:
-```
-pending_translate -> working_translate -> translated
-  -> pending_format -> working_format -> formatted
-  -> pending_validate -> done | failed
-```
-
-Items without tags skip `pending_format` and go directly from `translated` to `pending_validate`.
-
-## Data Flow
-
-### Complete v2 Pipeline Flow
+**Integration approach -- MODIFY `clustertranslate` + `v2pipeline/worker`:**
 
 ```
-[1] Game Assets (ink JSON files on disk)
-         |
-         | go-esoteric-adapt-in (or go-ink-parse)
-         v
-[2] Dialogue Block Source (JSON: id, source_raw, source_file, knot_path, speaker, tags[], text_role)
-         |
-         | pipeline_ingest.py (dedup by source_raw, INSERT into pipeline_items)
-         v
-[3] PostgreSQL pipeline_items (state: pending_translate)
-         |
-         | go-cluster-translate (worker pool, claims batches by scene/knot)
-         |   Build scene script -> gpt-5.4 -> parse output -> map lines to IDs
-         v
-[4] pipeline_items (state: translated, ko_raw stored)
-         |
-         | Items WITH tags: state -> pending_format
-         | Items WITHOUT tags: state -> pending_validate (skip format)
-         |
-         | go-tag-format (worker pool, claims tagged items)
-         |   EN-with-tags + KO-without-tags -> codex-mini -> KO-with-tags
-         v
-[5] pipeline_items (state: formatted, ko_formatted stored)
-         |
-         | go-validate (tag count check: EN tags == KO tags)
-         v
-[6] pipeline_items (state: done | failed)
-         |
-         | go-esoteric-apply-out (read done items, build patch artifacts)
-         v
-[7] Patch Artifacts
-    translations.json    -- 65K+ source->target entries (block-level keys)
-    textassets/           -- 285 ink JSON files with KO injected
-    localizationtexts/    -- 8 CSV files with KO overrides
-    runtime_lexicon.json  -- substring/regex replacement rules
-         |
-         | Patch build script (copy to game dir with BepInEx/fonts)
-         v
-[8] Game Runtime
-    Plugin.cs loads translations.json, textassets/, etc.
-    Harmony patches intercept text display calls
-    TranslationMap lookup -> NormalizedMap fallback -> ContextualMap -> RuntimeLexicon
+Current flow:
+  GetPrevGateLines(knot, gate, 3) -> [CONTEXT] block (up to 3 EN lines)
+
+Enhanced flow:
+  GetBranchContext(knot, gate, choice) -> BranchContext {
+    PrevGateLines []string   // existing: last 3 lines of prev gate
+    ParentChoice  string     // NEW: the choice text that led to this gate
+    SiblingBranch []string   // NEW: 1-2 lines from sibling branches for contrast
+  }
 ```
 
-### Key Data Transformation Points
+**Changes:**
+- **Modify:** `contracts/v2pipeline.go` -- add `GetBranchContext()` to `V2PipelineStore` interface (or extend `GetPrevGateLines`)
+- **Modify:** `v2pipeline/store.go` -- implement `GetBranchContext()` query (SQL: join same-knot items on choice hierarchy)
+- **Modify:** `clustertranslate/types.go` -- extend `ClusterTask` with `BranchContext` field
+- **Modify:** `clustertranslate/prompt.go` -- extend `BuildScriptPrompt()` to render branch context in prompt
+- **Modify:** `v2pipeline/worker.go` `translateBatch()` -- call `GetBranchContext()` instead of `GetPrevGateLines()`
 
-1. **Ink tree -> Dialogue blocks:** Many-to-one merge. Multiple `"^text"` entries become one block. The merge boundary is defined by diverts, choices, and gate transitions. This is the critical transformation that v1 got wrong.
+**No new Go package needed.** This is a data-flow enrichment within existing boundaries.
 
-2. **Scene script -> Line-mapped translations:** One-to-many split. The cluster LLM output (N lines) must map back to N source IDs. The line splitter uses the numbered-line format from the prompt to enforce exact count matching.
+### 3. Prompt Restructuring
 
-3. **KO-raw + EN-tags -> KO-formatted:** One-to-one per item. The formatter receives a single EN line with tags and a single KO line without tags, returns the KO line with tags inserted at corresponding positions.
+**Current state:** Prompt is built in two stages:
+1. **Warmup** (`clustertranslate.BuildBaseWarmup`): system prompt + context + rules + glossary -> session warmup (sent once per session)
+2. **Per-batch** (`clustertranslate.BuildScriptPrompt`): `[CONTEXT]` block + numbered lines + batch glossary + content-type suffix
 
-4. **Done items -> translations.json:** The key in translations.json is the full merged block text (what the game engine actually sends to the plugin). This is why block-level source extraction is essential -- the key must match what the game produces at runtime.
+**Gap:** All context is front-loaded in warmup. Per-batch prompt only has gate context, no scene summary, no tone hints, no character dynamics for the specific batch.
 
-### State Management
+**Integration approach -- MODIFY `clustertranslate/prompt.go`:**
 
-| Store | What It Tracks | Technology |
-|-------|---------------|------------|
-| `pipeline_items` table | Item state, ko_raw, ko_formatted, claimed_by, lease | PostgreSQL |
-| Source JSON files | Canonical EN source per dialogue block | Filesystem (generated, versioned) |
-| Patch artifacts | Final output for game consumption | Filesystem (generated) |
-| Plugin runtime maps | In-memory lookup tables loaded at game start | C# Dictionary (transient) |
+The prompt restructuring is a modification of `BuildScriptPrompt()`, not a new component. The enrichment adds:
+1. **Scene header:** Brief scene description derived from knot name + gate context
+2. **Active speakers:** List speakers in this batch with their role/tone hints
+3. **Branch position:** Where this dialogue sits in the choice tree
+4. **Tone directive:** Per-content-type + per-speaker tone calibration
 
-## Build Order (Dependencies)
+```
+Enhanced prompt structure:
+  ## Scene: [knot name / human-readable]
+  Speakers: Braxo (gruff merchant), Player (ability: wis)
+  Branch: after choosing "Ask about the shipment"
 
-The components have clear sequential dependencies. This directly informs phase structure.
+  [CONTEXT]
+  (previous gate lines)
 
-### Phase 1: Ink Tree Parser (no dependencies)
+  ---
 
-Build the `inkparse` package that walks ink JSON and produces dialogue block source. This is pure code (no LLM, no DB), fully testable with fixture files.
+  [01] Braxo: "text"
+  [02] "narration"
+  [03] wis: "text"
 
-**Outputs:** Dialogue block source JSON files with correct block boundaries.
-**Validates:** Block boundaries match game rendering units (can verify by comparing against v1 translations.json keys).
-**Must be correct before:** Any translation work begins, because wrong block boundaries propagate through the entire pipeline.
+  ## Batch Glossary
+  ...
 
-### Phase 2: Cluster Translation Domain (depends on Phase 1)
+  ## Content Rules
+  ...
+```
 
-Build `clustertranslate` with scene-script prompt construction, gpt-5.4 integration, output parser, and line-to-ID mapping.
+**Changes:**
+- **Modify:** `clustertranslate/prompt.go` -- restructure `BuildScriptPrompt()` to include scene header, speaker list, branch position
+- **Modify:** `clustertranslate/types.go` -- extend `ClusterTask` with scene metadata fields
+- **New file (data only):** `projects/esoteric-ebb/context/character_voices.json` -- lookup table for speaker descriptions
 
-**Outputs:** `ko_raw` values stored in pipeline_items.
-**Validates:** Line count matches, no hallucinated lines, consistent tone within scene.
-**Must be correct before:** Tag formatting, because the formatter needs clean KO text as input.
+### 4. Selective Retranslation
 
-### Phase 3: Tag Formatter Domain (depends on Phase 2)
+**Current state:** The pipeline state machine already supports retranslation: `MarkScored()` routes items back to `pending_translate` when `failure_type` is "translation" or "both". Score threshold is hardcoded at 7 in `v2_score_prompt.md`. All 40,067 items are currently in `done` state.
 
-Build `tagformat` with codex-mini integration, tag restoration prompt, and tag count validation.
+**Gap:** There is no mechanism to:
+1. Query done items by score range and select them for retranslation
+2. Reset selected done items back to `pending_translate` with enhanced context
+3. Track retranslation generations (v1.0 translation vs v1.1 retranslation)
 
-**Outputs:** `ko_formatted` values stored in pipeline_items.
-**Validates:** Tag count EN == Tag count KO, tag structure preserved.
-**Can run in parallel with:** Nothing -- needs translated output.
+**Integration approach -- NEW CLI entry point + MODIFY store:**
 
-### Phase 4: Pipeline Integration (depends on Phases 2-3)
+```
+New entry point: workflow/cmd/go-retranslate-select/main.go
+  |
+  v
+Uses existing V2PipelineStore + new methods:
+  - QueryByScoreRange(minScore, maxScore float64) -> []V2PipelineItem
+  - ResetForRetranslation(ids []string, reason string) -> int
+  |
+  v
+Resets selected items to pending_translate
+  |
+  v
+Existing v2pipeline workers pick them up with enhanced prompts
+```
 
-Extend `translationpipeline` with new states (`pending_format`, `working_format`). Wire up the full flow from pending_translate through done.
+**Changes:**
+- **New CLI:** `workflow/cmd/go-retranslate-select/main.go` -- select items by score range, speaker, knot, content type; reset to pending_translate
+- **Modify:** `contracts/v2pipeline.go` -- add `QueryByScoreRange()` and `ResetForRetranslation()` to interface
+- **Modify:** `v2pipeline/store.go` -- implement new query/reset methods
+- **Modify:** DB schema -- add `retranslation_gen` column (INTEGER DEFAULT 0, incremented on each retranslation cycle) to track generations
 
-**Outputs:** Complete pipeline run producing 77K+ done items.
-**Validates:** End-to-end throughput, error rates, stale lease recovery.
+**The existing pipeline workers handle the rest.** Once items are reset to `pending_translate`, TranslateWorker picks them up with whatever prompt improvements are in place.
 
-### Phase 5: Patch Output + Plugin Update (depends on Phase 4)
+## Component Boundary Map
 
-Adapt `go-esoteric-apply-out` for block-level output. Update Plugin.cs to remove `TryTranslateTagSeparatedSegments` and optimize for block-level matching.
+```
+EXISTING (modify)                          NEW (create)
+=================                          ============
 
-**Outputs:** Working Korean patch with no tag leaks.
-**Validates:** In-game testing -- text displays correctly, no bold leaks, no missing translations.
+inkparse/                                  cmd/go-retranslate-select/
+  parser.go         (no change)              main.go  (new CLI entry point)
+  batcher.go        (no change)
+  classifier.go     (no change)            projects/esoteric-ebb/context/
+  types.go          (no change)              character_voices.json (data file)
 
-## Anti-Patterns
+contracts/
+  v2pipeline.go     (add 2-3 methods)
 
-### Anti-Pattern 1: Line-Level Source Extraction from Ink JSON
+v2pipeline/
+  store.go          (implement new methods)
+  worker.go         (enrich translateBatch context)
+  types.go          (no change)
+  postgres_v2_schema.sql (add retranslation_gen col)
 
-**What people do:** Extract each `"^text"` entry as a separate translation item.
-**Why it's wrong:** The game engine concatenates multiple `"^"` entries into a single display string. The plugin receives the concatenated form and cannot match individual fragments. This was the v1 root cause.
-**Do this instead:** Walk the ink tree and merge all consecutive `"^text"` entries within a gate/container into a single dialogue block.
+clustertranslate/
+  types.go          (extend ClusterTask)
+  prompt.go         (restructure BuildScriptPrompt)
+  parser.go         (no change)
+  validate.go       (no change)
 
-### Anti-Pattern 2: Asking the Translation LLM to Preserve Tags
+scorellm/           (no change)
+tagformat/          (no change)
+glossary/           (no change)
+fragmentcluster/    (no change)
+```
 
-**What people do:** Include markup tags in the translation prompt and instruct the LLM to preserve them.
-**Why it's wrong:** LLMs reliably corrupt tags -- changing attribute quotes, reordering attributes, dropping closing tags. In v1, 99.7% of retry failures were tag corruption on otherwise correct translations.
-**Do this instead:** Strip tags before translation, translate tag-free text, then use a separate formatter LLM call (or code) to restore tags mechanically.
+## Data Flow: Enhanced Translation
 
-### Anti-Pattern 3: Per-Item Translation Without Scene Context
+### Before (v1.0 pipeline)
 
-**What people do:** Translate each string individually with minimal context (previous/next line).
-**Why it's wrong:** Dialogue lines in narrative games reference earlier conversation, maintain speaker tone, and use scene-specific vocabulary. Per-item translation produces inconsistent register and tone across a scene.
-**Do this instead:** Batch lines by scene/knot and translate as a coherent script. The cluster approach preserves narrative flow and character voice.
+```
+Seed -> pending_translate -> [TranslateWorker: basic prompt] -> translated -> ...
+                                    |
+                          GetPrevGateLines(3)
+                          Speaker label in [NN] line
+                          Static warmup rules
+```
 
-### Anti-Pattern 4: Validating Tags by String Comparison
+### After (v1.1 pipeline)
 
-**What people do:** Compare the full tag structure (`<b><color=#5782FD>`) character-by-character between EN and KO.
-**Why it's wrong:** This is too strict -- it rejects valid translations where tag order is semantically equivalent. It also does not catch the real failure mode (missing or extra tags).
-**Do this instead:** Validate by tag count only. Count each unique tag type in EN and KO and require exact match. Position validation is unnecessary because the formatter places tags correctly by design.
+```
+                              character_voices.json
+                                    |
+Seed/Reset -> pending_translate -> [TranslateWorker: enriched prompt] -> translated -> ...
+                                    |
+                          GetBranchContext(knot, gate, choice) -> {
+                            PrevGateLines, ParentChoice, SiblingBranch
+                          }
+                          Speaker label + speaker description
+                          Scene header with knot/gate context
+                          Branch position description
+                          Enhanced content-type rules
+```
 
-## Integration Points
+### Selective Retranslation Flow
 
-### External Services
+```
+[go-retranslate-select CLI]
+  --min-score 3.5 --max-score 6.9
+  --speaker "Braxo"
+  --content-type "dialogue"
+  |
+  v
+QueryByScoreRange() -> filter by criteria -> candidate IDs
+  |
+  v
+ResetForRetranslation(ids, "v1.1-context-improvement")
+  -> SET state='pending_translate', retranslation_gen=gen+1
+  |
+  v
+Existing TranslateWorker picks up with enriched prompts
+  -> format -> score -> done (with improved context)
+```
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| OpenCode (gpt-5.4) | HTTP POST to 127.0.0.1:4112, OpenAI-compatible API | Session-based, supports concurrent slots. Used for Stage 1 (translation) |
-| OpenCode (codex-mini) | Same endpoint, different model parameter | Used for Stage 2 (tag formatting). Lower latency, lower cost |
-| PostgreSQL (5433) | pgx/v5 driver, `pipeline_items` table | Lease-based state machine. Source of truth for pipeline progress |
+## Patterns to Follow
 
-### Internal Boundaries
+### Pattern 1: Extend Contracts Interface, Not Bypass It
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| inkparse -> clustertranslate | Filesystem (dialogue block JSON files) | Decoupled: parser runs once, translator reads output |
-| clustertranslate -> tagformat | PostgreSQL (ko_raw column in pipeline_items) | Coupled through DB state machine |
-| tagformat -> patch builder | PostgreSQL (ko_formatted column in pipeline_items) | Coupled through DB state machine |
-| patch builder -> Plugin.cs | Filesystem (translations.json, textassets/) | Decoupled: builder writes, plugin reads at game start |
-| Plugin.cs -> game engine | Harmony patches (IL2CPP method interception) | Tightly coupled to game version (1.1.3) |
+**What:** All new store methods go through `contracts.V2PipelineStore` interface.
+**Why:** Existing code uses compile-time interface checks (`var _ contracts.V2PipelineStore = (*Store)(nil)`). Bypassing the interface breaks the architecture's clean layering.
+**Example:**
+```go
+// In contracts/v2pipeline.go -- ADD to V2PipelineStore interface:
+QueryByScoreRange(minScore, maxScore float64, filters map[string]string) ([]V2PipelineItem, error)
+ResetForRetranslation(ids []string, reason string) (int, error)
+GetBranchContext(knot, gate, choice string) (*BranchContext, error)
+```
 
-## Scaling Considerations
+### Pattern 2: Enrich ClusterTask, Not Worker
 
-| Concern | Current Scale (77K items) | If Expanded (multiple games) |
-|---------|--------------------------|------------------------------|
-| LLM throughput | ~56 RPM peak, 6-8s latency, manageable | Add more OpenCode instances, autoscaler already exists |
-| DB state management | Single PostgreSQL, sub-second queries | Fine for 500K+ items, partition by project if needed |
-| Ink parser performance | 286 files, seconds to parse | Pure Go, handles thousands of files trivially |
-| Patch artifact size | 65K entries in translations.json, ~2MB | Plugin loads into memory at startup, fine up to ~500K entries |
+**What:** All new context data flows through `ClusterTask` struct into `BuildScriptPrompt()`. The worker only assembles data; prompt construction stays in `clustertranslate`.
+**Why:** Keeps prompt logic testable without LLM. Worker tests stay focused on orchestration.
+**Example:**
+```go
+// In clustertranslate/types.go -- extend ClusterTask:
+type ClusterTask struct {
+    Batch           inkparse.Batch
+    PrevGateLines   []string       // existing
+    GlossaryJSON    string         // existing
+    BranchContext   *BranchContext  // NEW: choice tree context
+    ActiveSpeakers  []SpeakerInfo  // NEW: speaker descriptions for this batch
+    SceneHeader     string         // NEW: human-readable scene description
+}
+```
 
-### First Bottleneck: LLM Throughput for Full Retranslation
+### Pattern 3: DB Migration via Schema Extension
 
-77K items at 20 lines per cluster = ~3,900 cluster calls for Stage 1. At 56 RPM peak, that is ~70 minutes. Stage 2 (tag formatting) runs only on tagged items (~40% of total), adding ~30 minutes. Total: ~2 hours for a full run. The autoscaler handles burst management.
+**What:** Add new columns with DEFAULT values so existing data stays valid.
+**Why:** 40,067 items already in `done` state. Schema changes must not break existing data.
+**Example:**
+```sql
+ALTER TABLE pipeline_items_v2 ADD COLUMN retranslation_gen INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE pipeline_items_v2 ADD COLUMN retranslation_reason TEXT NOT NULL DEFAULT '';
+```
 
-### Second Bottleneck: Line Mapping Errors
+## Anti-Patterns to Avoid
 
-If the cluster LLM returns the wrong number of lines, the entire cluster fails. The mitigation is strict line-count validation with retry (up to 3 attempts). This is a quality bottleneck, not a performance one.
+### Anti-Pattern 1: New Pipeline Stage
+
+**What people do:** Add a "context enrichment" stage between seed and translate (e.g., `pending_enrich -> working_enrich -> pending_translate`).
+**Why it is wrong:** Adds state machine complexity, new worker role, new failure modes. Context enrichment is a query-time operation, not a persistence stage.
+**Do this instead:** Enrich context at translate time in `translateBatch()`. Query branch context and speaker data when building the prompt, not as a separate pipeline phase.
+
+### Anti-Pattern 2: Separate Retranslation Pipeline
+
+**What people do:** Create a parallel `v2pipeline_retranslation` table or a `go-retranslate` worker with its own state machine.
+**Why it is wrong:** Duplicates the translate->format->score flow. Two codepaths for the same logic means divergence bugs.
+**Do this instead:** Reset items in the existing `pipeline_items_v2` table to `pending_translate`. The existing workers handle them identically, but with enriched prompts.
+
+### Anti-Pattern 3: Speaker Profile in LLM Warmup
+
+**What people do:** Put all 50+ character profiles into the session warmup text.
+**Why it is wrong:** Warmup is sent once per session. Most characters appear in few batches. Bloating warmup wastes LLM context window and dilutes focus.
+**Do this instead:** Include only active speakers (those present in the current batch) in the per-batch prompt.
+
+## Build Order (Dependency-Driven)
+
+The features have clear dependencies that dictate build order:
+
+```
+Phase 1: Speaker Profiles + Prompt Restructure
+  - character_voices.json (data authoring, no code dependency)
+  - clustertranslate/types.go (extend ClusterTask)
+  - clustertranslate/prompt.go (restructure BuildScriptPrompt)
+  - v2pipeline/worker.go (pass speaker info to ClusterTask)
+  Tests: prompt output tests, no LLM needed
+
+Phase 2: Branch Context
+  - contracts/v2pipeline.go (add GetBranchContext)
+  - v2pipeline/store.go (implement SQL query)
+  - clustertranslate/prompt.go (render branch context)
+  - v2pipeline/worker.go (call GetBranchContext)
+  Tests: store query tests, prompt rendering tests
+  Depends on: Phase 1 (prompt structure must be ready)
+
+Phase 3: Selective Retranslation
+  - contracts/v2pipeline.go (add QueryByScoreRange, ResetForRetranslation)
+  - v2pipeline/store.go (implement methods)
+  - DB migration (retranslation_gen column)
+  - cmd/go-retranslate-select/main.go (new CLI)
+  Tests: store tests, CLI integration test
+  Depends on: Phase 1+2 (prompts must be improved before retranslating)
+
+Phase 4: Execute Retranslation + Validate
+  - Run go-retranslate-select to reset low-score items
+  - Run v2pipeline workers (translate->format->score)
+  - Compare score distributions before/after
+  - In-game verification
+  Depends on: Phase 1+2+3
+```
+
+**Rationale:** Prompt improvements (Phase 1-2) must land before retranslation (Phase 3-4) because retranslating with the same prompts would produce the same quality. The CLI selector (Phase 3) is a simple tool that depends on the enriched prompts being ready.
+
+## Schema Changes
+
+### New Columns
+
+```sql
+-- Track retranslation generations
+ALTER TABLE pipeline_items_v2
+  ADD COLUMN retranslation_gen INTEGER NOT NULL DEFAULT 0;
+
+-- Record why an item was selected for retranslation
+ALTER TABLE pipeline_items_v2
+  ADD COLUMN retranslation_reason TEXT NOT NULL DEFAULT '';
+
+-- Index for score-based queries
+CREATE INDEX IF NOT EXISTS idx_pv2_score_final
+  ON pipeline_items_v2(score_final)
+  WHERE state = 'done';
+
+-- Index for speaker-based queries
+CREATE INDEX IF NOT EXISTS idx_pv2_speaker
+  ON pipeline_items_v2(speaker)
+  WHERE speaker != '';
+```
+
+### No Changes Needed
+
+- `id`, `source_hash`, `state` columns: unchanged
+- State machine transitions: unchanged (reset goes through existing states)
+- `batch_id`: unchanged (retranslated items keep original batch_id for context locality)
 
 ## Sources
 
-- Existing codebase analysis (`.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/STRUCTURE.md`)
-- v2 experiment results documented in `project_v2_pipeline_context.md`
-- ink runtime specification: ink JSON format uses `"^"` prefix for text content, `"#"` for tags, nested arrays for containers
-- BepInEx IL2CPP plugin framework: Harmony patches for method interception in Unity IL2CPP builds
-- v1 pipeline operational data: 77,816 items processed, 369 persist-skip failures (99.7% tag-related)
+- Direct code analysis of all packages in `workflow/internal/` and `workflow/pkg/`
+- `contracts/v2pipeline.go`: V2PipelineStore interface (lines 1-104)
+- `v2pipeline/worker.go`: TranslateWorker, translateBatch (lines 1-204)
+- `clustertranslate/prompt.go`: BuildScriptPrompt, BuildBaseWarmup (lines 1-149)
+- `inkparse/parser.go`: isSpeakerTag, walkFlatContent (lines 1-503)
+- `v2pipeline/postgres_v2_schema.sql`: current schema
+- `projects/esoteric-ebb/context/v2_base_prompt.md`: current prompt structure
+- Memory: `project_translation_quality.md` -- context gap diagnosis
 
 ---
-*Architecture research for: game localization pipeline (ink JSON + 2-stage LLM + BepInEx patching)*
-*Researched: 2026-03-22*
+*Architecture research for: context-aware retranslation integration*
+*Researched: 2026-04-06*

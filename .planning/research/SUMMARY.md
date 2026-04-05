@@ -1,205 +1,196 @@
 # Project Research Summary
 
-**Project:** Esoteric Ebb Korean Localization Pipeline (v2)
-**Domain:** LLM-based game localization — Ink narrative engine, BepInEx runtime patching
-**Researched:** 2026-03-22
+**Project:** Esoteric Ebb 한국어 번역 파이프라인 v1.1 — Context-Aware Retranslation
+**Domain:** Game localization pipeline quality improvement (Ink-based cRPG, Korean)
+**Researched:** 2026-04-06
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This project is a ground-up rebuild of a v1 translation pipeline for a Unity/Ink narrative game. The v1 pipeline failed for a single fundamental reason: it extracted each `"^text"` entry from the ink JSON tree as an independent translation unit, but the game engine concatenates consecutive entries into dialogue blocks before sending them to the plugin. This caused 65,233 translations.json keys that the runtime plugin could never match. The v2 approach fixes this at the root: a new ink tree walker merges consecutive `"^"` entries into the same block the game engine renders, producing source strings that match exactly what the plugin receives at runtime. Every subsequent component in the pipeline — clustering, translation, formatting, patch output — builds on this corrected extraction.
+v1.1은 신규 기술 스택이 필요한 프로젝트가 아니다. Go 1.24, PostgreSQL 17, OpenCode LLM 백엔드로 구성된 현재 스택이 그대로 유지되며, 외부 의존성 추가 없이 기존 코드베이스 위에서 데이터 풍부화(data enrichment)와 프롬프트 엔지니어링으로 번역 품질을 개선한다. 핵심 작업은 세 가지다: (1) Python 추출기에서 speaker/branch 데이터를 더 풍부하게 추출하고 DB에 저장, (2) `clustertranslate/prompt.go`의 번역 프롬프트를 계층적 구조로 재설계하여 화자 프로필과 브랜치 컨텍스트를 주입, (3) 점수 기반으로 저품질 항목을 선별하여 개선된 프롬프트로 재번역하는 CLI 도구 추가.
 
-The recommended architecture is a 5-layer pipeline: source extraction (ink tree parsing), 2-stage LLM translation (gpt-5.4 for Korean translation, codex-mini for tag restoration), pipeline state management (PostgreSQL lease-based state machine), patch output generation (translations.json + textassets), and a simplified BepInEx plugin matching chain. The 2-stage translation design is the other key architectural decision: v1 proved that asking a single LLM to translate and preserve rich-text markup simultaneously causes tag corruption in 99.7% of retry failures. Separating concerns — translate first with tags stripped, then restore tags with a cheap formatter model — eliminates this entirely. Both approaches are validated by v2 experiments before any pipeline code was written.
+현재 40,067건 중 대부분은 품질 점수 90.7 평균으로 이미 양호하다. 전체 재번역(75시간 LLM 시간)은 불필요하며, 임계값 미만(예: score < 7.0) 항목만 선별적으로 재번역하는 것이 핵심 전략이다. 이를 가능하게 하는 `StatePendingRetranslate` 상태 머신과 `ScoreFinal` 컬럼이 이미 존재하며, 누락된 것은 "점수 기반 재큐잉" CLI 하나뿐이다. 재번역 단위는 반드시 개별 라인이 아닌 전체 `batch_id` 클러스터여야 한다 — 부분 재번역은 씬 내 말투 불일치를 유발하는 핵심 위험이다.
 
-The primary risk is in Phase 1: if the ink tree parser misidentifies dialogue block boundaries, every downstream component is wrong and a full retranslation is required. This is a HIGH recovery cost. The mitigation is explicit: build a test harness against known scenes (Snell_Companion used in v2 experiments), compare parser output against plugin capture logs, and require 95%+ exact match before proceeding to translation. Secondary risks (LLM line count drift, tag corruption, plugin fallback collisions) all have MEDIUM or LOW recovery cost and clear automated detection strategies.
+최대 위험 요소는 두 가지다: (1) `isSpeakerTag()` 휴리스틱이 게임 커맨드 태그를 화자로 오인할 수 있어, 화자 허용 목록(allow-list) 수동 검증이 tone consistency 구현 전에 필수다. (2) 브랜치 컨텍스트를 무제한 주입하면 프롬프트가 폭발적으로 커져 품질이 오히려 하락하므로, 즉각 상위 브랜치 1단계로 컨텍스트를 엄격히 제한해야 한다.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The v2 stack adds no new external dependencies. The entire pipeline is built on Go 1.24 (stdlib `encoding/json` for ink JSON tree parsing), PostgreSQL with pgx/v5 5.7.6 (pipeline state), Python 3.x (ingestion scripts), OpenCode server with gpt-5.4 and codex-mini (LLM translation stages), and BepInEx 6 IL2CPP with HarmonyX (runtime plugin). The critical decision to avoid `encoding/json/v2` (experimental, memory bugs reported, not covered by Go 1 compat promise) and any third-party ink tools (Ink-Localiser works on raw `.ink` source, not compiled JSON) keeps the stack stable and proven. No NuGet additions to the C# plugin are needed.
+기존 스택 그대로 유지 — `go.mod` 변경 없음. v1.1은 Go 표준 라이브러리(`encoding/json`, `regexp`, `strings`)로 모든 신규 로직을 구현한다. PostgreSQL에는 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`로 2-3개 컬럼만 추가(마이그레이션 도구 불필요). Python 추출기(`extract_assetripper_textasset.py`)는 speaker 전파 및 branch 인덱스 생성을 위해 소폭 강화되나 신규 패키지는 없다.
 
-See `.planning/research/STACK.md` for version table, alternatives analysis, and sources.
+신규로 생성되는 것은 코드가 아닌 **데이터 파일 두 개**다: `character_voices.json`(화자별 톤 프로필)과 DB 스키마 컬럼 추가(`retranslation_gen`, `retranslation_reason`). 이외 모든 기능은 기존 코드 경로 수정으로 구현된다.
 
-**Core technologies:**
-- `Go encoding/json` v1 (stdlib): Ink JSON tree walking, LLM response parsing — battle-tested, used in 47 existing files, no third-party ink runtime exists for Go
-- `gpt-5.4` via OpenCode: Stage 1 cluster translation — validated in experiments (8/8 line mapping, 16/16 branched dialogue)
-- `codex-mini` via OpenCode: Stage 2 tag formatter — validated (4/4 perfect tag count match), fast and cheap for mechanical tag restoration
-- `pgx/v5 5.7.6`: PostgreSQL pipeline state machine — proven from v1, lease-based worker pools
-- `System.Text.Json` (.NET 6.0): Plugin.cs translation map loading — already in use, no new DLL dependency
+**Core technologies (변경 없음):**
+- Go 1.24.0: 파이프라인 워커, CLI, 프롬프트 빌더 — 신규 외부 의존성 없음
+- PostgreSQL 17: 파이프라인 상태 저장소 — 컬럼 2개 추가, 스키마 구조 유지
+- OpenCode (gpt-5.4): 번역 LLM — 프롬프트 변경만, 모델 교체 없음
+- OpenCode (codex-mini): 태그 복원 — 변경 없음
+- Python 3.x: ink JSON 추출기 강화 — 표준 라이브러리만 사용
 
 ### Expected Features
 
-The ink tree parser is the critical path dependency. Nothing downstream is possible until block boundaries are correct. Content-type routing (5 types: dialogue, spells, UI, items, system) determines batch format and prompt strategy; dialogue is the dominant type (71,787 of 77,816 items). Tag handling is the second major quality concern: the 2-stage approach is non-negotiable given v1's failure data.
+**Must have (table stakes — v1.1 품질 개선의 전제 조건):**
+- **프롬프트 감사 및 재구조화** — 현재 `defaultStaticRules()`의 24개 플랫 규칙 목록을 계층적 섹션(컨텍스트/음성/태스크/제약)으로 재편. 최고 ROI, 최저 위험. 다른 모든 기능이 프롬프트 구조에 의존함
+- **선택적 재번역 MVP** — `ScoreFinal < threshold` 항목 쿼리 + `pending_retranslate` 재큐잉 CLI. 이 없이는 개선된 프롬프트를 효율적으로 적용할 방법이 없음
+- **화자 추출 커버리지 감사** — `pipeline_items_v2`에서 `DISTINCT speaker` 수동 검증, allow-list 생성. tone consistency의 데이터 품질 게이트
 
-See `.planning/research/FEATURES.md` for dependency graph, priority matrix, and competitor comparison.
+**Should have (차별화 품질 향상):**
+- **브랜치 컨텍스트 주입** — "Player chose: X" 프롬프트 컨텍스트. 현재 `ChoiceBlock` 필드 존재하나 데이터 미인입. 복잡성 높음(ink 트리 순회 필요)
+- **톤 일관성 프로필** — `character_voices.json` 로드 후 해당 배치의 화자에 한해 per-batch 프롬프트에 주입. `lore.go` 패턴 재사용
+- **연속성 프롬프트 윈도우 확장** — prev/next 1줄 → 3줄. 재번역 시 기존 한국어 번역을 컨텍스트로 제공. 인프라 거의 완비
 
-**Must have (table stakes — pipeline fails without these):**
-- Ink JSON tree parser with dialogue block extraction (block-level merging, branch/choice structure preservation)
-- Scene-unit cluster translation (gpt-5.4, script format, 10-30 lines per batch)
-- Source-to-ID line mapping (numbered-line format with `[NN]` markers, strict count validation)
-- Tag restoration via codex-mini (2-stage: translate tag-free, restore tags separately)
-- Tag count validation (final quality gate before patch output)
-- Patch output generation (translations.json + textassets/ + localizationtexts/)
-- Plugin.cs matching update (remove `TryTranslateTagSeparatedSegments`, optimize for block-level exact match)
-- DB pipeline state with resumability (77K items cannot run in one session)
-- Source deduplication (EXISTS check on source_raw before INSERT — explicit project constraint)
-
-**Should have (quality layer — add after core pipeline produces correct output):**
-- Glossary/terminology consistency injection (after identifying inconsistencies in first batch)
-- Content-type-specific prompt templates beyond dialogue (after dialogue pipeline proven)
-- Register-appropriate choice text enforcement at prompt level
-- Translation quality scoring and retranslation loop (after full initial pass)
-- Passthrough detection optimization (after measuring LLM call waste)
-
-**Defer (post-v2):**
-- Multi-game abstraction (only if second game project starts)
-- Game version delta tracking (game pinned at 1.1.3)
-- Real-time in-game translation (6-8s LLM latency makes this unusable; static patch is zero-latency)
-- Web UI / dashboard (CLI + DB queries are faster for this scale)
+**Defer (v1.2+):**
+- Score LLM 프롬프트 개선 (변경 시 기존 ScoreFinal 값 무효화)
+- 글로서리 퍼지 매칭 확장
+- 시맨틱 리뷰 파이프라인과 재번역 자동 연계
 
 ### Architecture Approach
 
-The architecture has five sequential layers with clear interfaces: Source Extraction (ink JSON -> dialogue block JSON files on filesystem), Translation (PostgreSQL state machine driving 2-stage LLM workers), Patch Output (PostgreSQL done items -> translations.json + textassets), and Game Runtime (BepInEx plugin loading patch artifacts). The key boundary insight is that the ink parser writes to the filesystem (decoupled, run once per game version) while the translation stages communicate through PostgreSQL state (tightly coupled via lease-based state machine). This allows the parser to be independently validated before translation begins.
-
-The v2 code fits entirely within the existing layered architecture. New packages are: `workflow/internal/inkparse/` (pure data transformation, no LLM/DB), `workflow/internal/clustertranslate/`, `workflow/internal/tagformat/`, and `workflow/cmd/` entries for each new pipeline command. No structural reorganization needed.
-
-See `.planning/research/ARCHITECTURE.md` for component diagram, data flow, state machine spec, and build order.
+v1.1 아키텍처는 기존 v2 파이프라인의 **수정(modify)**이며 신규 파이프라인이 아니다. 주요 변경은 `clustertranslate/prompt.go`의 `BuildScriptPrompt()` 강화와 `contracts/v2pipeline.go`에 메서드 2-3개 추가로 집중된다. 새로운 상태 머신 단계나 워커 역할은 추가되지 않는다 — 재번역은 기존 `pending_translate` 상태로 리셋하고 기존 TranslateWorker가 처리한다.
 
 **Major components:**
-1. **Ink Tree Parser** (`inkparse` package) — Walk ink JSON, merge `"^text"` entries into dialogue blocks, preserve knot/gate/choice structure, emit content-type metadata
-2. **Content Classifier** — Assign content type (dialogue/spell/UI/item/system) and batch grouping strategy; feeds into cluster translation
-3. **Cluster Translator** — Build scene scripts from dialogue blocks, send to gpt-5.4 (tag-free), parse numbered-line output, map to source IDs
-4. **Tag Formatter** — Send EN-with-tags + KO-without-tags to codex-mini, restore tags, validate exact tag string match
-5. **Pipeline Orchestrator** — Lease-based DB state machine extended with `pending_format`/`working_format` states; items without tags skip format stage
-6. **Patch Builder** — Read done items from PostgreSQL, generate translations.json (block-level keys), textassets/ (in-place `"^text"` replacement), localizationtexts/ CSV
-7. **BepInEx Plugin** — Simplified 3-stage matching chain: Direct -> Decorated -> Contextual; RuntimeLexicon for display-only stat name substitution
+1. `inkparse/` (변경 없음) — ink JSON 파싱, 화자 추출, 배치 구성
+2. `clustertranslate/prompt.go` (수정) — 번역 프롬프트 빌더. 브랜치 컨텍스트, 화자 프로필, 씬 헤더 주입
+3. `clustertranslate/types.go` (수정) — `ClusterTask`에 `BranchContext`, `ActiveSpeakers`, `SceneHeader` 필드 추가
+4. `contracts/v2pipeline.go` (수정) — `QueryByScoreRange()`, `ResetForRetranslation()`, `GetBranchContext()` 인터페이스 추가
+5. `v2pipeline/store.go` (수정) — 신규 쿼리/리셋 메서드 구현, 스키마 컬럼 추가
+6. `cmd/go-retranslate-select/` (신규) — 점수/화자/content-type 기반 재번역 후보 선택 CLI
+7. `projects/esoteric-ebb/context/character_voices.json` (신규 데이터 파일) — 화자별 성격 프로필
 
 ### Critical Pitfalls
 
-1. **Dialogue block boundary misidentification** — The v1 root cause. Concatenate all consecutive `"^"` entries until hitting a `"\n"`, divert, or control command. Validate with a test harness against known scenes. Build before any translation starts. Recovery cost is HIGH if wrong (full retranslation required).
+1. **개별 라인 재번역으로 씬 일관성 파괴** — 재번역 단위는 반드시 `batch_id` 전체 클러스터. 개별 라인 재번역은 동일 씬 내 말투 불일치를 만든다. Phase 1 설계에서 규칙 확립 필수.
 
-2. **LLM output line count drift in cluster translation** — LLMs merge or split lines silently. Use explicit `[NN]` numbered markers in prompts and parse by extracting markers (not by splitting on newlines). Hard reject batches where output count differs from input; retry max 2x. Keep clusters to 10-20 lines; beyond 30, drift probability rises sharply.
+2. **isSpeakerTag 휴리스틱 오인식** — 게임 커맨드 태그("Minor", "Crowns")가 화자로 잘못 추출될 수 있음. tone consistency 구현 전에 `DISTINCT speaker` 수동 검증 + allow-list 생성 필수.
 
-3. **Tag corruption in the formatter LLM stage** — Even codex-mini mutates attribute quotes and tag structure subtly. Validate with exact string match on each tag (not just count). For common patterns (fewer than 50 unique tag patterns expected), consider deterministic code restoration instead of LLM. Design the tag extraction/injection protocol before implementing the formatter prompt.
+3. **브랜치 컨텍스트 폭발** — ink DAG 구조의 재귀 탐색 시 프롬프트 크기가 지수적으로 증가. 즉각 상위 브랜치 1단계로 엄격히 제한, 현재 기준 최대 20% 토큰 증가 예산.
 
-4. **Source hash deduplication failure** — v1 used `len(text)` as a hash, causing silent collision at 77K+ scale. Replace with SHA-256 before any v2 pipeline run. Use a fresh checkpoint DB (archive v1 DB separately) to avoid cross-contamination with fragment-level v1 data.
+4. **사이드카 중복 제거 비일관성** — 재번역 후 `BuildV3Sidecar()`의 first-seen 로직이 구버전 번역을 선택할 수 있음. `entries[]` dedup을 first-seen → highest-score 방식으로 수정 필요, 재번역 실행 전에.
 
-5. **TextAsset structural corruption** — In-place ink JSON text injection must replace `"^text"` string values only, never add/remove array elements. Validate by walking both original and modified JSON trees and confirming identical container counts and control flow structure.
+5. **프롬프트 크기 회귀** — 화자 프로필 + 브랜치 컨텍스트 + 글로서리 중첩 시 LLM 어텐션 분산으로 단순 라인 품질 하락. content_type별 컨텍스트 게이팅(dialogue만 전체 컨텍스트), 100개 항목 A/B 테스트로 회귀 감지.
 
 ## Implications for Roadmap
 
-Based on combined research, the phase structure is dictated by hard dependencies: the ink tree parser must be correct before any translation work begins, and the tag formatter stage cannot run until the cluster translator has produced `ko_raw` values. There is no beneficial reordering; the phases below reflect the build order documented in ARCHITECTURE.md.
+연구 전반에 걸쳐 공통된 의존성 순서가 명확하다: 프롬프트 구조 → 화자 데이터 → 컨텍스트 주입 → 재번역 실행. 이 순서를 역행하면 비효율적이거나 실제 품질 저하를 초래한다.
 
-### Phase 0: Pipeline Preparation
+### Phase 1: Foundation — 프롬프트 재구조화 + 화자 검증 + 선택적 재번역 CLI
 
-**Rationale:** The v1 checkpoint database used `len(text)` as a source hash, which causes silent deduplication collisions at 77K+ scale. This must be fixed before a single v2 translation item is inserted, otherwise the pipeline will silently report items as done when they have not been translated.
-**Delivers:** Fresh PostgreSQL pipeline DB with SHA-256 source hashing, archived v1 DB, pre-flight collision check script.
-**Addresses:** Source deduplication constraint (project rule), Pitfall 6 (source hash dedup failure).
-**Avoids:** Silent pipeline corruption that would require identifying and re-running thousands of affected items mid-translation.
+**Rationale:** 다른 모든 기능의 전제 조건. 프롬프트 구조가 확립되지 않으면 컨텍스트 주입이 오히려 노이즈가 된다. 화자 allow-list 없이 tone profiles를 만들면 잘못된 화자에 규칙이 적용된다. 재번역 CLI 없이 개선된 프롬프트를 실제 적용할 방법이 없다.
 
-### Phase 1: Ink Tree Parser
+**Delivers:** 측정 가능한 품질 개선의 최소 기반. 완료 후 A/B 점수 비교로 Phase 2 진행 가치를 검증 가능.
 
-**Rationale:** The entire pipeline depends on correct dialogue block boundaries. This is the only component with HIGH recovery cost if wrong. It is also pure Go with no LLM or DB dependencies, making it fully testable in isolation.
-**Delivers:** `inkparse` package producing dialogue block JSON files from 286 TextAsset ink JSON files; content-type metadata per block; test harness comparing output against plugin capture logs.
-**Addresses:** Ink JSON tree parser (P1 table stakes), content-type classification, source deduplication (block-level source_raw).
-**Avoids:** Pitfall 1 (block boundary misidentification), Pitfall 4 (branch/choice structure loss), Pitfall 7 (content type conflation at classification stage).
-**Note:** Needs research-phase for ChoicePoint flag bitfield semantics before implementation.
+**Addresses:**
+- 프롬프트 감사 및 재구조화 (P1 feature)
+- 화자 추출 커버리지 감사 + allow-list (P1 feature)
+- 선택적 재번역 MVP: `go-retranslate-select` CLI (P1 feature)
+- DB 스키마: `retranslation_gen`, `retranslation_reason`, `idx_pv2_score` 추가
 
-### Phase 2: Cluster Translation Domain
+**Avoids:**
+- Pitfall 2 (화자 오인식) — allow-list 생성이 이 Phase의 명시적 산출물
+- Pitfall 6 (잘못된 재번역 후보 선택) — 컨텍스트 인식 점수 방법론을 이 Phase에서 확립
 
-**Rationale:** With correct source blocks available, the cluster translation stage can be built and validated independently. Line count mapping is the highest-risk part of this stage and must be proven with realistic test cases before bulk translation runs.
-**Delivers:** `clustertranslate` package; `go-cluster-translate` command; scene-script prompt templates; numbered-line output parser; `ko_raw` values stored in pipeline_items.
-**Addresses:** Scene-unit cluster translation (P1 table stakes), source-to-ID mapping (P1), branch-aware context (P2), content-type-aware batching.
-**Uses:** gpt-5.4 via OpenCode, pgx/v5, existing `platform/llm_client.go`.
-**Avoids:** Pitfall 2 (LLM line count drift — mitigated by `[NN]` markers and count validation), Pitfall 3 (tag corruption — by stripping tags before sending).
+**Research flag:** 표준 패턴 — 기존 코드 수정 위주, 추가 연구 불필요
 
-### Phase 3: Tag Formatter Domain
+---
 
-**Rationale:** The 2-stage separation is the validated fix for v1's 99.7% tag-related failure rate. This stage processes only the ~40% of items that carry rich-text tags; items without tags skip directly to validation.
-**Delivers:** `tagformat` package; `go-tag-format` command; tag extraction/injection protocol; codex-mini prompt; exact tag string match validation; `ko_formatted` values in pipeline_items.
-**Addresses:** Tag restoration (P1 table stakes), tag count validation (P1).
-**Uses:** codex-mini via OpenCode, existing `postprocess_validation.go` patterns.
-**Avoids:** Pitfall 3 (tag corruption — design extraction/injection protocol first, use exact-string validation not just count).
+### Phase 2: Context Enrichment — 톤 프로필 + 브랜치 컨텍스트 + 연속성 윈도우
 
-### Phase 4: Pipeline Integration and Patch Output
+**Rationale:** Phase 1의 프롬프트 구조와 화자 데이터 위에서만 의미가 있다. 화자 allow-list 없이 tone profiles를 주입하면 잘못된 라인에 적용된다. 브랜치 컨텍스트는 명확한 프롬프트 섹션이 있어야 "착지"한다.
 
-**Rationale:** With all three domain packages proven in isolation, wire them into the full end-to-end flow: extend the state machine with format stage states, run a complete 77K-item pass, and generate the patch artifacts from done items.
-**Delivers:** Extended `translationpipeline` with `pending_format`/`working_format` states; full pipeline run producing 65K+ done items; `go-esoteric-apply-out` adapted for block-level output (translations.json, textassets/, localizationtexts/).
-**Addresses:** Patch output generation (P1 table stakes), DB pipeline state with resumability (P1), pipeline integration.
-**Avoids:** Pitfall 8 (TextAsset structural corruption — in-place replace only, structural diff validation after injection).
+**Delivers:** 개별 라인 품질을 넘어 씬 단위 일관성 향상. 특히 선택지가 많은 장면(tunnels, hubs)에서 효과.
 
-### Phase 5: Plugin Optimization and Quality Layer
+**Addresses:**
+- 톤 일관성 프로필: `character_voices.json` 데이터 파일 + `lore.go` 패턴 재사용
+- 브랜치 컨텍스트 주입: `GetBranchContext()` + `ClusterTask.BranchContext`
+- 연속성 프롬프트 윈도우: prev/next 1줄 → 3줄
 
-**Rationale:** With a complete patch available, the plugin matching chain can be simplified and tested against real game data. Quality layer features (glossary, register enforcement, quality scoring) require seeing the first full translation output to identify where they are actually needed.
-**Delivers:** Simplified Plugin.cs matching chain (Direct -> Decorated -> Contextual, remove `TryTranslateTagSeparatedSegments`); glossary injection; register prompt enforcement for choice text; translation quality scoring; in-game testing.
-**Addresses:** Plugin.cs matching update (P1 table stakes), glossary/terminology consistency (P2), register-appropriate choices (P2), quality scoring (P2).
-**Avoids:** Pitfall 5 (plugin fallback cascade — block-level matching targets 95%+ exact hit rate, NormalizedMap collision logging added).
+**Avoids:**
+- Pitfall 3 (브랜치 컨텍스트 폭발) — 토큰 예산 설정 + 1단계 상위 브랜치만 포함
+- Pitfall 5 (단조로운 캐릭터 목소리) — 10개 라인 다양성 테스트 후 bulk 적용
+- Pitfall 7 (프롬프트 크기 회귀) — content_type 기반 컨텍스트 게이팅, A/B 테스트
+
+**Research flag:** 브랜치 컨텍스트 SQL 쿼리 설계에 주의 필요 (knot-gate-choice 계층 구조 쿼리). `GetBranchContext()` 구현 전 DB 스키마와 기존 쿼리 패턴 재검토 권장.
+
+---
+
+### Phase 3: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증
+
+**Rationale:** Phase 1+2가 완료된 후에만 실행. 개선되지 않은 프롬프트로 재번역하면 동일한 품질의 결과만 나온다. 사이드카 dedup 로직은 재번역 전에 수정해야 한다.
+
+**Delivers:** 실제 게임 패치 품질 향상. 저품질 항목 재번역 + 새 `translations.json` 익스포트.
+
+**Addresses:**
+- `BuildV3Sidecar()` dedup 로직 수정 (first-seen → highest-score)
+- `go-retranslate-select`로 후보 선택 (score < 7.0 기준)
+- 전체 batch_id 단위 재번역 실행
+- 인게임 검증
+
+**Avoids:**
+- Pitfall 1 (클러스터 일관성 파괴) — batch_id 단위 선택 강제
+- Pitfall 4 (사이드카 dedup 비일관성) — 익스포트 로직 먼저 수정 후 재번역
+
+**Research flag:** 표준 패턴 — 기존 파이프라인 실행 + 검증. 추가 연구 불필요.
+
+---
 
 ### Phase Ordering Rationale
 
-- **Phase 0 before everything:** The source hash bug is a silent data corruption issue. Running any translation before fixing it risks polluting the checkpoint DB with incorrect done-state records.
-- **Phase 1 before Phase 2:** Block boundaries must be validated before translation begins. Wrong boundaries propagate silently and require full retranslation to fix.
-- **Phase 2 before Phase 3:** The formatter LLM needs `ko_raw` (translated, tag-free Korean) as input. It cannot run without Phase 2 output.
-- **Phase 3 before Phase 4 integration:** Pipeline integration requires all states to be defined and their workers to exist. Cannot wire the state machine until both translation and formatter commands exist.
-- **Phase 5 last:** Quality layer improvements require seeing actual translation output to know where they are needed. Plugin simplification requires a patch in the new block-level format to test against.
+- **프롬프트 구조가 먼저인 이유:** `BuildScriptPrompt()`의 구조가 브랜치 컨텍스트와 화자 프로필이 "착지"할 섹션을 제공. 구조 없이 데이터 주입 시 LLM이 무시하거나 혼동.
+- **화자 검증이 톤 프로필 전에 오는 이유:** `character_voices.json`을 만들어도 `isSpeakerTag` 오인식으로 잘못된 화자에 규칙이 적용되면 역효과. Allow-list가 데이터 품질 게이트.
+- **사이드카 수정이 재번역 전에 오는 이유:** 재번역 후 dedup 수정하면 일부 항목의 구버전 번역이 `entries[]`에 남는 상태가 발생. 수정이 먼저여야 한다.
+- **각 Phase가 검증 가능한 단위인 이유:** Phase 1 완료 → 소규모 재번역 A/B 테스트로 효과 측정 → Phase 2 진행 여부 결정. 이 검증 없이 Phase 2+3은 가치가 검증되지 않은 상태.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 1:** ChoicePoint flag bitfield semantics (`"flg"` field on `"*"` nodes) are not fully documented in the ink spec. Requires reading ink C# runtime source to decode all flag combinations correctly. Also: glue mechanics (`<>` in ink source compiles to what JSON structure?) needs spec verification.
-- **Phase 3:** Optimal tag extraction/injection protocol needs design before implementation. Should determine whether a tag registry (enumerate all ~50 unique patterns, restore deterministically) is better than LLM-based restoration for common patterns.
+- **Phase 2 (브랜치 컨텍스트):** ink knot-gate-choice 계층 구조에서 parent choice 텍스트 추출 SQL이 비자명함. `pipeline_items_v2` 스키마에서 실제로 gate와 choice가 어떻게 저장되었는지 재검토 필요. `GetPrevGateLines()` 기존 구현 방식 참고.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 0:** Straightforward SQL schema change and hash function swap. No unknowns.
-- **Phase 2:** Cluster translation prompt design is validated by v2 experiments. Standard Go LLM client patterns apply. No additional research needed.
-- **Phase 4:** Pipeline state machine extension follows established v1 patterns. Patch output format is unchanged from v1 (translations.json format is known and works).
-- **Phase 5:** Plugin chain simplification is a known change. Quality scoring reuses existing `go-evaluate` and `go-semantic-review` infrastructure.
+- **Phase 1 (프롬프트 재구조화 + CLI):** 기존 `lore.go`, `skill.go` 패턴을 직접 따름. 화자 allow-list는 SQL 한 줄. 재번역 CLI는 기존 store 메서드 조합.
+- **Phase 3 (재번역 실행):** 기존 파이프라인 워커 그대로 실행. 사이드카 수정은 정렬 키 변경으로 간단.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Building on validated v1 stack. No new external dependencies. All new components use Go stdlib + existing packages. |
-| Features | HIGH | Table stakes features directly validated by v1 failure analysis (99.7% tag failure rate, block boundary root cause). Quality layer features are well-understood but not validated by experiment yet. |
-| Architecture | HIGH | Component boundaries, data flow, and state machine design all derived from existing codebase analysis. 5-phase build order matches hard dependency graph. |
-| Pitfalls | HIGH | Pitfalls 1, 2, 3, 5, 6 are from direct v1 post-mortem. Pitfalls 4, 7, 8 are from ink spec analysis. No speculative pitfalls. |
+| Stack | HIGH | 직접 코드 검사 기반. `go.mod` 확인, 신규 의존성 불필요 확인. 버전 호환성 검증 완료 |
+| Features | HIGH | 기존 코드베이스 직접 분석. 기존 필드/상태/인프라 80% 확인 완료. 우선순위 명확 |
+| Architecture | HIGH | 모든 관련 패키지 직접 코드 분석. 인터페이스 경계, 데이터 플로우 검증 완료 |
+| Pitfalls | HIGH | 코드 분석 + v1.0 사후 분석 + ink 포맷 지식 기반. 7개 구체적 함정 식별 |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **ChoicePoint flag bitfield:** The `"flg"` field on ink JSON ChoicePoint nodes uses undocumented bit combinations. Must read ink C# runtime source (`Ink.Parsed.Choice`, `Ink.Runtime.ChoicePoint`) during Phase 1 planning to build a correct flag decoder. Without this, choice text vs. dialogue text vs. conditional text will be misclassified.
-
-- **Glue mechanics in compiled ink JSON:** Ink's glue `<>` operator (which prevents implicit newlines between text runs) compiles to an unknown JSON structure. This may affect block boundary detection in scenes that use glue. Verify against ink runtime spec before finalizing the tree walker.
-
-- **Content-type-specific prompt templates (non-dialogue):** Prompt templates for spells, UI labels, items, and system text are not yet designed. This is deferred to Phase 5 and does not block the core dialogue pipeline, but needs attention before claiming complete v2 coverage.
-
-- **Tag registry composition:** The claim that there are "fewer than 50 unique tag patterns" in the corpus is an estimate. Should enumerate all actual `<b>`, `<color>`, `<link>` patterns from the source corpus during Phase 3 to confirm whether deterministic restoration is viable.
+- **화자 커버리지 실제 규모:** `pipeline_items_v2`에서 `DISTINCT speaker` 실행하기 전까지 실제 coverage gap과 오인식 규모를 정확히 알 수 없음. Phase 1 착수 시 첫 번째 작업으로 이 쿼리 실행 필수.
+- **브랜치 구조 실제 분포:** ink 브랜치가 얼마나 깊게 중첩되는지(최대 depth)를 쿼리로 확인해야 컨텍스트 예산 설정 가능. `gate`, `choice` 컬럼 값 분포 분석 필요.
+- **재번역 후보 규모:** `score_final < 7.0` 조건의 실제 항목 수를 Phase 1 전에 확인해야 Phase 3 예상 LLM 시간 산정 가능.
+- **컨텍스트 인식 점수 방법론:** 현재 `BuildScorePrompt`는 격리 점수만 제공. 재번역 후보 선택의 정확도를 높이려면 "씬 컨텍스트 포함 채점" 방식이 필요하나, 이것이 기존 점수 체계와 얼마나 다른 결과를 낼지는 실험 전까지 불확실.
 
 ## Sources
 
-### Primary (HIGH confidence)
+### Primary (HIGH confidence — 직접 코드 분석)
 
-- Existing v1 codebase analysis (`Plugin.cs`, `CONCERNS.md`, `workflow/internal/`, `go.mod`) — component boundaries, pitfall root causes, stack validation
-- v2 experiment results (project memory `project_v2_pipeline_context.md`) — cluster translation line mapping (8/8, 16/16), tag restoration (4/4), validated by user
-- [Ink JSON Runtime Format Specification](https://github.com/inkle/ink/blob/master/Documentation/ink_JSON_runtime_format.md) — container structure, text entry format, choice/branch mechanics
-- [BepInEx Releases](https://github.com/bepinex/bepinex/releases) / [Bleeding Edge Builds](https://builds.bepinex.dev/projects/bepinex_be) — BepInEx 6 .NET 6 target confirmed
-- [Go encoding/json v2 status](https://go.dev/blog/jsonv2-exp) + [memory bug](https://github.com/golang/go/issues/75026) — confirmed not production-ready
+- `workflow/internal/translation/` (skill.go, prompts.go, batch_builder.go, normalized_input.go, types.go, lore.go) — 프롬프트 빌더, 기존 enrichment 패턴
+- `workflow/internal/clustertranslate/` (prompt.go, types.go, parser.go) — BuildScriptPrompt, ClusterTask
+- `workflow/internal/v2pipeline/` (worker.go, store.go, postgres_v2_schema.sql) — 파이프라인 상태 머신
+- `workflow/internal/contracts/v2pipeline.go` — V2PipelineStore 인터페이스
+- `workflow/internal/inkparse/parser.go` — isSpeakerTag 휴리스틱
+- `workflow/internal/v2pipeline/export.go` — BuildV3Sidecar dedup 로직
+- `workflow/internal/scorellm/prompt.go` — BuildScorePrompt 격리 채점
+- `projects/esoteric-ebb/context/v2_base_prompt.md` — 현재 프롬프트 구조, ability score 음성 가이드
+- `projects/esoteric-ebb/patch/tools/extract_assetripper_textasset.py` — infer_speaker_hint, flush_segment
+- Memory: `project_translation_quality.md` — 컨텍스트 품질 이슈 근원 기록
 
-### Secondary (MEDIUM confidence)
+### Secondary (MEDIUM confidence — 외부 자료)
 
-- [Dink Pipeline](https://wildwinter.medium.com/dink-a-dialogue-pipeline-for-ink-5020894752ee) — script-like format for ink dialogue, informs cluster prompt design
-- [LLM Structured Output for Translation](https://flounder.dev/posts/structured-output-for-translation/) — batch translation patterns with structured output
-- [Ink Localization Discussion #529](https://github.com/inkle/ink/issues/529) — real-world ink localization in 7 languages (community patterns)
-- [BallonsTranslator line count drift issue](https://github.com/dmMaze/BallonsTranslator/issues/861) — confirms LLM batch translation line count drift is a known problem
-- [Translator++ batch algorithm](https://dreamsavior.net/translator-ver-7-10-27-better-algorithm-for-local-llm/) — JSON cloaking approach for structured output
-
-### Tertiary (LOW confidence — needs validation during implementation)
-
-- Estimate of "fewer than 50 unique tag patterns" in corpus — verify by enumerating actual source data during Phase 3
-- Claim that ~40% of items carry rich-text tags — estimate from v1 data; verify after Phase 1 extraction completes
+- [Dink: A Dialogue Pipeline for Ink](https://wildwinter.medium.com/dink-a-dialogue-pipeline-for-ink-5020894752ee) — Ink speaker 메타데이터 추출 패턴
+- [Localizing Ink with Unity](https://johnnemann.medium.com/localizing-ink-with-unity-42a4cf3590f3) — Ink 로컬라이제이션 과제
+- [Ink WritingWithInk documentation](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md) — 공식 태그 문법, 브랜치 구조
+- [Game Localization QA Guide](https://www.transphere.com/guide-to-game-localization-quality-assurance/) — 품질 임계값 업계 관행
+- [AI Prompt Engineering for Localization 2024](https://custom.mt/ai-prompt-engineering-for-localization-2024-techniques/) — 로컬라이제이션 특화 프롬프트 패턴
 
 ---
-*Research completed: 2026-03-22*
+*Research completed: 2026-04-06*
 *Ready for roadmap: yes*

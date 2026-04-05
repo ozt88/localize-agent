@@ -1,174 +1,154 @@
-# Feature Research
+# Feature Research: Context-Aware Retranslation
 
-**Domain:** LLM-based game localization pipeline (Ink narrative engine, Korean target)
-**Researched:** 2026-03-22
-**Confidence:** HIGH
+**Domain:** Game localization pipeline quality improvement (Ink-based cRPG, Korean)
+**Researched:** 2026-04-06
+**Confidence:** HIGH (grounded in existing codebase analysis + domain research)
 
 ## Feature Landscape
 
-### Table Stakes (Pipeline Fails Without These)
+### Table Stakes (Must Have for v1.1 Quality Improvement)
 
-Features that are non-negotiable -- without them the v2 pipeline cannot produce a working Korean patch.
+Features without which v1.1 delivers no meaningful improvement over v1.0.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Ink JSON tree parser (dialogue block extraction) | v1's fundamental failure was splitting `"^text"` entries individually instead of merging them into the blocks the game engine actually renders. Parser must walk `root[-1]` knots, merge consecutive `"^"` entries, and preserve `g-N`/`c-N` branch structure. Without this, nothing downstream works. | HIGH | 286 TextAsset files, 71,787 contextual entries. Must handle gates, choices, glue markers, tags (`#speaker`, `#DC_check`). This is the hardest single component. |
-| Scene-unit cluster translation (LLM stage 1) | Context-preserving translation requires sending 10-30 lines of dialogue together as a "script" rather than individual strings. Experiments confirmed 8/8 perfect mapping with cluster approach vs. constant context loss with per-item translation. | MEDIUM | Uses gpt-5.4 via OpenCode. Tags stripped before sending. Output must be line-separable back to source IDs. Branch markers (BRANCH/OPTION) must survive round-trip. |
-| Tag restoration (LLM stage 2, formatter) | LLMs reliably mangle rich text tags (`<b>`, `<color=#hex>`, `<link="N">`) during translation. v1 had 99.7% of persist-skip failures caused by tag validation, not translation quality. Separating formatting from translation is the proven fix. | MEDIUM | Uses codex-mini. Only processes lines that had tags in source. Experiment showed 4/4 perfect tag count match. Must handle nested tags. |
-| Tag count validation (post-formatter check) | Final gate ensuring tag counts in translated output match source. Without this, bold/color leaks into subsequent dialogue lines in-game. v1's tag leakage was the most user-visible defect. | LOW | Already partially exists in v1 (`postprocess_validation.go`). v2 needs simpler version: count open/close tags, match to source counts. |
-| Content-type-aware batching | Different content types need different prompt formats and batch strategies. Dialogue needs script format (10-30 lines), UI labels need dictionary format (50-100), spells need structured cards (5-10). One-size-fits-all produces poor translations for non-dialogue content. | MEDIUM | 5 content types: dialogue/narration/reaction/choice, spells/tooltips, UI labels, item/quest descriptions, system/tutorial. Each needs its own prompt template and grouping logic. |
-| Source-to-ID mapping (line separation) | After cluster translation, each translated line must map back to its original source ID for patch generation. Misalignment here means wrong translations appear in wrong places. | MEDIUM | Cluster output is free-form script. Need deterministic line separation that handles Korean line-break differences from English. Branch structure markers help anchoring. |
-| Patch output generation (translations.json + textassets) | Must produce BepInEx TranslationLoader-compatible output: `translations.json` (source-to-target sidecar), `textassets/` (ink JSON with Korean inserted), `localizationtexts/` (CSV format). Without correct output format, the plugin cannot load translations. | MEDIUM | v1 format exists and works. v2 must generate same output structure but from dialogue-block-unit sources instead of fragment-unit sources. |
-| Plugin.cs matching logic update | v2 changes source unit from fragments to dialogue blocks. Plugin's fallback chain must be updated: direct match becomes primary, `TryTranslateTagSeparatedSegments` (v1's problem child) gets removed or demoted. Without this, correctly generated patches still won't match at runtime. | MEDIUM | C# code in BepInEx plugin. Matching chain has 7 levels; v2 should make level 1 (direct map) cover 95%+ of cases, simplifying the chain. |
-| DB-driven pipeline state (resumability) | 77,816 items cannot be translated in one session. Pipeline must track per-item state (`pending` -> `working` -> `done`/`failed`), support resume, handle crashes gracefully. | LOW | Already exists in v1 (`pipeline_items` table, lease-based claims). Reuse with v2-appropriate states. |
-| Source deduplication (source_raw check) | Explicit project constraint: never blindly INSERT items. Must check `source_raw` for existing entries before ingestion. Prevents duplicate translations and wasted LLM calls. | LOW | Existing pattern from v1. Simple EXISTS check before INSERT. |
+| Feature | Why Expected | Complexity | Pipeline Dependency | Notes |
+|---------|--------------|------------|---------------------|-------|
+| **Prompt audit & restructuring** | Current prompts already pass `speaker_hint`, `context_en`, `prev_en/next_en`, `lore_context`, `text_role` but rules are a flat numbered list (24 rules in `defaultStaticRules()`) appended inline. Restructuring into a clearer hierarchy directly improves every translation without new data extraction. | LOW | `skill.go`, `prompts.go`, `normalized_input.go` | Highest ROI, lowest risk. `v2_base_prompt.md` has detailed ability-score voice guides (wis/str/int/cha/dex/con with Korean examples) -- these are only in warmup context, not integrated into per-item prompts when `speaker_hint` matches an ability score. |
+| **Selective retranslation** | Without this, every quality improvement requires re-running 40K items. The pipeline already has `StatePendingRetranslate`, `ScoreFinal` per item, and threshold-based routing (`Config.Threshold`). Must expose score-based filtering to target only low-quality items. | LOW | `translationpipeline/types.go` (states exist), `PipelineItem.ScoreFinal`, existing retry package format in `go-esoteric-adapt-in` | Infrastructure 80% exists. Need: CLI to query items below score threshold + re-queue them as `pending_retranslate`. Retry package format already supports `retry_reason`, `existing_target`, `context_en`. |
+| **Speaker extraction improvement** | `speaker_hint` field exists throughout the pipeline (`translationTask`, `normalizedPromptInput`, `lineContext`, `checkpointPromptMeta`) but is partially populated. Ink JSON uses `#` tags for speaker names. `formatContextLine()` already prefixes `Speaker: text` in context when hint is present. Without reliable speaker info, tone consistency is impossible. | MEDIUM | `translator_package.json` generation (ink parser), `build_context_clusters.py`, `batch_builder.go` `formatContextLine()` | Esoteric Ebb uses ability score speakers (wis, str, int, cha, dex, con) + NPC names (Braxo, Snell, etc.). Must audit actual coverage gap in existing `translator_package.json` data. |
 
-### Differentiators (Quality Improvement Over v1)
+### Differentiators (Significant Quality Uplift)
 
-Features that elevate translation quality beyond "it works" to "it reads naturally."
+Features that meaningfully improve translation quality beyond baseline expectations.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Branch-aware translation context | Ink games have branching dialogue where tone, register, and vocabulary must stay consistent across branches. Sending branch structure (BRANCH/OPTION markers) to the translator LLM preserves narrative coherence that per-line translation destroys. | LOW | Already validated in experiment (Snell_Companion 16-line branch test). Minimal code cost -- just include branch markers in cluster script. |
-| Glossary/terminology consistency | Game-specific terms (character names, spell names, faction names, stat names like INTELLIGENCE/CHARISMA) must be translated consistently across 77K+ entries. Inconsistent terminology breaks immersion and confuses players. | MEDIUM | Inject glossary as LLM context/system prompt. Requires building term list from game data first. Korean gaming conventions exist for stat names (e.g., INTELLIGENCE -> "지능"). |
-| Register-appropriate choice text | v1 validation already catches polite register in choices (`하세요/합니다` endings). v2 should enforce this at the prompt level, not just validation. Player dialogue choices should use casual/direct register while NPC narration uses appropriate formality. | LOW | Prompt engineering in cluster translation templates. Content-type metadata already distinguishes choices from narration. |
-| Passthrough detection for non-translatable content | Some strings are code identifiers, variable references, or formulaic game mechanics (`.StatName>=5-`, `SPELL FireBolt-`) that should pass through unchanged. Detecting these saves LLM calls and prevents mangling. | LOW | v1 has `isLiteralPassthroughSource` and `passthroughControlRe`. Carry forward and extend for v2 source unit format. |
-| Structural token preservation ($var, {template}) | Game strings contain structural tokens (`$playerName`, `{statValue}`) that must survive translation intact. v1 has `tokenCompatible()` validation. v2 should separate this from tag handling for cleaner validation. | LOW | Existing v1 code handles this. Minimal changes needed for v2. |
-| Per-content-type LLM prompt optimization | Different content types benefit from different prompt strategies: dialogue benefits from "you are a script translator" framing, UI labels from "be terse, match character limits", items from "preserve game-mechanical accuracy." | MEDIUM | Requires 5 prompt templates. Can iterate after initial pipeline works. Not blocking for first pass. |
-| Translation quality scoring (post-pipeline) | v1 had evaluation pipeline with score threshold and retranslation loop. v2 should retain this for quality assurance but can defer to after initial full translation pass. | MEDIUM | Existing `go-evaluate` and `go-semantic-review` commands. Reuse infrastructure. |
-| Progress tracking and metrics | Visibility into 77K-item pipeline progress: items completed, failed, average latency, token usage. Essential for managing multi-day translation runs. | LOW | v1 has `MetricCollector` and JSONL trace. Reuse. |
+| Feature | Value Proposition | Complexity | Pipeline Dependency | Notes |
+|---------|-------------------|------------|---------------------|-------|
+| **Branch context injection** | Ink scripts use `c-N` (choice) branches within `g-N` gates. When a player picks option 2, subsequent dialogue is in a branch context. Currently, `ContextEN` is the chunk (10-30 lines from the same segment), and `chunkContext` groups lines, but the branch relationship (which choice leads to this dialogue) is flattened. Injecting "this follows player choosing X" gives the LLM crucial disambiguation context. | HIGH | Ink JSON tree structure (`g-N`/`c-N` gates), `chunkContext` in `types.go`, `chunkPromptLines()` in `batch_builder.go`, `ChoiceBlock` field already in `translationTask` | Requires tracing branch paths in ink tree. `translationTask.ChoiceBlock` and `checkpointPromptMeta.ChoiceBlockID` exist but are empty strings -- infrastructure is there but data is not populated. |
+| **Tone consistency profiles** | Same character sounds different across scenes because each batch is translated independently. A per-character "voice card" (speech register, typical sentence endings, personality keywords) injected into prompts ensures consistent characterization. | MEDIUM | `lore.go` pattern (term-bank matching), `skill.go` warmup, `v2_base_prompt.md` ability score voice guides | Ability score voices already have detailed Korean guides in `v2_base_prompt.md` (e.g., wis: "침착하고 달관한 어조, 짧은 사실 진술, 2인칭 관찰"). NPC voices need similar treatment. Can reuse `loreEntry` struct pattern -- a "character voice bank" alongside the lore termbank. |
+| **Continuity-aware prompt windows** | Current prev/next is 1 line each (`neighborPromptText()` with delta -1/+1). For quality, the LLM needs a sliding window of 3-5 surrounding lines with their Korean translations to maintain flow. `chunkContext` already groups lines -- expand to include translated neighbors. | MEDIUM | `batch_builder.go` `neighborPromptText()`, `chunkPromptLines()`, `prevKO`/`nextKO` fields in `translationTask` | Infrastructure exists but is underutilized. `prevKO`/`nextKO` are only populated when `UseCheckpointCurrent=true` or on retry. For retranslation, surrounding lines already have Korean in DB -- should always populate. |
 
-### Anti-Features (Deliberately NOT Building)
+### Anti-Features (Commonly Considered, Often Problematic)
+
+Features that seem valuable but would hurt more than help in this context.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real-time in-game translation (XUnity.AutoTranslator style) | Seems like the "modern" approach -- translate on-the-fly as player encounters text | Adds 6-8 second latency per dialogue line (LLM round-trip). Requires always-on LLM server during gameplay. Network dependency during play. Quality cannot be reviewed before player sees it. | Pre-translate all 77K entries offline, ship as static patch. Zero runtime latency. |
-| Web UI / dashboard for translation management | Visual interface for reviewing translations, managing pipeline state | Solo developer project. CLI + DB queries are faster for power users. Building UI is weeks of work that doesn't improve translation quality. | PostgreSQL queries + CLI status commands + JSONL trace logs. |
-| Multi-language support | "Why not support Japanese/Chinese/etc. too?" | Fundamentally different prompt engineering per target language. Korean-specific validation (register checking, Hangul detection). Scope explosion without user demand. | Korean-only. Architecture allows future languages but don't build the abstraction now. |
-| Automatic game version tracking | Auto-detect game updates and re-extract sources | Game version is pinned at 1.1.3. Over-engineering for a problem that doesn't exist yet. | Manual re-extraction if game updates (out of scope per PROJECT.md). |
-| Human-in-the-loop review workflow | Built-in review/approval interface for each translation | Solo project. Review happens by playing the game, not through a review tool. Adds workflow complexity without proportional quality gain for this project scale. | Spot-check by playing game sections. Use `go-semantic-review` for automated oddness detection. |
-| Incremental/delta translation | Only translate changed strings when source updates | Source is stable (game version 1.1.3). Full retranslation is the explicit v2 strategy. Delta translation adds complexity for source diffing that isn't needed. | Full retranslation of all 77,816 items. v1 results explicitly discarded. |
-| MT (machine translation) fallback (Google/DeepL) | Use cheaper MT for "easy" strings, LLM for hard ones | Consistency nightmare -- two different translation engines produce different tonal quality. Glossary/context handling differs. Debugging quality issues requires knowing which engine produced each line. | Single LLM (gpt-5.4) for all translation. codex-mini only for tag formatting, not translation. |
+| **Full scene retranslation** | "Just retranslate everything with better prompts" | 40K items at ~6-8s each = ~75 hours of LLM time. Most translations already good (avg score 90.7/100). Wastes compute and risks regressing good translations. | Selective retranslation: target items below score threshold (e.g., <85). Score data already exists in `ScoreFinal`. |
+| **Multi-pass consensus translation** | Generate N translations, pick best by scoring | 3x-5x cost multiplication. 2-stage architecture already provides quality control. Adding passes yields diminishing returns. | Invest in better single-pass prompts with richer context. Score LLM already validates output quality. |
+| **Character relationship graph** | Build full social graph of who knows whom for context | Over-engineering. Ink scripts don't encode relationships explicitly. Graph construction would require manual annotation of 286 TextAsset files. | Per-character voice cards + `scene_hint` (already populated) provide sufficient relationship context. |
+| **Automated tone detection via embedding similarity** | Use `sentence-transformers` to detect Korean tone drift | Tone is subjective and culturally loaded. Korean tone markers (honorifics, sentence endings like -요/-다/-네) don't map cleanly to multilingual embedding space. Existing `paraphrase-multilingual-MiniLM-L12-v2` model is too small for nuanced Korean tone. | Character voice cards with explicit Korean style guides + Score LLM with tone-checking criteria. |
+| **Score model retraining/fine-tuning** | Fine-tune score model on human quality judgments | No labeled dataset of human quality judgments exists. Creating one requires playing through the game systematically. Fine-tuning local models adds infrastructure complexity. | Improve score prompt with tone-specific criteria. Defer model changes until after v1.1 ships and in-game review happens. |
 
 ## Feature Dependencies
 
 ```
-[Ink JSON Tree Parser]
+[Prompt Audit & Restructuring]
     |
-    +--requires--> [Content-Type Classification]
-    |                  |
-    |                  +--feeds--> [Content-Type-Aware Batching]
-    |                                  |
-    |                                  +--feeds--> [Scene-Unit Cluster Translation]
-    |                                                  |
-    |                                                  +--requires--> [Source-to-ID Mapping]
-    |                                                  |                  |
-    |                                                  |                  +--feeds--> [Tag Restoration]
-    |                                                  |                                  |
-    |                                                  |                                  +--feeds--> [Tag Count Validation]
-    |                                                  |                                                  |
-    |                                                  +--feeds--> [Patch Output Generation]  <-----------+
-    |                                                                  |
-    |                                                                  +--feeds--> [Plugin.cs Matching Update]
+    +--enables--> [Tone Consistency Profiles]
+    |                 (voice cards injected via improved prompt structure)
     |
-    +--parallel--> [Glossary Building] --enhances--> [Cluster Translation]
-    +--parallel--> [Passthrough Detection] --filters--> [Cluster Translation]
+    +--enables--> [Branch Context Injection]
+    |                 (branch info needs a clear prompt section to land in)
+    |
+    +--enables--> [Continuity-Aware Prompt Windows]
+                      (expanded prev/next needs structured prompt layout)
 
-[DB Pipeline State] --enables--> [All translation stages] (resumability)
-[Source Deduplication] --gates--> [DB Pipeline State] (ingestion)
+[Speaker Extraction Improvement]
+    |
+    +--enables--> [Tone Consistency Profiles]
+    |                 (can't apply character voice if speaker unknown)
+    |
+    +--enables--> [Branch Context Injection]
+                      (speaker identity helps disambiguate branch context)
+
+[Selective Retranslation]
+    |
+    +--requires--> [Score Data in DB]  (ALREADY EXISTS: PipelineItem.ScoreFinal)
+    |
+    +--uses-----> [All prompt improvements above]
+                      (retranslation uses improved prompts)
+
+[Continuity-Aware Prompt Windows]
+    +--requires--> [Existing Korean translations in DB]  (ALREADY EXISTS: 35,030 done items)
 ```
 
 ### Dependency Notes
 
-- **Ink JSON Tree Parser is the critical path.** Everything downstream depends on correctly parsed dialogue blocks. This must be built and validated first.
-- **Content-Type Classification feeds Batching.** Parser must emit content type metadata (dialogue vs. UI vs. spell etc.) so batching logic can group correctly.
-- **Tag Restoration depends on Source-to-ID Mapping.** Must know which translated lines had tags in their source to know which lines to send to the formatter LLM.
-- **Plugin.cs update depends on Patch Output Generation.** Can only test plugin matching after patches exist in the new format.
-- **Glossary and Passthrough Detection are parallel.** Both enhance cluster translation quality but neither blocks the core pipeline. Can be added incrementally.
-- **DB Pipeline State is infrastructure.** Largely reused from v1, enables all stages but doesn't block initial development/testing of individual stages.
+- **Prompt Audit enables everything else:** All other features inject data into prompts. If the 24-rule flat list in `defaultStaticRules()` is already confusing the LLM, adding more data makes it worse. Must restructure first.
+- **Speaker Extraction enables Tone Consistency:** You cannot enforce "Braxo sounds like Braxo" if you don't know which lines are Braxo's. Coverage gap in `speaker_hint` must be assessed and filled first.
+- **Selective Retranslation is the executor:** It consumes all other improvements. Without it, improved prompts require a full 75-hour re-run. With it, you target only the ~5-15% of items below the quality threshold.
+- **Continuity Windows require existing translations:** For retranslation, surrounding lines already have Korean translations. This makes retranslation inherently more context-rich than initial translation.
+- **Branch Context conflicts with fast iteration:** It requires ink tree traversal code which is complex. Should not block prompt improvements and selective retranslation.
 
 ## MVP Definition
 
-### Launch With (Core Pipeline)
+### Phase 1: Foundation (Prompt Audit + Speaker Coverage + Selective Retranslation)
 
-Minimum set to produce a working Korean patch from v2 architecture:
+Minimum viable quality improvement -- the smallest set that produces measurable score gains.
 
-- [ ] Ink JSON tree parser with dialogue block extraction -- the foundation everything depends on
-- [ ] Scene-unit cluster translation (gpt-5.4, script format) -- core translation capability
-- [ ] Source-to-ID line mapping -- connects cluster output back to individual entries
-- [ ] Tag restoration via codex-mini -- solves v1's critical tag leakage problem
-- [ ] Tag count validation -- final quality gate
-- [ ] Patch output generation (translations.json + textassets) -- produces installable patch
-- [ ] Plugin.cs matching update (remove TryTranslateTagSeparatedSegments) -- runtime compatibility
-- [ ] DB pipeline state with resumability -- operational necessity for 77K items
-- [ ] Source deduplication -- project constraint
+- [ ] **Prompt audit & restructuring** -- Refactor `skill.go` `defaultStaticRules()` and `prompts.go` `buildBatchPrompt()` into hierarchical prompt with clear sections (context, voice, task, constraints). Integrate ability-score voice guides from `v2_base_prompt.md` into runtime prompts when `speaker_hint` matches an ability score, not just warmup.
+- [ ] **Speaker extraction coverage audit** -- Analyze `translator_package.json` to measure coverage gap. Count dialogue lines with vs. without `speaker_hint`. Parse ink JSON `#` tags more aggressively if needed. Target: >90% speaker attribution for dialogue-role lines.
+- [ ] **Selective retranslation MVP** -- CLI command or pipeline mode to query items by `ScoreFinal < threshold` + re-queue as `pending_retranslate`. Populate `prevKO`/`nextKO` from existing translations for retranslation items.
 
-### Add After Core Works (Quality Layer)
+### Phase 2: Context Enrichment (after Phase 1 validates gains)
 
-Features to add once the pipeline produces correct output end-to-end:
+- [ ] **Branch context injection** -- Extract parent choice text from ink tree path. Add `branch_context` field to `translationTask`. Inject "Player chose: X" into prompt context section.
+- [ ] **Tone consistency profiles** -- Build character voice bank JSON (reusing `loreEntry` pattern). Match by `speaker_hint`. Inject voice card into prompt when character detected.
+- [ ] **Continuity-aware prompt windows** -- Expand from 1 prev/next to 3-line window. Always populate Korean references from DB during retranslation runs.
 
-- [ ] Glossary/terminology injection -- after seeing first batch results and identifying inconsistencies
-- [ ] Content-type-specific prompt templates (beyond dialogue) -- after dialogue pipeline is proven
-- [ ] Register enforcement in prompts -- after reviewing choice text quality
-- [ ] Translation quality scoring/retranslation loop -- after full initial pass completes
-- [ ] Passthrough detection optimization -- after seeing which items waste LLM calls
+### Future Consideration (v1.2+)
 
-### Future Consideration (Post-v2)
-
-- [ ] Multi-game support abstraction -- only if a second game project starts
-- [ ] Game version delta tracking -- only if Esoteric Ebb releases an update
-- [ ] Automated in-game screenshot comparison -- valuable but high complexity
+- [ ] **Score LLM prompt improvement** -- Add tone-consistency and context-coherence criteria to scoring prompts. Defer because scoring changes invalidate existing ScoreFinal values.
+- [ ] **Cross-scene glossary expansion** -- `glossary.go` works for exact matches. May need fuzzy matching or expanded term list after reviewing retranslation results.
+- [ ] **Semantic review pipeline integration** -- `go-semantic-review` currently separate. Could feed its output directly into retranslation targets.
 
 ## Feature Prioritization Matrix
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Ink JSON tree parser | HIGH | HIGH | P1 |
-| Scene-unit cluster translation | HIGH | MEDIUM | P1 |
-| Source-to-ID mapping | HIGH | MEDIUM | P1 |
-| Tag restoration (formatter LLM) | HIGH | MEDIUM | P1 |
-| Tag count validation | HIGH | LOW | P1 |
-| Patch output generation | HIGH | MEDIUM | P1 |
-| Plugin.cs matching update | HIGH | MEDIUM | P1 |
-| DB pipeline state | HIGH | LOW | P1 |
-| Source deduplication | MEDIUM | LOW | P1 |
-| Content-type-aware batching | MEDIUM | MEDIUM | P1 |
-| Glossary/terminology consistency | MEDIUM | MEDIUM | P2 |
-| Branch-aware context | MEDIUM | LOW | P2 |
-| Register-appropriate choices | MEDIUM | LOW | P2 |
-| Per-content-type prompts | MEDIUM | MEDIUM | P2 |
-| Passthrough detection | LOW | LOW | P2 |
-| Quality scoring/retranslation | MEDIUM | MEDIUM | P2 |
-| Progress metrics | LOW | LOW | P2 |
-| Structural token preservation | MEDIUM | LOW | P2 |
+| Feature | User Value | Implementation Cost | Priority | Rationale |
+|---------|------------|---------------------|----------|-----------|
+| Prompt audit & restructuring | HIGH | LOW | **P1** | Highest ROI. Improves every retranslated item. No new data needed. |
+| Selective retranslation MVP | HIGH | LOW | **P1** | Pipeline states already exist. Without this, no way to apply improvements efficiently. |
+| Speaker extraction improvement | HIGH | MEDIUM | **P1** | Data quality gate for tone work. Must quantify gap before deciding effort. |
+| Tone consistency profiles | HIGH | MEDIUM | **P2** | Big quality win but requires speaker data + restructured prompts. |
+| Continuity-aware prompt windows | MEDIUM | MEDIUM | **P2** | Good for flow, infrastructure mostly exists. Less impactful than speaker/tone. |
+| Branch context injection | MEDIUM | HIGH | **P2** | Valuable for choice-heavy scenes but complex ink tree traversal. Affects subset of items. |
 
 **Priority key:**
-- P1: Must have for working pipeline (core v2 architecture)
-- P2: Should have, add after core pipeline produces correct output
-- P3: Not applicable for v2 scope (deferred items are in "Future Consideration")
+- P1: Foundation for v1.1 -- must ship first, other features build on these
+- P2: Quality enrichment -- add after P1 validates measurable gains
+- P3: Future (not listed) -- defer until v1.1 in-game review
 
-## Competitor/Reference Analysis
+## Existing Pipeline Capabilities Inventory
 
-| Feature | XUnity.AutoTranslator | Commercial TMS (Crowdin/Lokalise) | This Pipeline |
-|---------|----------------------|-----------------------------------|---------------|
-| Translation method | Real-time API calls during gameplay | Human + MT/LLM hybrid | Offline LLM batch (gpt-5.4) |
-| Context awareness | None (single string) | TM leverage, glossary | Scene-unit clusters with branch structure |
-| Tag handling | Passthrough (no translation of tagged content) | Platform-managed placeholders | 2-stage: strip for translation, restore with formatter LLM |
-| Quality assurance | None | Human review workflow | Automated tag validation + semantic scoring |
-| Ink support | Generic Unity string hooks | No Ink awareness | Native Ink JSON tree parsing |
-| Patch delivery | Runtime hook (latency) | Export files | Static patch (translations.json sidecar) |
-| Batch size | 1 string at a time | Varies | 10-30 lines per cluster (dialogue), 50-100 (UI) |
+What already exists, preventing wheel reinvention.
+
+| Capability | Location | Current State | Gap for v1.1 |
+|------------|----------|---------------|-------------|
+| Speaker hint field | `translationTask.SpeakerHint`, `normalizedPromptInput.SpeakerHint`, `lineContext.SpeakerHint` | Populated from `translator_package.json`. Used in `formatContextLine()` as `Speaker: text` prefix in context. | Coverage incomplete -- many dialogue lines have empty `speaker_hint`. |
+| Context window | `ContextEN`, `ContextLines` (chunk 10-30 lines), `PrevEN/NextEN` (1 line), `PrevKO/NextKO` | Chunk context for dialogue. Korean refs only populated on retry or `UseCheckpointCurrent`. | Need wider Korean window + always-populate for retranslation. |
+| Lore injection | `lore.go`, `esoteric_ebb_lore_termbank.json` | Term-bank matched by keyword. Up to `LoreMaxHints` per item. `formatLoreHints()` produces compact string. | Pattern reusable for character voice cards. |
+| Ability score voices | `v2_base_prompt.md` lines 29-56 | Detailed Korean voice guides: register, sentence patterns, example translations for each of 6 ability scores. | Only in warmup context. Not dynamically injected when `speaker_hint` is `wis`/`str`/`int`/`cha`/`dex`/`con`. |
+| Glossary | `glossary.go`, `matchedGlossaryEntries()` | Mandatory terminology enforcement with `translate`/`preserve` modes. | Working well. No change needed for v1.1. |
+| Score threshold | `translationpipeline.Config.Threshold` | `float64` field used during pipeline scoring for pass/fail. `PipelineItem.ScoreFinal` persisted per item. | Need CLI to query items below threshold + re-queue. |
+| Retranslation state machine | `StatePendingRetranslate`, `StateWorkingRetranslate` in `translationpipeline/types.go` | Full state transitions defined. Pipeline workers handle retranslation role. | Need to populate retranslation queue from score query. |
+| Retry package format | `retryPackageItem` in `go-esoteric-adapt-in` | Supports `retry_reason`, `existing_target`, `context_en`, `speaker_hint`, `top_candidates`. | Can serve as data format for selective retranslation input. |
+| Choice block ID | `translationTask.ChoiceBlock`, `checkpointPromptMeta.ChoiceBlockID` | Field exists in types. Present in pack_json. | Currently empty strings -- data not populated from ink tree. |
+| Fragment/structure hints | `deriveFragmentHints()`, `deriveStructureHints()` in `normalized_input.go` | Regex-based detection of action-quote, open-quote, definition patterns. | Working well for structural disambiguation. No change needed. |
+| Focused context | `buildFocusedContextEN()` in `normalized_input.go` | Wraps target line in `[[BODY_EN]]...[[/BODY_EN]]` markers within context. | Good pattern. Retain for v1.1. |
+| Text role classification | `effectiveTextProfile()`, `lineContext.TextRole` | `dialogue`, `narration`, `reaction`, `choice`, `ui_label`, `tooltip`, etc. | Robust classification. No change needed. |
+| Overlay/UI translation | `overlayStaticRules()`, `newOverlayTranslateSkill()` | Separate simplified rules for context-free UI text. | Correct separation. UI items should not be retranslation targets. |
 
 ## Sources
 
-- [Ink localization discussion (inkle/ink #98)](https://github.com/inkle/ink/issues/98) -- Ink is not designed for localization; text fragment stitching is a known problem
-- [Ink localization tips (inkle/ink #89)](https://github.com/inkle/ink/issues/89) -- Community approaches to Ink translation
-- [Ink Localisation Tool by wildwinter](https://github.com/wildwinter/Ink-Localiser) -- String extraction and ID assignment utility
-- [Gridly: AI translation in game localization](https://www.gridly.com/blog/ai-translation-game-localization/) -- Modern AI pipeline integration patterns
-- [XUnity.AutoTranslator](https://github.com/bbepis/XUnity.AutoTranslator) -- Reference for BepInEx-based translation approach
-- [Localization QA guide (LocalizeDirect)](https://www.localizedirect.com/posts/lqa-what-is-game-localization-testing) -- QA testing patterns for game localization
-- v1 codebase: `postprocess_validation.go`, `proposal_validation.go` -- Existing validation patterns carried forward
+- Codebase analysis: `workflow/internal/translation/` (skill.go, prompts.go, batch_builder.go, normalized_input.go, types.go, lore.go), `workflow/internal/translationpipeline/types.go`, `projects/esoteric-ebb/cmd/go-esoteric-adapt-in/main.go`, `projects/esoteric-ebb/tools/build_context_clusters.py`, `projects/esoteric-ebb/context/v2_base_prompt.md`
+- [Dink: A Dialogue Pipeline for Ink](https://wildwinter.medium.com/dink-a-dialogue-pipeline-for-ink-5020894752ee) -- Ink speaker metadata extraction patterns
+- [Ink Localisation Tool](https://wildwinter.medium.com/ink-localisation-tool-7e321f834794) -- Line-level ID tagging for Ink localization
+- [Localizing Ink with Unity](https://johnnemann.medium.com/localizing-ink-with-unity-42a4cf3590f3) -- Ink localization challenges
+- [Ink WritingWithInk documentation](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md) -- Official Ink tag syntax
+- [Ink issue #529: Shipped game with localisation](https://github.com/inkle/ink/issues/529) -- Real-world Ink localization experience
+- [Embracing AI in Localization 2025-2028 Roadmap](https://medium.com/@hastur/embracing-ai-in-localization-a-2025-2028-roadmap-a5e9c4cd67b0) -- Industry LLM localization direction
+- [Best LLM for Translation 2026](https://www.noviai.ai/models-prompts/best-llm-for-translation/) -- Model comparison for translation quality
+- [Game Localization QA Guide](https://www.transphere.com/guide-to-game-localization-quality-assurance/) -- Quality threshold practices in game localization
 
 ---
-*Feature research for: LLM-based Ink game localization pipeline (Esoteric Ebb Korean)*
-*Researched: 2026-03-22*
+*Feature research for: Context-aware retranslation quality improvement (v1.1)*
+*Researched: 2026-04-06*

@@ -1,143 +1,232 @@
-# Stack Research
+# Stack Research: Context-Aware Retranslation (v1.1)
 
-**Domain:** Ink JSON tree parsing, 2-stage LLM translation pipeline, BepInEx IL2CPP plugin optimization
-**Researched:** 2026-03-22
-**Confidence:** HIGH (building on proven v1 stack; new components use same languages/tools)
+**Domain:** Game translation pipeline quality improvement -- speaker extraction, branch context, tone consistency, prompt restructuring, selective retranslation
+**Researched:** 2026-04-06
+**Confidence:** HIGH
 
-## Existing Stack (Not Re-Researched)
+## Executive Assessment
 
-The v1 stack is validated and stays: Go 1.24, PostgreSQL (pgx/v5 5.7.6), Python 3.x, OpenCode server (gpt-5.4 / codex-mini), BepInEx 6 IL2CPP with Harmony. This document covers only the NEW components needed for v2.
+**No new external dependencies needed.** The v1.1 milestone is a data-enrichment and prompt-engineering project, not a technology-stack project. All five target features (speaker extraction, branch context, tone consistency, prompt improvement, selective retranslation) are implementable with the existing Go standard library, PostgreSQL, and OpenCode LLM backend.
 
-## Recommended Stack
+The existing codebase already has scaffolding for most of what v1.1 needs:
+- `speaker_hint` field exists in `itemMeta`, `translationTask`, `normalizedPromptInput`, and `translatorPackageLine` -- but is sparsely populated (~40% coverage)
+- `context_en` with scene context already flows through prompts via `normalizedBatchPromptPayload.Contexts`
+- `semanticreview` package already has direct scoring infrastructure (0-100 scale, `directScoreResult`)
+- `lore.go` and `glossary.go` demonstrate the exact pattern for context enrichment: load file -> match entries -> inject into prompt
+- Retry package format and `go-esoteric-adapt-in` already support selective retranslation input
 
-### Core Technologies
+The work is: (1) better data extraction from ink JSON, (2) richer data structures in the pipeline, (3) better prompt construction, (4) a selection/scoring pass before retranslation.
 
-| Technology | Version | Purpose | Why Recommended | Confidence |
-|------------|---------|---------|-----------------|------------|
-| Go `encoding/json` (v1, stdlib) | Go 1.24 | Ink JSON tree parsing into `map[string]any` | Ink JSON is deeply nested with heterogeneous types (arrays, strings, objects, numbers). No Go struct can model this -- you need `json.Unmarshal` into `map[string]any` and recursive tree walking. stdlib is battle-tested and already used in 47 files across the codebase. Do NOT use encoding/json/v2 (experimental, still under working group review, memory allocation bugs reported). | HIGH |
-| Go `encoding/json` (v1, stdlib) | Go 1.24 | LLM response parsing (cluster translation output, formatter output) | Consistent with existing `platform/llm_client.go` patterns. Structured JSON responses from gpt-5.4 and codex-mini are simple flat objects, no need for streaming or high-performance parsers. | HIGH |
-| C# `System.Text.Json` | .NET 6.0 | Plugin.cs translation map loading, matching logic | Already used in Plugin.cs (line 4: `using System.Text.Json`). Stays. No Newtonsoft.Json needed -- BepInEx IL2CPP net6.0 ships with System.Text.Json in the runtime. | HIGH |
+## Recommended Stack (Additions Only)
 
-### Ink JSON Tree Parser (New Go Package)
+### Core Technologies -- NO CHANGES
 
-| Component | Approach | Why | Confidence |
-|-----------|----------|-----|------------|
-| Tree walker | Recursive `walkContainer(path string, container []any)` | Ink JSON containers are arrays where the last element is either null or a metadata dict with named sub-containers. This maps perfectly to recursive descent over `[]any`. Each knot in `root[-1]` is a named container = one scene. | HIGH |
-| Text block assembly | Concatenate consecutive `"^text"` strings until hitting a control command, newline, or container boundary | This is the v2 fix: v1 split on every `"^"` entry, but the game engine concatenates them into dialogue blocks. The ink runtime format spec confirms text entries are sequential within containers and get concatenated at runtime. | HIGH |
-| Branch structure preservation | Track `g-N` (gather) and `c-N` (choice) container names in path | Ink spec: choices are `ChoicePoint` objects with `"*"` key and `"flg"` flags. Gathers (`g-N`) and choices (`c-N`) create the branching tree. Path tracking (e.g., `TS_Snell_Meeting/g-2/c-4`) preserves scene structure for cluster translation. | HIGH |
-| Tag extraction | Collect `"#speaker:X"`, `"#DC:X"` strings following text blocks | Tags appear as `"#"` prefixed strings in containers, after text content. These provide metadata (speaker, difficulty checks) needed for translation context. | HIGH |
-| Output format | `[]DialogueBlock{Path, SourceRaw, Tags, BranchDepth}` | Each block = one game rendering unit. `SourceRaw` is the concatenated text the game will send to the plugin for matching. This is the fundamental unit for both translation source and plugin matching. | HIGH |
+| Technology | Version | Status | Notes |
+|------------|---------|--------|-------|
+| Go | 1.24.0 | Keep | All new logic is pure Go |
+| PostgreSQL | 17 | Keep | Add columns to pipeline state, no migration tool needed |
+| OpenCode (gpt-5.4) | Current | Keep | Translation + scoring LLM |
+| OpenCode (codex-mini) | Current | Keep | Tag restoration, unchanged |
+| Python 3.x | Current | Keep | Only for ink JSON extraction script enhancements |
 
-### 2-Stage LLM Translation Pipeline (New Go Commands)
+### New Go Packages -- NONE
 
-| Component | Approach | Why | Confidence |
-|-----------|----------|-----|------------|
-| Stage 1: Cluster translator | Send 10-30 line scene scripts to gpt-5.4, tags stripped, script format | Experiment validated: 8/8 perfect mapping on scene script, 16/16 on branched dialogue. Script format preserves context and branch structure. Tags removed to prevent LLM corruption (v1's core failure mode). | HIGH |
-| Stage 1: Response parsing | Numbered line format (`1. Korean text`), parsed back to source block IDs | Simpler than JSON output for creative translation. Line-by-line mapping verified in experiments. Go string splitting is trivial. | HIGH |
-| Stage 2: Tag formatter | Send only tag-bearing lines to codex-mini with original tags + Korean translation | Experiment validated: 4/4 perfect tag count match. codex-mini is fast/cheap, perfect for mechanical tag insertion. Only ~15-20% of lines need tags, so this stage processes a fraction of total volume. | HIGH |
-| Stage 2: Validation | Count tag pairs in output vs. source; reject on mismatch | Tag count validation is the only check needed (experiment proved tag structure is preserved when count matches). No complex XML/HTML parsing required. | HIGH |
-| Batch orchestration | Extend existing `go-translation-pipeline` pattern | v1 already has `translationpipeline/run.go` with checkpoint management, retry logic, PostgreSQL state tracking. v2 adds a new pipeline command reusing the same `platform` and `contracts` packages. | HIGH |
-| Content-type routing | Switch input format by content type (script/card/dictionary/document) | 5 content types identified: dialogue (script), spells (structured card), UI (dictionary), items (card+context), system (document). Each gets its own prompt template but uses the same 2-stage pipeline. | MEDIUM |
+No new `go.mod` dependencies required. Rationale per feature:
 
-### BepInEx Plugin Optimization (C# Changes)
+| Feature | Implementation With | Why No External Dep |
+|---------|--------------------|--------------------|
+| Speaker extraction | `regexp`, `strings`, `encoding/json` (stdlib) | Ink tag parsing is pattern matching on known `#tag` tokens; `infer_speaker_hint()` in Python extractor already does this, Go port follows same logic |
+| Branch context tracking | `encoding/json` tree traversal (stdlib) | Ink JSON is a tree with `c-N` choice branches; traversal is recursive `map[string]any` walking, already proven in the v2 ink parser |
+| Tone consistency | Existing `lore.go` load-match-inject pattern | Tone profiles are a static JSON file matched by speaker name; identical pattern to glossary/lore enrichment |
+| Prompt restructuring | `strings`, `fmt` (stdlib) | Modifying `buildBatchPrompt()` and `normalizePromptInput()` -- pure string construction |
+| Selective retranslation | Existing `semanticreview.DirectScorer` | `directScoreResult` with `CurrentScore`/`FreshScore` and `ReasonTags` already does 0-100 quality scoring |
 
-| Component | Approach | Why | Confidence |
-|-----------|----------|-----|------------|
-| Target framework | .NET 6.0 (`net6.0` in csproj) | Already configured. BepInEx 6 bleeding edge (be.753+) uses .NET 6 for IL2CPP. No change needed. | HIGH |
-| Harmony patches | HarmonyX (bundled with BepInEx 6) | Already in use via `0Harmony.dll` reference. Harmony patches intercept Unity text rendering methods. No version change needed. | HIGH |
-| Matching chain simplification | Remove `TryTranslateTagSeparatedSegments`, strengthen direct matching | v2 produces dialogue-block-level sources that match what the game sends. The segment fallback that caused tag leaks becomes unnecessary. Keep: TranslationMap direct, Decorated, Normalized, Contextual, RuntimeLexicon. Remove: TagSeparatedSegments. | HIGH |
-| Dictionary structure | `Dictionary<string, string>` with `StringComparer.Ordinal` | Already used. Ordinal comparison is correct for exact source matching. v2 blocks are complete dialogue strings, so exact matching hit rate should be much higher than v1. | HIGH |
+### Supporting Data Files (NEW)
 
-### Supporting Libraries
+| File | Format | Purpose | Created By |
+|------|--------|---------|-----------|
+| `speaker_profiles.json` | `{"SpeakerName": {"tone": "...", "speech_level": "...", "style_notes": "..."}}` | Per-character translation style guide for tone consistency | Manual curation + LLM-assisted generation from dialogue samples |
+| `branch_context_index.json` | `{"segment_id": {"parent_choice_en": "...", "branch_depth": N}}` | Pre-computed choice-branch ancestry for each segment | Enhancement to `extract_assetripper_textasset.py` |
+| `retranslation_candidates.json` | `[{"id": "...", "score": N, "reason_tags": [...]}]` | Output of scoring pass, input to selective retranslation | `go-semantic-review --mode direct-score` |
 
-| Library | Version | Purpose | When to Use | Confidence |
-|---------|---------|---------|-------------|------------|
-| `github.com/jackc/pgx/v5` | 5.7.6 | PostgreSQL driver for pipeline state | Already in go.mod. Used for translation checkpoints, source item storage, batch tracking. No change. | HIGH |
-| `golang.org/x/sync` | 0.18.0 | `errgroup` for concurrent batch processing | Already indirect dep. Use for parallel LLM calls within rate limits (existing autoscaler manages RPM). | HIGH |
-| `modernc.org/sqlite` | 1.38.2 | Local checkpoint fallback | Already in go.mod. Keep as fallback for development/testing without PostgreSQL. | HIGH |
+## Integration Points with Existing Code
 
-## Installation
+### 1. Speaker Extraction (Python extractor enhancement)
 
-No new dependencies needed. v2 builds entirely on the existing Go module and C# project:
+**Where:** `projects/esoteric-ebb/patch/tools/extract_assetripper_textasset.py`
 
-```bash
-# Go: no new packages to install
-# The v2 commands will be new files under workflow/cmd/ using existing packages
+**Current state:** `infer_speaker_hint(tag_tokens)` (line 96) already extracts speaker from ink `#tag` tokens by matching `r"^[A-Z][A-Za-z0-9_'-]{2,}$"` against non-ignored tokens. Returns `None` for narration, system text, and lines without speaker tags.
 
-# C#: no new NuGet packages
-# Plugin.cs modifications use only System.Text.Json and BepInEx APIs already referenced
+**What to enhance:**
+- **Speaker propagation:** Carry speaker across consecutive lines in same segment (ink convention: speaker tag appears once, applies until next speaker tag or segment boundary)
+- **Reply speaker extraction:** Parse `reply` tag to identify reactor vs. initiator
+- **Speaker census:** New output: list of all unique speakers with line counts, for manual `speaker_profiles.json` curation
+
+**Technology:** Python `re` + `collections.Counter`. Zero new packages.
+
+### 2. Branch Context (Python extractor + Go pipeline enhancement)
+
+**Where:** `extract_assetripper_textasset.py` (extraction) + `workflow/internal/translation/normalized_input.go` (prompt injection)
+
+**Current state:** `choice_block_id` and `block_kind` exist in segment metadata. `flush_segment()` (line 167) tracks `choice_block` kind. But the **parent choice text** (what player choice led to this branch) is not captured.
+
+**What to add:**
+- During ink JSON traversal, when entering a `c-N` container, record the choice text from the parent `ChoicePoint`
+- Store as `parent_choice_text_en` in segment metadata
+- New field in `translationTask`:
+
+```go
+// Addition to existing translationTask struct in types.go
+BranchContextEN string // "Player chose: [choice text]" or empty for main flow
+BranchDepth     int    // 0 = main flow, 1+ = nested in choice branch
 ```
+
+- In `normalizedBatchPromptItem`, add optional `branch_context` field
+- In prompt rules, add: "If `branch_context` is present, the dialogue follows the specified player choice"
+
+### 3. Tone Consistency (New data file + prompt enhancement)
+
+**Where:** `workflow/internal/translation/skill.go` (warmup rules) + new `speaker_profile.go` (follows `lore.go` pattern)
+
+**Current state:** `SpeakerHint` passes through to prompt as a bare name string. Rule 8 mentions using `current_ko`/`prev_ko`/`next_ko` for tone consistency, but the LLM has no character-specific style guidance.
+
+**Implementation (follows existing `lore.go` pattern exactly):**
+
+```go
+// speaker_profile.go -- mirrors lore.go structure
+type speakerProfile struct {
+    Tone        string `json:"tone"`         // e.g., "formal elderly scholar"
+    SpeechLevel string `json:"speech_level"` // e.g., "하십시오체", "해요체", "해체"
+    StyleNotes  string `json:"style_notes"`  // e.g., "archaic vocabulary, measured pacing"
+}
+
+// Load from JSON file, match by SpeakerHint, inject as prompt field
+// matchedSpeakerProfile(profiles, speakerHint) -> *speakerProfile
+```
+
+**Prompt injection:** New field `speaker_tone` in `normalizedPromptInput` and `normalizedBatchPromptItem`. New static rule: "If `speaker_tone` is present, use the specified speech level and match the described personality."
+
+### 4. Prompt Restructuring (Modify existing prompt builders)
+
+**Where:** `workflow/internal/translation/prompts.go`, `skill.go`, `normalized_input.go`
+
+**Current state:** `defaultStaticRules()` has 24 rules in a flat numbered list. `buildBatchPrompt()` concatenates everything into a single instruction block. Rules mix structural guidance (JSON format) with translation guidance (fragment handling) with context usage rules.
+
+**What to change:**
+- **Warmup restructure:** Group 24 rules into sections (OUTPUT FORMAT, CONTEXT USAGE, TRANSLATION STYLE, SPECIAL CASES) for better LLM comprehension
+- **Per-item enrichment:** Add `speaker_tone`, `branch_context` to normalized prompt items
+- **Reduce prompt noise:** Move verbose structural rules (fragment_pattern, structure_pattern) from every prompt into warmup-only context; keep only a brief reference in per-batch prompts
+- **Add continuity window:** Expand from prev/next 1 line to prev/next 2-3 lines when available (data already exists in segment context)
+
+**No new technology.** This is editing string construction in 3 existing files.
+
+### 5. Selective Retranslation (Existing infrastructure, new workflow)
+
+**Where:** `workflow/internal/semanticreview/` (scoring) + new CLI entry point
+
+**Current state:**
+- `go-semantic-review --mode direct-score` scores translations 0-100
+- `ReportItem` has `ReasonTags`: `semantic_drift`, `lexical_drift`, `closer_to_prev`, `closer_to_next`, `format_residue`
+- `retryPackageItem` format already supports enriched retranslation input
+- `go-esoteric-adapt-in` already ingests retry packages
+
+**What to add -- new CLI command `go-retranslation-selector`:**
+1. Run scoring pass (reuse `DirectScorer` from `semanticreview`)
+2. Filter by threshold (e.g., score < 75 or specific `ReasonTags`)
+3. Enrich candidates with speaker profile + branch context from new data files
+4. Output retry package compatible with `go-esoteric-adapt-in`
+5. Add `retranslation_reason` from `ReasonTags` to retry items for prompt injection
+
+**This is primarily a pipeline wiring exercise**, connecting existing `DirectScorer` output to existing retry package ingestion.
+
+## What NOT to Add
+
+| Avoid | Why | What to Do Instead |
+|-------|-----|-------------------|
+| External NLP libraries (spaCy, NLTK) | Ink scripts have explicit speaker tags (`#SpeakerName`); NLP-based entity extraction is overkill for structured source data | Parse existing `#tag` tokens in `extract_assetripper_textasset.py` |
+| Vector database (Pinecone, ChromaDB) | Fixed 40K item corpus with pre-computed segment context; RAG retrieval adds latency for marginal gain | Pre-computed segment context + branch ancestry from ink tree |
+| Separate embedding model for tone analysis | `semanticreview` already has `paraphrase-multilingual-MiniLM-L12-v2`; tone is better handled by explicit style profiles than embedding distance | Curate `speaker_profiles.json` with explicit tone descriptions |
+| Schema migration tool (golang-migrate, goose) | 2-3 column additions to one table; `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` is simpler | Hand-written ALTER TABLE statements |
+| Caching layer (Redis) | OpenCode server handles caching; pipeline is batch-oriented with checkpoint resumption | Existing checkpoint store |
+| Web UI for review | CLI pipeline philosophy is a project constraint | JSON export + `go-semantic-review` report |
+| Fine-tuned scoring model | gpt-5.4 already scores effectively in `DirectScorer`; no local fine-tuning infrastructure | Improve scoring prompts in `buildMinimalDirectScorePrompt()` |
+| LangChain / orchestration framework | Go pipeline already has retry, checkpoint, concurrency management | Existing `platform/llm_client.go` patterns |
 
 ## Alternatives Considered
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Ink JSON parsing | Go stdlib `encoding/json` into `map[string]any` | Third-party ink runtime (inkjs, godot-ink) | No Go ink runtime exists. JS/C# runtimes are full story players -- we only need to extract text blocks from the JSON tree, not execute ink logic. A custom tree walker is simpler and more precise for our extraction needs. |
-| Ink JSON parsing | Go stdlib `encoding/json` v1 | Go `encoding/json/v2` (experimental) | v2 is behind `GOEXPERIMENT=jsonv2` flag, still under active working group review (weekly meetings since Nov 2025), and has reported memory allocation bugs (issue #75026). Not production-ready. |
-| Ink JSON parsing | Custom Go tree walker | Ink-Localiser (Node.js tool) | Ink-Localiser works on raw `.ink` source files, not compiled JSON. We only have compiled ink JSON from the game. Also, it assigns IDs per text line, not per dialogue block -- same granularity problem as v1. |
-| LLM response format | Numbered lines for translation | JSON structured output | Creative translation benefits from free-form output. JSON schema constraints can make translations stilted. Numbered lines are trivial to parse and validated in experiments. |
-| LLM response format | Separate formatter stage | Single-stage with tags | v1 proved LLM corrupts tags (99.7% of persist-skip failures were format, not translation). 2-stage separation is the validated fix. |
-| High-perf JSON | Go stdlib | `goccy/go-json`, `jsoniter` | We parse ~286 TextAsset files once at pipeline start. Not a hot path. Stdlib correctness matters more than microsecond gains. |
-| Plugin matching | Simplified chain (5 strategies) | Keep all 7 strategies from v1 | `TagSeparatedSegments` is the root cause of tag leaks. `TryTranslateEmbedded` may still be useful but should be evaluated -- it was a workaround for v1's granularity problem. |
+| Category | Recommended | Alternative | Why Not Alternative |
+|----------|-------------|-------------|-------------------|
+| Speaker extraction | Enhance existing Python extractor | Rewrite extractor in Go | Python script already works for 286 files; this runs once per game version, not a hot path |
+| Tone profiles | Static JSON, manually curated | Fully LLM-generated profiles | Start manual for ~20 named characters; human review essential for Korean speech level (formality hierarchy is nuanced) |
+| Branch context | Pre-computed index file | Runtime ink tree traversal | Pre-computation = O(1) lookup at translation time; runtime traversal requires loading full ink JSON per batch |
+| Quality scoring | Existing `semanticreview.DirectScorer` | New dedicated scoring pipeline | DirectScorer already does 0-100 with current/fresh comparison; adding speaker/context fields to input is a small change |
+| Retranslation selection | Score threshold + reason tag filter | Human review of all 40K items | Scoring identifies ~2-5K candidates; human spot-checks the threshold boundary |
+| Prompt format | Sectioned warmup + lean per-item | Single monolithic prompt (current) | Sectioned format reduces cognitive load for LLM; 24 flat rules in current warmup likely causes rule drift |
 
-## What NOT to Use
+## DB Schema Additions
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `encoding/json/v2` (Go experimental) | Still under working group review, memory bugs reported, not covered by Go 1 compatibility promise | `encoding/json` v1 -- stable, well-understood, used throughout codebase |
-| Ink-Localiser / Dink / any `.ink`-source tool | Works on raw ink source files, not compiled JSON; wrong granularity (per-line, not per-block) | Custom Go tree walker on compiled ink JSON |
-| `goccy/go-json` or `jsoniter` | Adds dependency for marginal perf gain on non-hot-path; risks subtle behavioral differences | `encoding/json` stdlib |
-| Newtonsoft.Json in Plugin.cs | Would add a DLL dependency to the BepInEx plugin; `System.Text.Json` already available in net6.0 runtime | `System.Text.Json` (already in use) |
-| LangChain / Python LLM orchestration | Adds Python dependency to the translation pipeline; Go already has working LLM client with retry/checkpoint | Existing Go `platform/llm_client.go` with OpenCode backend |
-| Single-stage LLM translation with tags | 99.7% of v1 persist-skip failures were tag corruption. LLMs reliably corrupt XML-like tags in creative translation context | 2-stage: strip tags, translate, then restore tags with codex-mini |
+```sql
+-- Enrich existing pipeline state for query/filter
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS speaker_hint TEXT DEFAULT '';
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS branch_depth INTEGER DEFAULT 0;
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS quality_score REAL DEFAULT -1;
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS retranslation_reason TEXT DEFAULT '';
 
-## Stack Patterns by Variant
+-- Index for selective retranslation queries
+CREATE INDEX IF NOT EXISTS idx_quality_score
+  ON pipeline_items_v2(quality_score)
+  WHERE quality_score >= 0;
+```
 
-**For dialogue content (71,787 entries):**
-- Parse ink JSON tree into dialogue blocks (Go tree walker)
-- Cluster by scene/knot (10-30 lines per batch)
-- Stage 1: gpt-5.4 script-format translation
-- Stage 2: codex-mini tag restoration (tag-bearing lines only)
-- Output: PostgreSQL items with block-level source_raw
+## Installation
 
-**For non-dialogue content (UI, items, spells, system):**
-- Same 2-stage pipeline but different input formats
-- UI labels: dictionary format, 50-100 per batch
-- Spells/items: structured card format, 5-10 per batch
-- System text: document format, full sections
-- These use existing v1 ingestion paths (already in PostgreSQL)
+```bash
+# No new Go dependencies -- go.mod unchanged
+# No new Python packages -- stdlib only
 
-**For plugin matching (C#):**
-- v2 sources are block-level = direct match should hit ~90%+ (vs. v1's fallback-heavy matching)
-- Simplified chain: Direct -> Decorated -> Normalized -> Contextual -> RuntimeLexicon
-- Remove TagSeparatedSegments entirely (the v1 problem source)
+# New data files to create:
+# 1. Run enhanced extractor to get speaker census
+python projects/esoteric-ebb/patch/tools/extract_assetripper_textasset.py
+# -> produces speaker list + branch context index
+
+# 2. Manually curate speaker_profiles.json from speaker census
+# -> ~20 named characters with tone/speech_level/style_notes
+
+# 3. Score existing translations for retranslation candidates
+go run ./workflow/cmd/go-semantic-review --mode direct-score ...
+# -> produces retranslation_candidates.json
+```
 
 ## Version Compatibility
 
-| Component | Compatible With | Notes |
-|-----------|-----------------|-------|
-| Go 1.24 + `encoding/json` v1 | All existing workflow packages | No compatibility concerns; same version as v1 |
-| BepInEx 6 (be.753+) | .NET 6.0, HarmonyX, IL2CPP | Already validated with Esoteric Ebb 1.1.3 |
-| `System.Text.Json` | .NET 6.0 (bundled) | No separate package needed; included in net6.0 runtime |
-| pgx/v5 5.7.6 | PostgreSQL 17 | Already in use and validated |
-| gpt-5.4 (OpenCode) | OpenAI-compatible API at 127.0.0.1:4112 | Cluster translation validated in experiments |
-| codex-mini (OpenCode) | OpenAI-compatible API at 127.0.0.1:4112 | Tag formatter validated in experiments |
+| Component | Current Version | v1.1 Compatible | Notes |
+|-----------|----------------|-----------------|-------|
+| Go 1.24.0 | 1.24.0 | Yes | No new language features needed |
+| pgx/v5 v5.7.6 | v5.7.6 | Yes | ALTER TABLE is standard SQL |
+| modernc.org/sqlite v1.38.2 | v1.38.2 | Yes | Checkpoint store unchanged |
+| OpenCode gpt-5.4 | Current | Yes | Prompt changes only |
+| OpenCode codex-mini | Current | Yes | Tag restoration unchanged |
+| Python 3.x | Current | Yes | Extractor script enhancement, stdlib only |
 
 ## Sources
 
-- [Ink JSON Runtime Format Specification](https://github.com/inkle/ink/blob/master/Documentation/ink_JSON_runtime_format.md) -- Container structure, text entry format, choice/branch mechanics (HIGH confidence)
-- [Ink Architecture Overview](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) -- Runtime design, container model (HIGH confidence)
-- [Ink-Localiser](https://github.com/wildwinter/Ink-Localiser) -- Existing tool for ink localization, confirmed it operates on raw .ink not compiled JSON (HIGH confidence)
-- [Dink Pipeline](https://wildwinter.medium.com/dink-a-dialogue-pipeline-for-ink-5020894752ee) -- Alternative ink dialogue pipeline, uses script-like format (MEDIUM confidence)
-- [Go encoding/json v2 status](https://go.dev/blog/jsonv2-exp) -- Experimental, working group review ongoing, not production-ready (HIGH confidence)
-- [Go encoding/json v2 memory bug](https://github.com/golang/go/issues/75026) -- Skyrocketing memory allocation reported (HIGH confidence)
-- [BepInEx Releases](https://github.com/bepinex/bepinex/releases) -- BepInEx 6 bleeding edge builds, .NET 6 target (HIGH confidence)
-- [BepInEx Bleeding Edge Builds](https://builds.bepinex.dev/projects/bepinex_be) -- Build be.753+ with Il2CppInterop 1.5.0 (HIGH confidence)
-- [LLM Structured Output for Translation](https://flounder.dev/posts/structured-output-for-translation/) -- Patterns for batch translation with structured output (MEDIUM confidence)
-- [Ink Localization Discussion #529](https://github.com/inkle/ink/issues/529) -- Shipped game with ink localization in 7 languages, real-world patterns (MEDIUM confidence)
-- Existing codebase analysis: `go.mod`, `Plugin.cs`, `workflow/internal/`, `workflow/cmd/` (HIGH confidence -- direct inspection)
-- v2 experiment results from project memory (HIGH confidence -- validated by user)
+- **Codebase analysis** (HIGH confidence -- direct inspection):
+  - `workflow/internal/translation/types.go` -- `translationTask`, `itemMeta` with existing `SpeakerHint`, `ContextEN` fields
+  - `workflow/internal/translation/prompts.go` -- `buildBatchPrompt()`, `buildSinglePrompt()`, 24-rule static rules
+  - `workflow/internal/translation/skill.go` -- `defaultStaticRules()`, warmup construction
+  - `workflow/internal/translation/normalized_input.go` -- prompt input normalization, batch payload structure
+  - `workflow/internal/translation/lore.go` -- load-match-inject enrichment pattern (model for speaker profiles)
+  - `workflow/internal/translation/glossary.go` -- term matching enrichment pattern
+  - `workflow/internal/semanticreview/direct_score.go` -- `DirectScorer`, 0-100 scoring, `directScoreResult`
+  - `workflow/internal/semanticreview/scoring.go` -- `ReportItem`, `ReasonTags`, alignment penalties
+  - `workflow/internal/contracts/evaluation.go` -- `EvalResult` with Fidelity/Fluency/Tone/Consistency scores
+  - `projects/esoteric-ebb/patch/tools/extract_assetripper_textasset.py` -- `infer_speaker_hint()`, `flush_segment()`, tag token parsing
+  - `projects/esoteric-ebb/cmd/go-esoteric-adapt-in/main.go` -- retry package ingestion, `enrichEntry()` pattern
+  - `go.mod` -- current dependency list (pgx/v5 5.7.6, sqlite v1.38.2)
+- **Memory files** (HIGH confidence -- user-validated context):
+  - `project_translation_quality.md` -- problem statement: translations don't match surrounding context
+  - `project_v2_pipeline_context.md` -- ink JSON structure, v2 architecture decisions
 
 ---
-*Stack research for: Ink JSON tree parsing + 2-stage LLM translation pipeline + BepInEx plugin optimization*
-*Researched: 2026-03-22*
+*Stack research for: Esoteric Ebb v1.1 context-aware retranslation*
+*Researched: 2026-04-06*
