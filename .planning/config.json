@@ -29,5 +29,6 @@
     "context_warnings": true
   },
   "mode": "yolo",
-  "granularity": "coarse"
+  "granularity": "coarse",
+  "response_language": "ko"
 }

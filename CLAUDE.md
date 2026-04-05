@@ -230,6 +230,25 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## Knowledge Compiler — 턴 수집
+
+매 응답의 마지막 단계로, 이번 턴에서 일어난 일을 `.knowledge/raw/` 에 기록한다.
+
+**규칙:**
+1. 응답 완료 직전에 Write 도구로 `.knowledge/raw/{YYYY-MM-DD}.md` 파일에 append (당일 파일이 없으면 생성)
+2. 형식: `### {HH:MM} — {한줄 제목}\n{2-3줄 요약}\n` (한국어)
+3. 요약에 포함할 것: 무엇을 했는지, 핵심 발견/결정, 변경된 파일
+4. 요약에 포함하지 않을 것: 코드 전문, 사용자 개인정보, 도구 호출 세부사항
+5. 사용자가 `/collect-off` 또는 "수집 중지"라고 하면 해당 세션 동안 수집 중단
+6. 이 지시는 GSD 워크플로 안팎 모두에서 항상 적용
+
+**예시:**
+```markdown
+### 22:04 — Stop Hook 발동 테스트
+- Stop Hook command 타입: 따옴표 이스케이프 수정 후 정상 발동 확인
+- Stop Hook prompt 타입: 턴 컨텍스트 접근 가능하나 검증 모드로 동작, 생성 불가
+- 결론: prompt 훅으로 자동 요약 수집 불가 → CLAUDE.md 행동 지시 방식으로 전환
+```
 
 
 <!-- GSD:profile-start -->
