@@ -76,30 +76,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROMPT-01 | — | Pending |
-| PROMPT-02 | — | Pending |
-| PROMPT-03 | — | Pending |
-| SPEAKER-01 | — | Pending |
-| SPEAKER-02 | — | Pending |
-| SPEAKER-03 | — | Pending |
-| TONE-01 | — | Pending |
-| TONE-02 | — | Pending |
-| BRANCH-01 | — | Pending |
-| BRANCH-02 | — | Pending |
-| BRANCH-03 | — | Pending |
-| CONT-01 | — | Pending |
-| CONT-02 | — | Pending |
-| RETRANS-01 | — | Pending |
-| RETRANS-02 | — | Pending |
-| RETRANS-03 | — | Pending |
-| RETRANS-04 | — | Pending |
-| RETRANS-05 | — | Pending |
+| PROMPT-01 | Phase 06 | Pending |
+| PROMPT-02 | Phase 06 | Pending |
+| PROMPT-03 | Phase 06 | Pending |
+| SPEAKER-01 | Phase 06 | Pending |
+| SPEAKER-02 | Phase 06 | Pending |
+| SPEAKER-03 | Phase 06 | Pending |
+| TONE-01 | Phase 07 | Pending |
+| TONE-02 | Phase 07 | Pending |
+| BRANCH-01 | Phase 07 | Pending |
+| BRANCH-02 | Phase 07 | Pending |
+| BRANCH-03 | Phase 07 | Pending |
+| CONT-01 | Phase 07 | Pending |
+| CONT-02 | Phase 07 | Pending |
+| RETRANS-01 | Phase 06 | Pending |
+| RETRANS-02 | Phase 06 | Pending |
+| RETRANS-03 | Phase 06 | Pending |
+| RETRANS-04 | Phase 08 | Pending |
+| RETRANS-05 | Phase 08 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- Mapped to phases: 18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-06*
-*Last updated: 2026-04-06 after initial definition*
+*Last updated: 2026-04-06 after roadmap creation*
