@@ -56,7 +56,11 @@ Plans:
   2. 분기 대화에서 부모 선택지 텍스트가 "Player chose: X" 형태로 프롬프트에 포함되며, 브랜치 깊이 1단계 + 토큰 예산 내로 제한된다
   3. neighborPromptText가 prev/next 3줄 슬라이딩 윈도우로 확장되고, 재번역 시 기존 한국어 번역이 prevKO/nextKO에 채워진다
   4. 소규모 A/B 테스트에서 컨텍스트 주입 후 번역 점수가 주입 전 대비 하락하지 않는다 (프롬프트 크기 회귀 없음)
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 07-01-PLAN.md — Voice card 인프라 + LLM 자동 생성 CLI + voice_cards.json 생성
+- [ ] 07-02-PLAN.md — inkparse ParentChoiceText + store GetNextLines/GetAdjacentKO + ClusterTask 확장
+- [ ] 07-03-PLAN.md — 프롬프트 통합 주입 + 토큰 예산 관리 + worker 조합 + A/B 테스트
 
 ### Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증
 **Goal**: 개선된 프롬프트와 컨텍스트로 저품질 항목을 실제 재번역하고, 게임에 적용하여 품질 향상을 확인
@@ -83,5 +87,5 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 04.2. 소스 정리 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 5. 미번역 커버리지 | v1.0 | 3/3 | Complete | 2026-03-29 |
 | 6. Foundation | v1.1 | 3/3 | Complete | 2026-04-06 |
-| 7. Context Enrichment | v1.1 | 0/? | Not started | - |
+| 7. Context Enrichment | v1.1 | 0/3 | Not started | - |
 | 8. Retranslation Execution | v1.1 | 0/? | Not started | - |
