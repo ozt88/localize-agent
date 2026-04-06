@@ -349,6 +349,10 @@ func stripDCFCPrefix(text string) (string, []string) {
 // downstream translation prompts benefit more from having speaker context
 // (even occasionally wrong) than from missing it entirely.
 func isSpeakerTag(tag string) bool {
+	// Priority 1: allow-list match (if loaded)
+	if globalAllowList != nil && globalAllowList.IsAllowed(tag) {
+		return true
+	}
 	// DC/FC check tags
 	if strings.HasPrefix(tag, "DC") || strings.HasPrefix(tag, "FC") {
 		return false

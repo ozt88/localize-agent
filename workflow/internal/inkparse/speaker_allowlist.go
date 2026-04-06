@@ -47,6 +47,16 @@ func LoadSpeakerAllowList(path string) (*SpeakerAllowList, error) {
 	return &al, nil
 }
 
+// globalAllowList is the package-level allow-list used by isSpeakerTag.
+// Set via SetSpeakerAllowList at initialization time.
+var globalAllowList *SpeakerAllowList
+
+// SetSpeakerAllowList sets (or clears) the global speaker allow-list
+// used by isSpeakerTag as a priority-1 check. Pass nil to disable.
+func SetSpeakerAllowList(al *SpeakerAllowList) {
+	globalAllowList = al
+}
+
 // IsAllowed returns true if the speaker name is in the allow-list.
 // If the allow-list is nil or not loaded, returns true for backward
 // compatibility (no filtering applied).
