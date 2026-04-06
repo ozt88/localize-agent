@@ -41,7 +41,11 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   2. speaker_hint 커버리지가 대화 라인 대비 90% 이상이며, 검증된 화자 allow-list로 isSpeakerTag 오인식이 필터링된다
   3. ScoreFinal < threshold 기준으로 재번역 후보를 batch_id 단위로 선택하는 CLI가 동작하고, 선택된 항목의 원본 ko_formatted 스냅샷이 보존된다
   4. 프롬프트 토큰 예산이 프로파일링되어 Phase 07 컨텍스트 주입의 여유분이 확인된다
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 06-01-PLAN.md — v2StaticRules 4-tier 계층화 + per-batch voice guide 주입 + 토큰 프로파일링
+- [ ] 06-02-PLAN.md — 화자 커버리지 감사 + allow-list JSON 생성 + Go 필터 함수
+- [ ] 06-03-PLAN.md — 재번역 CLI + DB 스키마 확장 (retranslation_gen, snapshots, score 인덱스)
 
 ### Phase 07: Context Enrichment — 톤 프로필 + 분기 맥락 + 연속성 윈도우
 **Goal**: 씬 단위 번역 일관성 향상 — 캐릭터별 말투 유지, 선택지 분기 맥락 전달, 주변 대사 윈도우 확장으로 LLM이 문맥을 충분히 인지
@@ -78,6 +82,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 4.1. Plugin.cs v2 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 04.2. 소스 정리 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 5. 미번역 커버리지 | v1.0 | 3/3 | Complete | 2026-03-29 |
-| 6. Foundation | v1.1 | 0/? | Not started | - |
+| 6. Foundation | v1.1 | 0/3 | Planning complete | - |
 | 7. Context Enrichment | v1.1 | 0/? | Not started | - |
 | 8. Retranslation Execution | v1.1 | 0/? | Not started | - |
