@@ -326,6 +326,86 @@ func TestBuildScriptPrompt_PunctuationOnlyExcluded(t *testing.T) {
 	}
 }
 
+func TestBuildVoiceSection_WisSpeaker(t *testing.T) {
+	section := buildVoiceSection([]string{"wis"})
+	if !strings.Contains(section, "침착하고 달관한") {
+		t.Errorf("wis voice guide missing, got: %s", section)
+	}
+}
+
+func TestBuildVoiceSection_StrSpeaker(t *testing.T) {
+	section := buildVoiceSection([]string{"str"})
+	if !strings.Contains(section, "직선적이고 단순한") {
+		t.Errorf("str voice guide missing, got: %s", section)
+	}
+}
+
+func TestBuildVoiceSection_NonAbilitySpeaker(t *testing.T) {
+	section := buildVoiceSection([]string{"Braxo"})
+	if section != "" {
+		t.Errorf("non-ability speaker should produce empty section, got: %s", section)
+	}
+}
+
+func TestBuildVoiceSection_MultipleAbilities(t *testing.T) {
+	section := buildVoiceSection([]string{"wis", "cha", "wis"})
+	if !strings.Contains(section, "침착하고 달관한") {
+		t.Error("missing wis guide")
+	}
+	if !strings.Contains(section, "설득력 있고 감정이 풍부한") {
+		t.Error("missing cha guide")
+	}
+	// No duplicates
+	if strings.Count(section, "wis") != 1 {
+		t.Error("wis should appear only once (dedup)")
+	}
+}
+
+func TestBuildScriptPrompt_VoiceInjection(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "You sense something.", Speaker: "wis"},
+			},
+		},
+	}
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, "침착하고 달관한") {
+		t.Errorf("prompt should contain wis voice guide, got:\n%s", prompt)
+	}
+}
+
+func TestEstimateTokens(t *testing.T) {
+	// "hello" = 5 ASCII chars, 5/4 = 1
+	if got := estimateTokens("hello"); got != 1 {
+		t.Errorf("estimateTokens(\"hello\") = %d, want 1", got)
+	}
+	// "안녕하세요" = 5 Korean runes, 5/2 = 2
+	if got := estimateTokens("안녕하세요"); got != 2 {
+		t.Errorf("estimateTokens(\"안녕하세요\") = %d, want 2", got)
+	}
+}
+
+func TestBuildScriptPrompt_EstimatedTokens(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there."},
+			},
+		},
+	}
+	_, meta := BuildScriptPrompt(task)
+	if meta.EstimatedTokens <= 0 {
+		t.Errorf("meta.EstimatedTokens should be > 0, got %d", meta.EstimatedTokens)
+	}
+}
+
 func TestBuildScriptPrompt_WithGlossary(t *testing.T) {
 	task := ClusterTask{
 		Batch: inkparse.Batch{

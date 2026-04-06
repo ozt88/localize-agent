@@ -79,6 +79,50 @@ func BuildBaseWarmup(systemPrompt, contextText, rulesText, glossaryWarmupJSON st
 	return strings.Join(parts, "\n\n")
 }
 
+// abilityScoreVoice maps ability-score speaker tags to Korean voice guide descriptions.
+// Source: projects/esoteric-ebb/context/v2_base_prompt.md
+var abilityScoreVoice = map[string]string{
+	"wis": "침착하고 달관한 어조, 내면의 관찰자",
+	"str": "직선적이고 단순한 문장, 의지와 육체",
+	"int": "논리적이고 분석적인 화법, 학구적 어조",
+	"cha": "설득력 있고 감정이 풍부한 말투, 사교꾼",
+	"dex": "간결하고 재치 있는 표현, 반사신경",
+	"con": "차분하고 인내심 있는 어조, 육체 감각",
+}
+
+// buildVoiceSection creates a per-batch voice guide reminder for ability-score speakers.
+// Returns empty string if no ability-score speakers are in the batch.
+func buildVoiceSection(speakers []string) string {
+	seen := make(map[string]bool)
+	var sb strings.Builder
+	for _, s := range speakers {
+		lower := strings.ToLower(strings.TrimSpace(s))
+		guide, ok := abilityScoreVoice[lower]
+		if ok && !seen[lower] {
+			seen[lower] = true
+			fmt.Fprintf(&sb, "- **%s**: %s\n", lower, guide)
+		}
+	}
+	if sb.Len() == 0 {
+		return ""
+	}
+	return "\n## Voice Guide (이 배치의 화자)\n" + sb.String()
+}
+
+// estimateTokens provides a rough token count approximation.
+// English: ~4 chars per token. Korean: ~2 runes per token.
+func estimateTokens(text string) int {
+	runes := []rune(text)
+	koreanCount := 0
+	for _, r := range runes {
+		if r >= 0xAC00 && r <= 0xD7AF {
+			koreanCount++
+		}
+	}
+	englishChars := len(runes) - koreanCount
+	return englishChars/4 + koreanCount/2
+}
+
 // BuildScriptPrompt builds the batch prompt for cluster translation.
 // Returns the prompt string and metadata for validation.
 func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
@@ -129,6 +173,18 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 
 	meta.LineCount = len(translatableBlocks)
 
+	// Inject per-batch voice guide for ability-score speakers
+	var speakers []string
+	for _, block := range translatableBlocks {
+		if block.Speaker != "" {
+			speakers = append(speakers, block.Speaker)
+		}
+	}
+	voiceSection := buildVoiceSection(speakers)
+	if voiceSection != "" {
+		prompt.WriteString(voiceSection)
+	}
+
 	// Append per-batch glossary if non-empty (D-11)
 	if task.GlossaryJSON != "" {
 		prompt.WriteString("\n## Batch Glossary\n")
@@ -144,7 +200,9 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 		prompt.WriteString("\n")
 	}
 
-	return prompt.String(), meta
+	promptStr := prompt.String()
+	meta.EstimatedTokens = estimateTokens(promptStr)
+	return promptStr, meta
 }
 
 // BuildContentSuffix returns type-specific translation instructions per D-04.

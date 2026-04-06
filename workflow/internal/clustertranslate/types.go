@@ -30,4 +30,5 @@ type PromptMeta struct {
 	LineCount        int      // number of translatable lines (excluding excluded)
 	ExcludedBlockIDs []string // block IDs excluded from prompt
 	BlockIDOrder     []string // ordered block IDs matching line numbers
+	EstimatedTokens  int      // approximate token count for budget profiling
 }
