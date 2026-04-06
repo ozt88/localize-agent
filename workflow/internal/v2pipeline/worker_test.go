@@ -248,6 +248,18 @@ func (s *fakeStore) GetPrevGateLines(knot, currentGate string, limit int) ([]str
 
 func (s *fakeStore) Close() error { return nil }
 
+func (s *fakeStore) ScoreHistogram(bucketWidth float64) ([]contracts.ScoreBucket, error) {
+	return nil, nil
+}
+
+func (s *fakeStore) SelectRetranslationBatches(threshold float64, contentType string) ([]contracts.RetranslationCandidate, error) {
+	return nil, nil
+}
+
+func (s *fakeStore) ResetForRetranslation(batchID string, gen int) (int, error) {
+	return 0, nil
+}
+
 // TestTranslateWorkerHappyPath verifies claim -> translate -> mark translated.
 func TestTranslateWorkerHappyPath(t *testing.T) {
 	store := newFakeStore()

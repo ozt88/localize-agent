@@ -41,6 +41,21 @@ type V2PipelineItem struct {
 	AttemptLog        string  // JSON array of attempt records per D-16
 	ClaimedBy         string  // worker ID holding the lease
 	BatchID           string  // which Batch this block belongs to
+	RetranslationGen  int     // current retranslation generation (0 = original)
+}
+
+// ScoreBucket represents a histogram bucket for score_final distribution.
+type ScoreBucket struct {
+	LowerBound float64
+	Count      int
+}
+
+// RetranslationCandidate represents a batch containing items eligible for retranslation.
+type RetranslationCandidate struct {
+	BatchID   string
+	ItemCount int
+	MinScore  float64
+	AvgScore  float64
 }
 
 // V2PipelineStore defines the persistence interface for the v2 pipeline state machine.
@@ -98,6 +113,20 @@ type V2PipelineStore interface {
 
 	// GetItem retrieves a single pipeline item by ID.
 	GetItem(id string) (*V2PipelineItem, error)
+
+	// ScoreHistogram returns score_final distribution in buckets of given width.
+	// Only includes items in state=done.
+	ScoreHistogram(bucketWidth float64) ([]ScoreBucket, error)
+
+	// SelectRetranslationBatches returns batch_ids containing at least one item
+	// with score_final < threshold in state=done. If contentType is non-empty,
+	// filters by content_type.
+	SelectRetranslationBatches(threshold float64, contentType string) ([]RetranslationCandidate, error)
+
+	// ResetForRetranslation snapshots current translations and resets all items in a batch.
+	// State is set to "pending_translate" so existing TranslateWorker picks them up (D-10).
+	// Returns count of reset items.
+	ResetForRetranslation(batchID string, gen int) (int, error)
 
 	// Close releases database resources.
 	Close() error

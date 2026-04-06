@@ -30,3 +30,17 @@ CREATE INDEX IF NOT EXISTS idx_pv2_state ON pipeline_items_v2(state);
 CREATE INDEX IF NOT EXISTS idx_pv2_state_lease ON pipeline_items_v2(state, lease_until);
 CREATE INDEX IF NOT EXISTS idx_pv2_source_hash ON pipeline_items_v2(source_hash);
 CREATE INDEX IF NOT EXISTS idx_pv2_batch ON pipeline_items_v2(batch_id);
+
+-- Retranslation support (Phase 06)
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS retranslation_gen INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_pv2_score ON pipeline_items_v2(score_final) WHERE state = 'done';
+
+CREATE TABLE IF NOT EXISTS retranslation_snapshots (
+    id TEXT NOT NULL,
+    gen INTEGER NOT NULL,
+    ko_raw TEXT,
+    ko_formatted TEXT,
+    score_final REAL,
+    snapshot_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (id, gen)
+);

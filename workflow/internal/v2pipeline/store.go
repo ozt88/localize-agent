@@ -49,12 +49,24 @@ CREATE TABLE IF NOT EXISTS pipeline_items_v2 (
     claimed_at TEXT,
     lease_until TEXT,
     batch_id TEXT NOT NULL DEFAULT '',
+    retranslation_gen INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_pv2_state ON pipeline_items_v2(state);
 CREATE INDEX IF NOT EXISTS idx_pv2_state_lease ON pipeline_items_v2(state, lease_until);
 CREATE INDEX IF NOT EXISTS idx_pv2_source_hash ON pipeline_items_v2(source_hash);
 CREATE INDEX IF NOT EXISTS idx_pv2_batch ON pipeline_items_v2(batch_id);
+CREATE INDEX IF NOT EXISTS idx_pv2_score ON pipeline_items_v2(score_final);
+
+CREATE TABLE IF NOT EXISTS retranslation_snapshots (
+    id TEXT NOT NULL,
+    gen INTEGER NOT NULL,
+    ko_raw TEXT,
+    ko_formatted TEXT,
+    score_final REAL NOT NULL DEFAULT -1,
+    snapshot_at TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (id, gen)
+);
 `
 
 // Store implements contracts.V2PipelineStore for both PostgreSQL and SQLite backends.
@@ -232,7 +244,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			UPDATE pipeline_items_v2
 			SET state = $3, claimed_by = $4, claimed_at = $5, lease_until = $6, updated_at = $7
 			WHERE id IN (SELECT id FROM picked)
-			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id`, batchSize),
+			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen`, batchSize),
 			pendingState, nowVal, workingState, workerID, nowVal, leaseVal, nowVal,
 		)
 	} else {
@@ -289,7 +301,7 @@ func (s *Store) ClaimPending(pendingState, workingState, workerID string, batchS
 			readArgs[i] = id
 		}
 		rows, err = s.db.Query(fmt.Sprintf(`
-			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen
 			FROM pipeline_items_v2
 			WHERE id IN (%s)
 			ORDER BY batch_id, sort_index, id`, strings.Join(readPlaceholders, ",")),
@@ -356,7 +368,7 @@ func (s *Store) ClaimBatch(pendingState, workingState, workerID string, leaseSec
 			UPDATE pipeline_items_v2
 			SET state = $4, claimed_by = $5, claimed_at = $6, lease_until = $7, updated_at = $8
 			WHERE id IN (SELECT id FROM picked)
-			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id`,
+			RETURNING id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen`,
 			pendingState, batchID, nowVal, workingState, workerID, nowVal, leaseVal, nowVal,
 		)
 	} else {
@@ -372,7 +384,7 @@ func (s *Store) ClaimBatch(pendingState, workingState, workerID string, leaseSec
 			return "", nil, err
 		}
 		rows, err = s.db.Query(s.rebind(`
-			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+			SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen
 			FROM pipeline_items_v2
 			WHERE batch_id = ? AND claimed_by = ?
 			ORDER BY sort_index`),
@@ -612,7 +624,7 @@ func (s *Store) CountByState() (map[string]int, error) {
 // GetItem retrieves a single pipeline item by ID.
 func (s *Store) GetItem(id string) (*contracts.V2PipelineItem, error) {
 	row := s.db.QueryRow(s.rebind(`
-		SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id
+		SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate, source_raw, source_hash, has_tags, state, ko_raw, ko_formatted, translate_attempts, format_attempts, score_attempts, score_final, failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen
 		FROM pipeline_items_v2
 		WHERE id = ?`),
 		id,
@@ -634,7 +646,7 @@ func (s *Store) QueryDone() ([]contracts.V2PipelineItem, error) {
 		SELECT id, sort_index, source_file, knot, content_type, speaker, choice, gate,
 		       source_raw, source_hash, has_tags, state, ko_raw, ko_formatted,
 		       translate_attempts, format_attempts, score_attempts, score_final,
-		       failure_type, last_error, attempt_log, claimed_by, batch_id
+		       failure_type, last_error, attempt_log, claimed_by, batch_id, retranslation_gen
 		FROM pipeline_items_v2
 		WHERE state = ?
 		ORDER BY sort_index`),
@@ -658,6 +670,158 @@ func (s *Store) QueryDone() ([]contracts.V2PipelineItem, error) {
 	return items, rows.Err()
 }
 
+// ScoreHistogram returns score_final distribution in buckets of given width.
+// Only includes items in state=done.
+func (s *Store) ScoreHistogram(bucketWidth float64) ([]contracts.ScoreBucket, error) {
+	if bucketWidth <= 0 {
+		return nil, fmt.Errorf("bucket width must be positive")
+	}
+
+	var query string
+	if s.backend == platform.DBBackendPostgres {
+		query = `SELECT FLOOR(score_final / $1) * $1 AS bucket, COUNT(*) FROM pipeline_items_v2 WHERE state = $2 GROUP BY bucket ORDER BY bucket`
+	} else {
+		query = `SELECT CAST(score_final / ? AS INTEGER) * ? AS bucket, COUNT(*) FROM pipeline_items_v2 WHERE state = ? GROUP BY bucket ORDER BY bucket`
+	}
+
+	var rows *sql.Rows
+	var err error
+	if s.backend == platform.DBBackendPostgres {
+		rows, err = s.db.Query(query, bucketWidth, contracts.StateDone)
+	} else {
+		rows, err = s.db.Query(query, bucketWidth, bucketWidth, contracts.StateDone)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var buckets []contracts.ScoreBucket
+	for rows.Next() {
+		var b contracts.ScoreBucket
+		if err := rows.Scan(&b.LowerBound, &b.Count); err != nil {
+			return nil, err
+		}
+		buckets = append(buckets, b)
+	}
+	return buckets, rows.Err()
+}
+
+// SelectRetranslationBatches returns batch_ids containing at least one item
+// with score_final < threshold in state=done. If contentType is non-empty,
+// filters by content_type.
+func (s *Store) SelectRetranslationBatches(threshold float64, contentType string) ([]contracts.RetranslationCandidate, error) {
+	var query string
+	var args []interface{}
+
+	if contentType != "" {
+		query = s.rebind(`
+			SELECT batch_id, COUNT(*) AS item_count, MIN(score_final) AS min_score, AVG(score_final) AS avg_score
+			FROM pipeline_items_v2
+			WHERE state = ? AND content_type = ?
+			GROUP BY batch_id
+			HAVING MIN(score_final) < ?
+			ORDER BY min_score ASC`)
+		args = []interface{}{contracts.StateDone, contentType, threshold}
+	} else {
+		query = s.rebind(`
+			SELECT batch_id, COUNT(*) AS item_count, MIN(score_final) AS min_score, AVG(score_final) AS avg_score
+			FROM pipeline_items_v2
+			WHERE state = ?
+			GROUP BY batch_id
+			HAVING MIN(score_final) < ?
+			ORDER BY min_score ASC`)
+		args = []interface{}{contracts.StateDone, threshold}
+	}
+
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var candidates []contracts.RetranslationCandidate
+	for rows.Next() {
+		var c contracts.RetranslationCandidate
+		if err := rows.Scan(&c.BatchID, &c.ItemCount, &c.MinScore, &c.AvgScore); err != nil {
+			return nil, err
+		}
+		candidates = append(candidates, c)
+	}
+	return candidates, rows.Err()
+}
+
+// ResetForRetranslation snapshots current translations and resets all items in a batch.
+// State is set to "pending_translate" so existing TranslateWorker picks them up (D-10).
+// Returns count of reset items.
+func (s *Store) ResetForRetranslation(batchID string, gen int) (int, error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	// Step 1: Snapshot current translations into retranslation_snapshots.
+	now := s.nowValue()
+	if s.backend == platform.DBBackendPostgres {
+		_, err = tx.Exec(`
+			INSERT INTO retranslation_snapshots (id, gen, ko_raw, ko_formatted, score_final, snapshot_at)
+			SELECT id, $1, ko_raw, ko_formatted, score_final, $2
+			FROM pipeline_items_v2
+			WHERE batch_id = $3`,
+			gen, now, batchID,
+		)
+	} else {
+		_, err = tx.Exec(`
+			INSERT INTO retranslation_snapshots (id, gen, ko_raw, ko_formatted, score_final, snapshot_at)
+			SELECT id, ?, ko_raw, ko_formatted, score_final, ?
+			FROM pipeline_items_v2
+			WHERE batch_id = ?`,
+			gen, now, batchID,
+		)
+	}
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("snapshot retranslation: %w", err)
+	}
+
+	// Step 2: Reset items to pending_translate with cleared translation fields.
+	var result sql.Result
+	if s.backend == platform.DBBackendPostgres {
+		result, err = tx.Exec(`
+			UPDATE pipeline_items_v2
+			SET state = $1, ko_raw = NULL, ko_formatted = NULL, score_final = -1,
+			    failure_type = '', last_error = '',
+			    retranslation_gen = $2,
+			    claimed_by = '', claimed_at = NULL, lease_until = NULL,
+			    updated_at = $3
+			WHERE batch_id = $4`,
+			contracts.StatePendingTranslate, gen, now, batchID,
+		)
+	} else {
+		result, err = tx.Exec(`
+			UPDATE pipeline_items_v2
+			SET state = ?, ko_raw = NULL, ko_formatted = NULL, score_final = -1,
+			    failure_type = '', last_error = '',
+			    retranslation_gen = ?,
+			    claimed_by = '', claimed_at = NULL, lease_until = NULL,
+			    updated_at = ?
+			WHERE batch_id = ?`,
+			contracts.StatePendingTranslate, gen, now, batchID,
+		)
+	}
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("reset retranslation: %w", err)
+	}
+
+	affected, _ := result.RowsAffected()
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return int(affected), nil
+}
+
 // scanItem scans a row from sql.Rows into a V2PipelineItem.
 func (s *Store) scanItem(rows *sql.Rows) (contracts.V2PipelineItem, error) {
 	var item contracts.V2PipelineItem
@@ -671,7 +835,7 @@ func (s *Store) scanItem(rows *sql.Rows) (contracts.V2PipelineItem, error) {
 		&koRaw, &koFormatted,
 		&item.TranslateAttempts, &item.FormatAttempts, &item.ScoreAttempts,
 		&item.ScoreFinal, &item.FailureType, &item.LastError,
-		&attemptLog, &item.ClaimedBy, &item.BatchID,
+		&attemptLog, &item.ClaimedBy, &item.BatchID, &item.RetranslationGen,
 	)
 	if err != nil {
 		return item, err
@@ -702,7 +866,7 @@ func (s *Store) scanItemRow(row *sql.Row) (contracts.V2PipelineItem, error) {
 		&koRaw, &koFormatted,
 		&item.TranslateAttempts, &item.FormatAttempts, &item.ScoreAttempts,
 		&item.ScoreFinal, &item.FailureType, &item.LastError,
-		&attemptLog, &item.ClaimedBy, &item.BatchID,
+		&attemptLog, &item.ClaimedBy, &item.BatchID, &item.RetranslationGen,
 	)
 	if err != nil {
 		return item, err
