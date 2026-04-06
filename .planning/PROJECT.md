@@ -8,18 +8,7 @@ Esoteric Ebb(내러티브 cRPG, Ink 스크립트 기반)의 한국어 번역 파
 
 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
 
-## Current Milestone: v1.1 번역 품질 개선 — 맥락 기반 재번역
-
-**Goal:** 앞뒤 대사와 어울리지 않는 번역을 개선 — LLM에 전달하는 맥락(화자, 씬, 분기 구조, 톤) 구조를 개선하여 번역 일관성 확보
-
-**Target features:**
-- 화자(speaker) 정보 추출 — ink 스크립트에서 화자 태깅 패턴 분석 및 프롬프트 반영
-- 분기 문맥 전달 — 선택지 이후 달라지는 대화에 이전 선택 맥락 주입
-- 톤 일관성 — 같은 캐릭터의 말투가 씬마다 달라지는 문제 해결
-- 프롬프트 구조 감사 및 개선 — 현재 번역 프롬프트에 빠진 맥락 식별 + 보강
-- 선별 재번역 — 품질 스코어 기반으로 문제 있는 번역만 재번역 실행
-
-## Shipped (v1.0 — 2026-03-29)
+## Current State (v1.0 shipped 2026-03-29)
 
 - **파이프라인:** Go CLI 기반, PostgreSQL 상태 관리, OpenCode LLM 백엔드
 - **번역:** 35,030 done items → 75,204 sidecar entries + 77,205 contextual entries
@@ -45,13 +34,12 @@ Esoteric Ebb(내러티브 cRPG, Ink 스크립트 기반)의 한국어 번역 파
 - ✓ 전량 재번역 실행 (40,067건+) — Phase 03
 - ✓ 게임 내 검증 (태그 깨짐 없음, 커버리지 99.8%) — Phase 05
 
-### Active (v1.1)
+### Active (next milestone)
 
-- [ ] 화자(speaker) 정보 추출 — ink 스크립트 화자 태깅 패턴 분석 및 프롬프트 반영
-- [ ] 분기 문맥 전달 — 선택지 이후 달라지는 대화에 이전 선택 맥락 주입
-- [ ] 톤 일관성 — 같은 캐릭터의 말투가 씬마다 달라지는 문제 해결
-- [ ] 프롬프트 구조 감사 및 개선 — 현재 번역 프롬프트에 빠진 맥락 식별 + 보강
-- [ ] 선별 재번역 — 품질 스코어 기반으로 문제 있는 번역만 재번역 실행
+- [ ] 번역 품질 개선 — 맥락 전달 방식 연구, 프롬프트 구조 변경
+- [ ] 고유명사 정책 통일 — Cleric→성직자 vs 원문 유지, 전체 일관성
+- [ ] 미번역 154건 해소 — DB 누락 대화/주문 설명 추가 번역
+- [ ] 선택적 재번역 — 품질 스코어 기반, 낮은 점수만 재번역
 
 ### Out of Scope
 
@@ -96,22 +84,5 @@ ink JSON tree
 | 빌드 스크립트 Go export 전환 | Python v1 빌드가 잘못된 데이터 사용 | ✓ Good — go-v2-export |
 | StripAllTmpTags + ContainsKorean | 복잡한 re-wrap 대신 단순 strip + passthrough | ✓ Good — 태그 손상 0 |
 
-## Evolution
-
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd-transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd-complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
-
 ---
-*Last updated: 2026-04-06 after v1.1 milestone start*
+*Last updated: 2026-03-29 after v1.0 milestone completion*

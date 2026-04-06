@@ -8,17 +8,43 @@ import (
 	"localize-agent/workflow/internal/inkparse"
 )
 
-// v2StaticRules are the translation rules for v2 numbered-line script format.
-var v2StaticRules = []string{
-	"1. Translate the following scene into Korean.",
-	"2. Maintain the [NN] line numbers exactly as given.",
-	"3. Do not add, remove, or merge lines.",
-	"4. Preserve speaker labels (e.g., 'Braxo:') in your output.",
-	"5. Preserve [CHOICE] markers in your output.",
-	"6. [CONTEXT] lines are for reference only -- do not translate them.",
-	"7. All proper nouns (names, places, spells, abilities) stay in English.",
-	"8. Match the tone and register of the original.",
-	"9. Output only the translated lines, no commentary.",
+// v2PromptSections organizes translation rules into 4 tiers for structured prompt assembly.
+type v2PromptSections struct {
+	Context     []string
+	Voice       []string
+	Task        []string
+	Constraints []string
+}
+
+// v2Sections is the 4-tier classification of the 9 translation rules.
+var v2Sections = v2PromptSections{
+	Context: []string{
+		"[CONTEXT] lines are for reference only -- do not translate them.",
+	},
+	Voice: []string{
+		"Match the tone and register of the original.",
+	},
+	Task: []string{
+		"Translate the following scene into Korean.",
+		"Preserve speaker labels (e.g., 'Braxo:') in your output.",
+		"Preserve [CHOICE] markers in your output.",
+	},
+	Constraints: []string{
+		"Maintain the [NN] line numbers exactly as given.",
+		"Do not add, remove, or merge lines.",
+		"All proper nouns (names, places, spells, abilities) stay in English.",
+		"Output only the translated lines, no commentary.",
+	},
+}
+
+// sectionsToRules flattens v2PromptSections into a flat []string for backward compatibility.
+func sectionsToRules(s v2PromptSections) []string {
+	var rules []string
+	rules = append(rules, s.Context...)
+	rules = append(rules, s.Voice...)
+	rules = append(rules, s.Task...)
+	rules = append(rules, s.Constraints...)
+	return rules
 }
 
 // BuildBaseWarmup assembles the warmup text following the v1 translateSkill.warmup() pattern.
@@ -32,8 +58,12 @@ func BuildBaseWarmup(systemPrompt, contextText, rulesText, glossaryWarmupJSON st
 		parts = append(parts, strings.TrimSpace(contextText))
 	}
 
-	// Translation rules section
-	rulesPart := "## Translation Rules\n" + strings.Join(v2StaticRules, "\n")
+	// Translation rules section — organized by 4-tier sections
+	rulesPart := "## Translation Rules\n\n"
+	rulesPart += "### Context\n" + strings.Join(v2Sections.Context, "\n") + "\n\n"
+	rulesPart += "### Voice\n" + strings.Join(v2Sections.Voice, "\n") + "\n\n"
+	rulesPart += "### Task\n" + strings.Join(v2Sections.Task, "\n") + "\n\n"
+	rulesPart += "### Constraints\n" + strings.Join(v2Sections.Constraints, "\n")
 	if rulesText != "" {
 		rulesPart += "\n" + strings.TrimSpace(rulesText)
 	}

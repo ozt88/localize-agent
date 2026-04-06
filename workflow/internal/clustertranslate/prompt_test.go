@@ -132,6 +132,129 @@ func TestBuildBaseWarmup(t *testing.T) {
 	}
 }
 
+func TestV2SectionsContext(t *testing.T) {
+	found := false
+	for _, r := range v2Sections.Context {
+		if strings.Contains(r, "[CONTEXT] lines are for reference only") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("v2Sections.Context should contain '[CONTEXT] lines are for reference only' rule")
+	}
+}
+
+func TestV2SectionsVoice(t *testing.T) {
+	found := false
+	for _, r := range v2Sections.Voice {
+		if strings.Contains(r, "Match the tone and register") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("v2Sections.Voice should contain 'Match the tone and register' rule")
+	}
+}
+
+func TestV2SectionsTask(t *testing.T) {
+	expected := []string{
+		"Translate the following scene",
+		"Preserve speaker labels",
+		"Preserve [CHOICE] markers",
+	}
+	for _, exp := range expected {
+		found := false
+		for _, r := range v2Sections.Task {
+			if strings.Contains(r, exp) {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("v2Sections.Task should contain rule with %q", exp)
+		}
+	}
+	if len(v2Sections.Task) != 3 {
+		t.Errorf("v2Sections.Task should have 3 rules, got %d", len(v2Sections.Task))
+	}
+}
+
+func TestV2SectionsConstraints(t *testing.T) {
+	expected := []string{
+		"Maintain the [NN] line numbers",
+		"Do not add, remove, or merge",
+		"All proper nouns",
+		"Output only",
+	}
+	for _, exp := range expected {
+		found := false
+		for _, r := range v2Sections.Constraints {
+			if strings.Contains(r, exp) {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("v2Sections.Constraints should contain rule with %q", exp)
+		}
+	}
+	if len(v2Sections.Constraints) != 4 {
+		t.Errorf("v2Sections.Constraints should have 4 rules, got %d", len(v2Sections.Constraints))
+	}
+}
+
+func TestBuildBaseWarmupSectionHeaders(t *testing.T) {
+	output := BuildBaseWarmup("system", "context", "", "")
+	headers := []string{"### Context", "### Voice", "### Task", "### Constraints"}
+	prevIdx := -1
+	for _, h := range headers {
+		idx := strings.Index(output, h)
+		if idx == -1 {
+			t.Errorf("BuildBaseWarmup output missing section header %q", h)
+			continue
+		}
+		if idx <= prevIdx {
+			t.Errorf("section header %q not in order (idx=%d, prev=%d)", h, idx, prevIdx)
+		}
+		prevIdx = idx
+	}
+}
+
+func TestBuildBaseWarmupContainsAllRules(t *testing.T) {
+	output := BuildBaseWarmup("system", "context", "", "")
+	allRules := []string{
+		"[CONTEXT] lines are for reference only",
+		"Match the tone and register",
+		"Translate the following scene into Korean",
+		"Preserve speaker labels",
+		"Preserve [CHOICE] markers",
+		"Maintain the [NN] line numbers",
+		"Do not add, remove, or merge",
+		"All proper nouns",
+		"Output only the translated lines",
+	}
+	for _, rule := range allRules {
+		if !strings.Contains(output, rule) {
+			t.Errorf("BuildBaseWarmup output missing rule: %q", rule)
+		}
+	}
+}
+
+func TestSectionsToRules(t *testing.T) {
+	rules := sectionsToRules(v2Sections)
+	if len(rules) != 9 {
+		t.Fatalf("sectionsToRules should return 9 rules, got %d", len(rules))
+	}
+	// Verify order: Context(1) + Voice(1) + Task(3) + Constraints(4)
+	if !strings.Contains(rules[0], "[CONTEXT]") {
+		t.Error("first rule should be from Context section")
+	}
+	if !strings.Contains(rules[1], "tone and register") {
+		t.Error("second rule should be from Voice section")
+	}
+	if !strings.Contains(rules[2], "Translate the following") {
+		t.Error("third rule should be from Task section")
+	}
+}
+
 func TestBuildContentSuffix_Dialogue(t *testing.T) {
 	suffix := BuildContentSuffix(inkparse.ContentDialogue)
 	if !strings.Contains(suffix, "대화") {
