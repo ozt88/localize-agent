@@ -87,8 +87,11 @@ workflow/
       parser.go          # walkContainer에 parentChoiceText 전달 (수정)
       types.go           # DialogueBlock.ParentChoiceText 필드 추가 (수정)
     v2pipeline/
-      store.go           # GetNextLines, GetAdjacentKO 쿼리 메서드 추가 (수정)
+      store.go           # GetNextLines, GetAdjacentKO 쿼리 메서드 추가 + parent_choice_text DB 컬럼 (수정)
       worker.go          # translateBatch에서 voice card/branch/continuity 데이터 조합 (수정)
+      types.go           # Config.VoiceCardsPath 필드 추가 (수정)
+    contracts/
+      v2pipeline.go      # V2PipelineItem.ParentChoiceText 필드 + V2PipelineStore 인터페이스 확장 (수정)
   cmd/
     go-generate-voice-cards/
       main.go            # 일회성 voice card 생성 CLI (신규)
@@ -313,22 +316,19 @@ type ClusterTask struct {
 | A3 | 캐릭터당 대사 샘플 20개면 voice card 생성에 충분하다 | Voice Card Generation | MEDIUM -- 캐릭터에 따라 다양한 톤이 있을 수 있음. 부족하면 샘플 수 증가 필요 |
 | A4 | choice container의 "s" 배열에 display text가 항상 존재한다 | Branch Context | LOW -- ink 스펙에서 flg & 0x2일 때만 display text 존재 확인됨 [VERIFIED: parser.go tryExtractChoiceText] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Voice card 생성 도구의 형태**
+1. **Voice card 생성 도구의 형태** -- RESOLVED
    - What we know: Go CLI가 DB + LLM 접근 모두 가능, Python도 psql + LLM 접근 가능
-   - What's unclear: 일회성 도구이므로 Go 정식 CLI vs Python 스크립트 중 어떤 것이 효율적인지
-   - Recommendation: Go CLI 권장 (기존 LLM 클라이언트 패턴 재사용, 일관된 빌드), but Claude's Discretion
+   - Resolution: Go CLI로 확정 (Plan 01 Task 2: `workflow/cmd/go-generate-voice-cards/main.go`). 기존 SessionLLMClient + DB 접근 패턴 재사용. Python 대비 빌드 일관성 + LLM 클라이언트 재사용 이점.
 
-2. **토큰 예산 상한값**
+2. **토큰 예산 상한값** -- RESOLVED
    - What we know: Phase 06에서 토큰 프로파일링 데이터 수집 완료 (estimateTokens 함수 존재)
-   - What's unclear: 구체적 상한값 (gpt-5.4의 context window 중 프롬프트 비율)
-   - Recommendation: 현재 프롬프트 평균 토큰 + 최대 900 토큰 추가(3 컨텍스트)가 context window의 50% 이내인지 프로파일링으로 확인. but Claude's Discretion
+   - Resolution: `contextBudgetTokens = 4000` 상수로 확정 (Plan 03 Task 1). 근거: 기존 프롬프트 평균 ~2000 토큰 + 최대 900 토큰 추가(voice card 200 + branch 100 + continuity 600) = ~3000, 여유분 포함 4000. Claude's Discretion 영역으로 프로파일링 기반 결정.
 
-3. **ParentChoiceText가 있는 아이템의 비율**
+3. **ParentChoiceText가 있는 아이템의 비율** -- RESOLVED
    - What we know: ink 파서에서 Choice 필드가 비어있지 않은 블록이 존재
-   - What's unclear: 전체 40,067건 중 choice container 안에 있는 블록의 비율
-   - Recommendation: DB 쿼리로 확인 (`SELECT COUNT(*) FROM pipeline_items_v2 WHERE choice != ''`)
+   - Resolution: 정확한 비율은 실행 시 DB 쿼리로 확인 가능하나, 플랜 수립에는 영향 없음. choice container 내 블록에만 ParentChoiceText가 채워지고, 나머지는 빈 문자열(기본값). 프롬프트 주입 시 빈 문자열이면 스킵하므로 비율에 관계없이 동작 정확.
 
 ## Project Constraints (from CLAUDE.md)
 
