@@ -32,3 +32,4 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 4.1. Plugin.cs v2 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 04.2. 소스 정리 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 5. 미번역 커버리지 | v1.0 | 3/3 | Complete | 2026-03-29 |
+| 6. Foundation CLI | v1.1 | 3/3 | Complete | 2026-04-06 |
