@@ -123,9 +123,21 @@ func estimateTokens(text string) int {
 	return englishChars/4 + koreanCount/2
 }
 
+// contextBudgetTokens is the token budget limit for the full prompt.
+// gpt-5.4 context window (~8k), prompt target ~50%, base prompt ~2000 + max ~900 context = ~3000, with margin = 4000.
+const contextBudgetTokens = 4000
+
 // BuildScriptPrompt builds the batch prompt for cluster translation.
 // Returns the prompt string and metadata for validation.
+// Applies token budget trimming per D-08 priority: continuity -> branch -> voice card.
 func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
+	// Apply token budget trimming before building prompt
+	task = trimContextForBudget(task, contextBudgetTokens)
+	return buildScriptPromptCore(task)
+}
+
+// buildScriptPromptCore is the core prompt builder without budget trimming.
+func buildScriptPromptCore(task ClusterTask) (string, PromptMeta) {
 	var prompt strings.Builder
 	meta := PromptMeta{}
 
@@ -139,13 +151,52 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 		translatableBlocks = append(translatableBlocks, block)
 	}
 
-	// Prepend [CONTEXT] block if previous gate lines exist (D-03)
-	if len(task.PrevGateLines) > 0 {
-		prompt.WriteString("[CONTEXT]\n")
-		prompt.WriteString("(이전 게이트 -- 번역하지 마세요)\n")
-		for i, line := range task.PrevGateLines {
-			fmt.Fprintf(&prompt, "[C%d] %q\n", i+1, line)
+	// --- [CONTEXT] block: PrevGateLines + ParentChoiceText + NextLines + PrevKO + NextKO ---
+	hasContext := len(task.PrevGateLines) > 0 || task.ParentChoiceText != "" ||
+		len(task.NextLines) > 0 || len(task.PrevKO) > 0 || len(task.NextKO) > 0
+
+	if hasContext {
+		// PrevGateLines (D-03)
+		if len(task.PrevGateLines) > 0 {
+			prompt.WriteString("[CONTEXT]\n")
+			prompt.WriteString("(이전 게이트 -- 번역하지 마세요)\n")
+			for i, line := range task.PrevGateLines {
+				fmt.Fprintf(&prompt, "[C%d] %q\n", i+1, line)
+			}
 		}
+
+		// Branch context: ParentChoiceText (D-04, BRANCH-02)
+		if task.ParentChoiceText != "" {
+			fmt.Fprintf(&prompt, "[CONTEXT] Player chose: %q\n", task.ParentChoiceText)
+		}
+
+		// Next lines context (CONT-01)
+		if len(task.NextLines) > 0 {
+			prompt.WriteString("[CONTEXT]\n")
+			prompt.WriteString("(다음 게이트 -- 번역하지 마세요)\n")
+			for i, line := range task.NextLines {
+				fmt.Fprintf(&prompt, "[N%d] %q\n", i+1, line)
+			}
+		}
+
+		// PrevKO context (CONT-02, retranslation)
+		if len(task.PrevKO) > 0 {
+			prompt.WriteString("[CONTEXT]\n")
+			prompt.WriteString("(이전 한국어 번역 -- 참고용)\n")
+			for i, ko := range task.PrevKO {
+				fmt.Fprintf(&prompt, "[K%d] %q\n", i+1, ko)
+			}
+		}
+
+		// NextKO context (CONT-02, retranslation)
+		if len(task.NextKO) > 0 {
+			prompt.WriteString("[CONTEXT]\n")
+			prompt.WriteString("(다음 한국어 번역 -- 참고용)\n")
+			for i, ko := range task.NextKO {
+				fmt.Fprintf(&prompt, "[NK%d] %q\n", i+1, ko)
+			}
+		}
+
 		prompt.WriteString("\n---\n\n")
 	}
 
@@ -185,6 +236,24 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 		prompt.WriteString(voiceSection)
 	}
 
+	// Named character voice cards (TONE-02)
+	if len(task.VoiceCards) > 0 {
+		seen := make(map[string]bool)
+		var namedVoice strings.Builder
+		for _, block := range translatableBlocks {
+			if block.Speaker != "" {
+				if guide, ok := task.VoiceCards[block.Speaker]; ok && !seen[block.Speaker] {
+					seen[block.Speaker] = true
+					fmt.Fprintf(&namedVoice, "- **%s**: %s\n", block.Speaker, guide)
+				}
+			}
+		}
+		if namedVoice.Len() > 0 {
+			prompt.WriteString("\n## Named Character Voice Guide\n")
+			prompt.WriteString(namedVoice.String())
+		}
+	}
+
 	// Append per-batch glossary if non-empty (D-11)
 	if task.GlossaryJSON != "" {
 		prompt.WriteString("\n## Batch Glossary\n")
@@ -203,6 +272,38 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 	promptStr := prompt.String()
 	meta.EstimatedTokens = estimateTokens(promptStr)
 	return promptStr, meta
+}
+
+// trimContextForBudget removes context elements when estimated tokens exceed budget.
+// Priority (D-08): voice card (last removed) > branch > continuity (first removed).
+// maxTokens is the budget limit. Returns modified task.
+func trimContextForBudget(task ClusterTask, maxTokens int) ClusterTask {
+	// Estimate current prompt tokens
+	testPrompt, _ := buildScriptPromptCore(task)
+	tokens := estimateTokens(testPrompt)
+	if tokens <= maxTokens {
+		return task
+	}
+
+	// Phase 1: Remove continuity (lowest priority)
+	task.NextLines = nil
+	task.NextKO = nil
+	task.PrevKO = nil
+	testPrompt, _ = buildScriptPromptCore(task)
+	if estimateTokens(testPrompt) <= maxTokens {
+		return task
+	}
+
+	// Phase 2: Remove branch context
+	task.ParentChoiceText = ""
+	testPrompt, _ = buildScriptPromptCore(task)
+	if estimateTokens(testPrompt) <= maxTokens {
+		return task
+	}
+
+	// Phase 3: Remove voice cards (last resort)
+	task.VoiceCards = nil
+	return task
 }
 
 // BuildContentSuffix returns type-specific translation instructions per D-04.
