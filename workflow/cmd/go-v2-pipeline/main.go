@@ -57,6 +57,9 @@ func main() {
 	fs.BoolVar(&cfg.CleanupStaleClaims, "cleanup-stale-claims", cfg.CleanupStaleClaims, "reclaim expired leases before starting")
 	fs.BoolVar(&cfg.Once, "once", cfg.Once, "run one batch per role then exit (for testing)")
 
+	// Context enrichment (Phase 07)
+	fs.StringVar(&cfg.VoiceCardsPath, "voice-cards", cfg.VoiceCardsPath, "path to voice_cards.json for named character voice cards")
+
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		os.Exit(2)
 	}

@@ -23,6 +23,19 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 	translateProfile, highProfile platform.LLMProfile,
 	workerID string) error {
 
+	// Load voice cards at startup (Phase 07, TONE-02)
+	if cfg.VoiceCardsPath != "" && cfg.VoiceCards == nil {
+		cards, err := clustertranslate.LoadVoiceCards(cfg.VoiceCardsPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "warning: voice cards load failed: %v\n", err)
+		} else if cards != nil {
+			cfg.VoiceCards = make(map[string]string)
+			for name, card := range cards {
+				cfg.VoiceCards[name] = fmt.Sprintf("%s, %s, %s", card.SpeechStyle, card.Honorific, card.Personality)
+			}
+		}
+	}
+
 	sessionKey := "v2-translate-" + workerID
 
 	for {
@@ -105,10 +118,35 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		prevGateLines, _ = store.GetPrevGateLines(items[0].Knot, items[0].Gate, 3)
 	}
 
+	// Next lines context (CONT-01, D-06)
+	var nextLines []string
+	if items[0].Gate != "" {
+		nextLines, _ = store.GetNextLines(items[0].Knot, items[0].Gate, 3)
+	}
+
+	// PrevKO/NextKO for retranslation context (CONT-02, D-07)
+	var prevKO, nextKO []string
+	if items[0].RetranslationGen > 0 && len(items) > 0 {
+		minSort := items[0].SortIndex
+		maxSort := items[len(items)-1].SortIndex
+		prevKO, nextKO, _ = store.GetAdjacentKO(items[0].Knot, minSort, maxSort, 3)
+	}
+
+	// ParentChoiceText from first item (BRANCH-01, D-04)
+	parentChoiceText := ""
+	if len(items) > 0 && items[0].Choice != "" {
+		parentChoiceText = items[0].ParentChoiceText
+	}
+
 	task := clustertranslate.ClusterTask{
-		Batch:         batch,
-		GlossaryJSON:  glossaryJSON,
-		PrevGateLines: prevGateLines,
+		Batch:            batch,
+		GlossaryJSON:     glossaryJSON,
+		PrevGateLines:    prevGateLines,
+		NextLines:        nextLines,
+		PrevKO:           prevKO,
+		NextKO:           nextKO,
+		VoiceCards:       cfg.VoiceCards,
+		ParentChoiceText: parentChoiceText,
 	}
 
 	prompt, meta := clustertranslate.BuildScriptPrompt(task)

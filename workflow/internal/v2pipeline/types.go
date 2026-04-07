@@ -60,4 +60,8 @@ type Config struct {
 	TraceOutDir        string
 	CleanupStaleClaims bool
 	Once               bool
+
+	// Context enrichment (Phase 07)
+	VoiceCardsPath string            // path to voice_cards.json (optional)
+	VoiceCards     map[string]string // speaker -> formatted voice guide text (loaded at startup)
 }
