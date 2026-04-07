@@ -246,6 +246,14 @@ func (s *fakeStore) GetPrevGateLines(knot, currentGate string, limit int) ([]str
 	return nil, nil // no-op for tests
 }
 
+func (s *fakeStore) GetNextLines(knot, currentGate string, limit int) ([]string, error) {
+	return nil, nil // no-op for tests
+}
+
+func (s *fakeStore) GetAdjacentKO(knot string, minSort, maxSort int, limit int) ([]string, []string, error) {
+	return nil, nil, nil // no-op for tests
+}
+
 func (s *fakeStore) Close() error { return nil }
 
 func (s *fakeStore) ScoreHistogram(bucketWidth float64) ([]contracts.ScoreBucket, error) {

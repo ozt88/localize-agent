@@ -771,6 +771,196 @@ func TestStripDCFCPrefix_EmptyBody(t *testing.T) {
 	}
 }
 
+// --- ParentChoiceText tests ---
+
+func TestParentChoiceText_ChoiceContainerBlock(t *testing.T) {
+	// Test 1: blocks inside a choice container should have ParentChoiceText set
+	ink := map[string]any{
+		"inkVersion": 21,
+		"root": []any{
+			[]any{"done", map[string]any{"#f": 5, "#n": "g-0"}},
+			nil,
+			map[string]any{
+				"TestKnot": []any{
+					[]any{
+						[]any{
+							// Choice point with "s" content "(Go north.)"
+							"ev", "str", map[string]any{"->": ".^.s"}, "/str", "/ev",
+							map[string]any{"*": ".^.^.c-0", "flg": float64(2)},
+							map[string]any{
+								"s": []any{"^(Go north.)", nil},
+							},
+						},
+						nil,
+						map[string]any{
+							"#f": 5, "#n": "g-0",
+							"c-0": []any{
+								"^You walk north into the forest. ", "\n",
+								nil,
+								map[string]any{"#f": 5},
+							},
+						},
+					},
+					map[string]any{"#f": 1},
+				},
+			},
+		},
+		"listDefs": map[string]any{},
+	}
+	data, _ := json.Marshal(ink)
+	result, err := Parse(data, "test_file")
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	found := false
+	for _, b := range result.Blocks {
+		if b.Choice == "c-0" && b.Text == "You walk north into the forest. \n" {
+			if b.ParentChoiceText != "(Go north.)" {
+				t.Errorf("expected ParentChoiceText='(Go north.)', got %q", b.ParentChoiceText)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected block in c-0 with text 'You walk north into the forest. \\n'")
+	}
+}
+
+func TestParentChoiceText_NonChoiceBlock(t *testing.T) {
+	// Test 2: blocks not in a choice container should have empty ParentChoiceText
+	ink := map[string]any{
+		"inkVersion": 21,
+		"root": []any{
+			[]any{"done", map[string]any{"#f": 5, "#n": "g-0"}},
+			nil,
+			map[string]any{
+				"TestKnot": []any{
+					[]any{
+						"^Normal gate text. ", "\n",
+						nil,
+						map[string]any{"#f": 5, "#n": "g-0"},
+					},
+					map[string]any{"#f": 1},
+				},
+			},
+		},
+		"listDefs": map[string]any{},
+	}
+	data, _ := json.Marshal(ink)
+	result, err := Parse(data, "test_file")
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	for _, b := range result.Blocks {
+		if b.ParentChoiceText != "" {
+			t.Errorf("non-choice block %s has ParentChoiceText=%q, expected empty", b.ID, b.ParentChoiceText)
+		}
+	}
+}
+
+func TestParentChoiceText_DepthOneOnly(t *testing.T) {
+	// Test 3: nested choice (c-0 inside g-0, c-1 inside c-0) — only direct parent text
+	ink := map[string]any{
+		"inkVersion": 21,
+		"root": []any{
+			[]any{"done", map[string]any{"#f": 5, "#n": "g-0"}},
+			nil,
+			map[string]any{
+				"TestKnot": []any{
+					[]any{
+						[]any{
+							"ev", "str", map[string]any{"->": ".^.s"}, "/str", "/ev",
+							map[string]any{"*": ".^.^.c-0", "flg": float64(2)},
+							map[string]any{"s": []any{"^(Outer choice.)", nil}},
+						},
+						nil,
+						map[string]any{
+							"#f": 5, "#n": "g-0",
+							"c-0": []any{
+								"^Outer body. ", "\n",
+								[]any{
+									"ev", "str", map[string]any{"->": ".^.s"}, "/str", "/ev",
+									map[string]any{"*": ".^.^.c-1", "flg": float64(2)},
+									map[string]any{"s": []any{"^(Inner choice.)", nil}},
+								},
+								nil,
+								map[string]any{
+									"#f": 5,
+									"c-1": []any{
+										"^Inner body. ", "\n",
+										nil,
+										map[string]any{"#f": 5},
+									},
+								},
+							},
+						},
+					},
+					map[string]any{"#f": 1},
+				},
+			},
+		},
+		"listDefs": map[string]any{},
+	}
+	data, _ := json.Marshal(ink)
+	result, err := Parse(data, "test_file")
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	for _, b := range result.Blocks {
+		if b.Text == "Inner body. \n" {
+			// Should have "(Inner choice.)" as parent, NOT "(Outer choice.)"
+			if b.ParentChoiceText != "(Inner choice.)" {
+				t.Errorf("nested choice block expected ParentChoiceText='(Inner choice.)', got %q", b.ParentChoiceText)
+			}
+		}
+	}
+}
+
+func TestParentChoiceText_DCFCPrefixStripped(t *testing.T) {
+	// Test 4: DC/FC prefix stripped from ParentChoiceText
+	ink := map[string]any{
+		"inkVersion": 21,
+		"root": []any{
+			[]any{"done", map[string]any{"#f": 5, "#n": "g-0"}},
+			nil,
+			map[string]any{
+				"TestKnot": []any{
+					[]any{
+						[]any{
+							"ev", "str", map[string]any{"->": ".^.s"}, "/str", "/ev",
+							map[string]any{"*": ".^.^.c-0", "flg": float64(2)},
+							map[string]any{"s": []any{"^DC12 str-The Cleric?", nil}},
+						},
+						nil,
+						map[string]any{
+							"#f": 5, "#n": "g-0",
+							"c-0": []any{
+								"^You ask about the cleric. ", "\n",
+								nil,
+								map[string]any{"#f": 5},
+							},
+						},
+					},
+					map[string]any{"#f": 1},
+				},
+			},
+		},
+		"listDefs": map[string]any{},
+	}
+	data, _ := json.Marshal(ink)
+	result, err := Parse(data, "test_file")
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	for _, b := range result.Blocks {
+		if b.Choice == "c-0" && b.Text == "You ask about the cleric. \n" {
+			if b.ParentChoiceText != "The Cleric?" {
+				t.Errorf("expected ParentChoiceText='The Cleric?' (DC prefix stripped), got %q", b.ParentChoiceText)
+			}
+		}
+	}
+}
+
 // helper
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
