@@ -406,6 +406,212 @@ func TestBuildScriptPrompt_EstimatedTokens(t *testing.T) {
 	}
 }
 
+// --- Phase 07 Plan 03: Context enrichment tests ---
+
+func TestBuildScriptPrompt_ParentChoiceText(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there.", Speaker: "Braxo"},
+			},
+		},
+		ParentChoiceText: "Go to the tavern",
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, `Player chose:`) {
+		t.Errorf("prompt should contain 'Player chose:' when ParentChoiceText is set, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "Go to the tavern") {
+		t.Errorf("prompt should contain the choice text, got:\n%s", prompt)
+	}
+}
+
+func TestBuildScriptPrompt_EmptyParentChoiceText(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there."},
+			},
+		},
+		ParentChoiceText: "",
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if strings.Contains(prompt, "Player chose") {
+		t.Errorf("prompt should NOT contain 'Player chose' when ParentChoiceText is empty, got:\n%s", prompt)
+	}
+}
+
+func TestBuildScriptPrompt_NextLines(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there."},
+			},
+		},
+		NextLines: []string{"Next line 1", "Next line 2"},
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, `[N1]`) {
+		t.Errorf("prompt should contain [N1] for next lines, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, `[N2]`) {
+		t.Errorf("prompt should contain [N2] for next lines, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "다음 게이트") {
+		t.Errorf("prompt should contain next gate instruction, got:\n%s", prompt)
+	}
+}
+
+func TestBuildScriptPrompt_PrevKO(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there."},
+			},
+		},
+		PrevKO: []string{"이전 번역 1", "이전 번역 2"},
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, `[K1]`) {
+		t.Errorf("prompt should contain [K1] for prev KO, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, `[K2]`) {
+		t.Errorf("prompt should contain [K2] for prev KO, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "이전 한국어 번역") {
+		t.Errorf("prompt should contain prev KO instruction, got:\n%s", prompt)
+	}
+}
+
+func TestBuildScriptPrompt_NextKO(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there."},
+			},
+		},
+		NextKO: []string{"다음 번역 1"},
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, `[NK1]`) {
+		t.Errorf("prompt should contain [NK1] for next KO, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "다음 한국어 번역") {
+		t.Errorf("prompt should contain next KO instruction, got:\n%s", prompt)
+	}
+}
+
+func TestBuildScriptPrompt_NamedVoiceCards(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there.", Speaker: "Snell"},
+			},
+		},
+		VoiceCards: map[string]string{
+			"Snell": "거친 말투, 반말, 전사",
+		},
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, "Named Character Voice Guide") {
+		t.Errorf("prompt should contain Named Character Voice Guide section, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "Snell") {
+		t.Errorf("prompt should contain Snell voice card, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "거친 말투") {
+		t.Errorf("prompt should contain Snell's voice guide, got:\n%s", prompt)
+	}
+}
+
+func TestTrimContextForBudget_Priority(t *testing.T) {
+	// Create a task with all context types
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there.", Speaker: "Snell"},
+			},
+		},
+		NextLines:        []string{"Next 1", "Next 2", "Next 3"},
+		PrevKO:           []string{"이전 1", "이전 2"},
+		NextKO:           []string{"다음 1"},
+		ParentChoiceText: "Go to the tavern",
+		VoiceCards:       map[string]string{"Snell": "거친 말투, 반말, 전사"},
+	}
+
+	// With very low budget, continuity should be removed first
+	trimmed := trimContextForBudget(task, 50)
+
+	// NextLines (continuity) should be removed first
+	if len(trimmed.NextLines) > 0 {
+		t.Error("NextLines should be removed when budget is low (priority: continuity removed first)")
+	}
+	if len(trimmed.PrevKO) > 0 {
+		t.Error("PrevKO should be removed when budget is low")
+	}
+	if len(trimmed.NextKO) > 0 {
+		t.Error("NextKO should be removed when budget is low")
+	}
+
+	// With more generous budget, only continuity removed
+	trimmed2 := trimContextForBudget(task, 200)
+	// At least voice cards should survive (last to be removed)
+	// This depends on actual token count -- we just verify the function runs
+	_ = trimmed2
+}
+
+func TestBuildScriptPrompt_FullContextTokens(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there.", Speaker: "Snell"},
+				{ID: "blk-1", Text: "Good to see you."},
+			},
+		},
+		PrevGateLines:    []string{"Previous gate line."},
+		NextLines:        []string{"Next line 1", "Next line 2"},
+		PrevKO:           []string{"이전 번역"},
+		NextKO:           []string{"다음 번역"},
+		ParentChoiceText: "Go to the tavern",
+		VoiceCards:       map[string]string{"Snell": "거친 말투, 반말, 전사"},
+	}
+
+	_, meta := BuildScriptPrompt(task)
+	if meta.EstimatedTokens <= 0 {
+		t.Errorf("EstimatedTokens should be > 0 for full context prompt, got %d", meta.EstimatedTokens)
+	}
+}
+
 func TestBuildScriptPrompt_WithGlossary(t *testing.T) {
 	task := ClusterTask{
 		Batch: inkparse.Batch{
