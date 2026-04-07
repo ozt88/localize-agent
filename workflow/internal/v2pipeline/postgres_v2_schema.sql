@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS pipeline_items_v2 (
     claimed_at TIMESTAMPTZ,
     lease_until TIMESTAMPTZ,
     batch_id TEXT NOT NULL DEFAULT '',
+    parent_choice_text TEXT NOT NULL DEFAULT '',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_pv2_state ON pipeline_items_v2(state);

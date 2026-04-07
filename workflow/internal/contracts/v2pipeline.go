@@ -41,21 +41,8 @@ type V2PipelineItem struct {
 	AttemptLog        string  // JSON array of attempt records per D-16
 	ClaimedBy         string  // worker ID holding the lease
 	BatchID           string  // which Batch this block belongs to
-	RetranslationGen  int     // current retranslation generation (0 = original)
-}
-
-// ScoreBucket represents a histogram bucket for score_final distribution.
-type ScoreBucket struct {
-	LowerBound float64
-	Count      int
-}
-
-// RetranslationCandidate represents a batch containing items eligible for retranslation.
-type RetranslationCandidate struct {
-	BatchID   string
-	ItemCount int
-	MinScore  float64
-	AvgScore  float64
+	ParentChoiceText  string  // parent choice display text for branch context (D-04)
+	RetranslationGen  int     // retranslation generation counter
 }
 
 // V2PipelineStore defines the persistence interface for the v2 pipeline state machine.
@@ -108,26 +95,36 @@ type V2PipelineStore interface {
 	// in the same knot, ordered by sort_index descending. Used for D-03 context injection.
 	GetPrevGateLines(knot, currentGate string, limit int) ([]string, error)
 
+	// GetNextLines returns the first N source_raw texts after the current gate
+	// in the same knot, ordered by sort_index ascending. Used for continuity window (CONT-01).
+	GetNextLines(knot, currentGate string, limit int) ([]string, error)
+
+	// GetAdjacentKO returns ko_formatted texts for items adjacent to the given sort_index range.
+	// prevKO: items with sort_index < minSort, ordered DESC (closest first), limit N.
+	// nextKO: items with sort_index > maxSort, ordered ASC, limit N.
+	// Only returns items in state=done with non-NULL ko_formatted. Used for retranslation (CONT-02).
+	GetAdjacentKO(knot string, minSort, maxSort int, limit int) (prevKO []string, nextKO []string, err error)
+
 	// QueryDone returns all items in state=done, ordered by sort_index.
 	QueryDone() ([]V2PipelineItem, error)
 
 	// GetItem retrieves a single pipeline item by ID.
 	GetItem(id string) (*V2PipelineItem, error)
 
-	// ScoreHistogram returns score_final distribution in buckets of given width.
-	// Only includes items in state=done.
-	ScoreHistogram(bucketWidth float64) ([]ScoreBucket, error)
-
-	// SelectRetranslationBatches returns batch_ids containing at least one item
-	// with score_final < threshold in state=done. If contentType is non-empty,
-	// filters by content_type.
-	SelectRetranslationBatches(threshold float64, contentType string) ([]RetranslationCandidate, error)
-
-	// ResetForRetranslation snapshots current translations and resets all items in a batch.
-	// State is set to "pending_translate" so existing TranslateWorker picks them up (D-10).
-	// Returns count of reset items.
-	ResetForRetranslation(batchID string, gen int) (int, error)
-
 	// Close releases database resources.
 	Close() error
+}
+
+// ScoreBucket represents a histogram bucket for score distribution.
+type ScoreBucket struct {
+	LowerBound float64
+	Count      int
+}
+
+// RetranslationCandidate represents a batch eligible for retranslation.
+type RetranslationCandidate struct {
+	BatchID   string
+	ItemCount int
+	MinScore  float64
+	AvgScore  float64
 }
