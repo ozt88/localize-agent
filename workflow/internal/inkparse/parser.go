@@ -71,9 +71,10 @@ func ParseFile(path string) (*ParseResult, error) {
 
 // walker holds state during ink JSON tree traversal.
 type walker struct {
-	sourceFile string
-	result     *ParseResult
-	blockCount map[string]int // path -> count, for block index tracking
+	sourceFile        string
+	result            *ParseResult
+	blockCount        map[string]int // path -> count, for block index tracking
+	currentChoiceText string         // current choice container's display text (depth 1, D-05)
 }
 
 // walkContainer is the main recursive walker. It processes a container array,
@@ -114,7 +115,12 @@ func (w *walker) walkContainer(arr []any, knot, gate, choice string) {
 			}
 			if subArr, ok := val.([]any); ok {
 				if strings.HasPrefix(key, "c-") {
+					// Extract choice display text from parent container for branch context (D-04)
+					choiceText := w.extractChoiceDisplayText(arr)
+					oldChoiceText := w.currentChoiceText
+					w.currentChoiceText = choiceText
 					w.walkContainer(subArr, knot, gate, key)
+					w.currentChoiceText = oldChoiceText // restore (D-05 depth 1)
 				} else if strings.HasPrefix(key, "g-") {
 					w.walkContainer(subArr, knot, key, "")
 				} else {
@@ -152,17 +158,18 @@ func (w *walker) walkFlatContent(arr []any, knot, gate, choice string) {
 		idx := w.blockCount[path]
 		w.blockCount[path]++
 		block := DialogueBlock{
-			ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
-			Path:       path,
-			Text:       cleanText,
-			SourceHash: SourceHash(cleanText),
-			SourceFile: w.sourceFile,
-			Knot:       knot,
-			Gate:       gate,
-			Choice:     choice,
-			Speaker:    speaker,
-			Tags:       allTags,
-			BlockIndex: idx,
+			ID:               fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
+			Path:             path,
+			Text:             cleanText,
+			SourceHash:       SourceHash(cleanText),
+			SourceFile:       w.sourceFile,
+			Knot:             knot,
+			Gate:             gate,
+			Choice:           choice,
+			Speaker:          speaker,
+			Tags:             allTags,
+			BlockIndex:       idx,
+			ParentChoiceText: w.currentChoiceText,
 		}
 		w.result.Blocks = append(w.result.Blocks, block)
 		w.result.TotalTextEntries++
@@ -309,21 +316,70 @@ func (w *walker) tryExtractChoiceText(remaining []any, knot, gate string) {
 			idx := w.blockCount[path]
 			w.blockCount[path]++
 			block := DialogueBlock{
-				ID:         fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
-				Path:       path,
-				Text:       cleanText,
-				SourceHash: SourceHash(cleanText),
-				SourceFile: w.sourceFile,
-				Knot:       knot,
-				Gate:       gate,
-				Choice:     choiceID,
-				Tags:       extraTags,
-				BlockIndex: idx,
+				ID:               fmt.Sprintf("%s/%s/blk-%d", w.sourceFile, path, idx),
+				Path:             path,
+				Text:             cleanText,
+				SourceHash:       SourceHash(cleanText),
+				SourceFile:       w.sourceFile,
+				Knot:             knot,
+				Gate:             gate,
+				Choice:           choiceID,
+				Tags:             extraTags,
+				BlockIndex:       idx,
+				ParentChoiceText: w.currentChoiceText,
 			}
 			w.result.Blocks = append(w.result.Blocks, block)
 			w.result.TotalTextEntries++
 		}
 	}
+}
+
+// extractChoiceDisplayText extracts the display text for a choice container.
+// The choice point marker {"*":"...c-N", "flg":N} and {"s":[...]} are siblings
+// in the same array. Searches all elements (including sub-arrays) for the pattern.
+func (w *walker) extractChoiceDisplayText(arr []any) string {
+	// First try direct elements
+	text := findChoiceTextInElements(arr)
+	if text != "" {
+		return text
+	}
+	// Also search sub-arrays (choice points can be nested in sub-arrays)
+	for _, elem := range arr {
+		if subArr, ok := elem.([]any); ok {
+			text = findChoiceTextInElements(subArr)
+			if text != "" {
+				return text
+			}
+		}
+	}
+	return ""
+}
+
+// findChoiceTextInElements scans flat elements for a choice point with "s" content.
+func findChoiceTextInElements(arr []any) string {
+	var hasChoice bool
+	var sContent []any
+
+	for _, elem := range arr {
+		if dict, ok := elem.(map[string]any); ok {
+			if _, ok := dict["*"]; ok {
+				if flg, ok := dict["flg"].(float64); ok && int(flg)&0x2 != 0 {
+					hasChoice = true
+				}
+			}
+			if s, ok := dict["s"].([]any); ok {
+				sContent = s
+			}
+		}
+	}
+	if hasChoice && sContent != nil {
+		text := extractTextFromArray(sContent)
+		if text != "" {
+			cleanText, _ := stripDCFCPrefix(text)
+			return cleanText
+		}
+	}
+	return ""
 }
 
 // stripDCFCPrefix strips DC/FC stat-check prefixes from choice text.
@@ -349,10 +405,6 @@ func stripDCFCPrefix(text string) (string, []string) {
 // downstream translation prompts benefit more from having speaker context
 // (even occasionally wrong) than from missing it entirely.
 func isSpeakerTag(tag string) bool {
-	// Priority 1: allow-list match (if loaded)
-	if globalAllowList != nil && globalAllowList.IsAllowed(tag) {
-		return true
-	}
 	// DC/FC check tags
 	if strings.HasPrefix(tag, "DC") || strings.HasPrefix(tag, "FC") {
 		return false
