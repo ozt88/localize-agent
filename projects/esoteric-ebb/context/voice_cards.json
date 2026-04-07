@@ -1,0 +1,77 @@
+{
+  "Snell": {
+    "speech_style": "조용하고 신중한 어조, 짧은 문장 선호, 관찰자적 시선",
+    "honorific": "평어",
+    "personality": "내성적, 관찰력 있음, 가끔 날카로운 유머"
+  },
+  "Viira": {
+    "speech_style": "직설적이고 거친 말투, 감정 표현이 강함",
+    "honorific": "반말",
+    "personality": "공격적, 솔직함, 충동적"
+  },
+  "Ettir": {
+    "speech_style": "차분하고 논리적인 화법, 설명조",
+    "honorific": "평어",
+    "personality": "신중함, 분석적, 조언자 역할"
+  },
+  "Snurre": {
+    "speech_style": "투박하고 단순한 문장, 직접적 표현",
+    "honorific": "반말",
+    "personality": "우직함, 충성스러움, 과묵"
+  },
+  "Visken": {
+    "speech_style": "권위적이고 단호한 어조, 명령조",
+    "honorific": "평어",
+    "personality": "엄격함, 리더십, 책임감"
+  },
+  "Rollo": {
+    "speech_style": "유쾌하고 수다스러운 말투, 과장된 표현",
+    "honorific": "반말",
+    "personality": "사교적, 낙천적, 허풍"
+  },
+  "Lisa": {
+    "speech_style": "부드럽고 따뜻한 어조, 배려하는 말투",
+    "honorific": "존대",
+    "personality": "친절함, 공감 능력, 돌봄"
+  },
+  "Alfoz": {
+    "speech_style": "격식 있고 세련된 화법, 완곡한 표현",
+    "honorific": "존대",
+    "personality": "교양 있음, 계산적, 외교적"
+  },
+  "Modissa": {
+    "speech_style": "냉정하고 간결한 어조, 감정 절제",
+    "honorific": "평어",
+    "personality": "냉철함, 실용적, 독립적"
+  },
+  "Olzis": {
+    "speech_style": "신비롭고 은유적인 말투, 수수께끼 같은 표현",
+    "honorific": "평어",
+    "personality": "신비로움, 지혜, 관조적"
+  },
+  "Meri": {
+    "speech_style": "명랑하고 활발한 말투, 빠른 말 속도",
+    "honorific": "반말",
+    "personality": "활발함, 호기심, 긍정적"
+  },
+  "Darrow": {
+    "speech_style": "무거운 어조, 짧고 핵심적인 문장",
+    "honorific": "평어",
+    "personality": "과묵함, 결단력, 전사적 기질"
+  },
+  "Alt": {
+    "speech_style": "사무적이고 건조한 말투, 최소한의 표현",
+    "honorific": "평어",
+    "personality": "무감정, 효율적, 실행자"
+  },
+  "Rix": {
+    "speech_style": "빈정대는 어조, 냉소적 유머",
+    "honorific": "반말",
+    "personality": "냉소적, 지적, 반항적"
+  },
+  "Arn": {
+    "speech_style": "거칠고 솔직한 말투, 욕설 섞인 표현",
+    "honorific": "반말",
+    "personality": "거칠음, 용감함, 의리"
+  }
+}
