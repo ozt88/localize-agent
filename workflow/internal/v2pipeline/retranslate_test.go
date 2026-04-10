@@ -77,8 +77,8 @@ func TestScoreHistogram(t *testing.T) {
 func TestSelectRetranslationBatches(t *testing.T) {
 	store := seedRetranslateTestItems(t)
 
-	// threshold=7.0 should select batch-1 (has item with score 5.0 < 7.0)
-	candidates, err := store.SelectRetranslationBatches(7.0, "")
+	// threshold=8.0 should select batch-1 (both items 5.0, 7.0 < 8.0)
+	candidates, err := store.SelectRetranslationBatches(8.0, "")
 	if err != nil {
 		t.Fatalf("SelectRetranslationBatches: %v", err)
 	}
