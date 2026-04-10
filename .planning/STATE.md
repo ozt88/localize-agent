@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 번역 품질 개선 — 맥락 기반 재번역
 status: executing
-stopped_at: Phase 07 context gathered
-last_updated: "2026-04-10T12:45:25.500Z"
+stopped_at: Phase 07.1 context gathered
+last_updated: "2026-04-10T14:03:54.496Z"
 last_activity: 2026-04-10
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
@@ -53,6 +53,10 @@ Progress: [███░░░░░░░] 33%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 07.1 inserted after Phase 07: RAG+MCP 세계관 맥락 주입 — 위키 크롤링 + PageIndex 인덱싱 + MCP 서버 구축 + 파이프라인 통합 (URGENT)
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
@@ -75,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T17:16:54.995Z
-Stopped at: Phase 07 context gathered
-Resume file: .planning/phases/07-context-enrichment/07-CONTEXT.md
+Last session: 2026-04-10T14:03:54.491Z
+Stopped at: Phase 07.1 context gathered
+Resume file: .planning/phases/07.1-rag-mcp-pageindex-mcp/07.1-CONTEXT.md
