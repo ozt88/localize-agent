@@ -59,6 +59,7 @@ func main() {
 
 	// Context enrichment (Phase 07)
 	fs.StringVar(&cfg.VoiceCardsPath, "voice-cards", cfg.VoiceCardsPath, "path to voice_cards.json for named character voice cards")
+	fs.StringVar(&cfg.RAGContextPath, "rag-context", cfg.RAGContextPath, "path to rag_batch_context.json for world-building context")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		os.Exit(2)

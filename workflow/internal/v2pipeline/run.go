@@ -17,6 +17,7 @@ import (
 
 	"localize-agent/workflow/internal/clustertranslate"
 	"localize-agent/workflow/internal/glossary"
+	"localize-agent/workflow/internal/ragcontext"
 	"localize-agent/workflow/pkg/platform"
 	"localize-agent/workflow/pkg/shared"
 )
@@ -77,6 +78,17 @@ func Run(cfg Config) int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "v2pipeline glossary load warning: %v (continuing without glossary)\n", err)
 		glossarySet = &glossary.GlossarySet{}
+	}
+
+	// Load RAG batch context (Phase 07.1).
+	ragContextPath := resolveProjectPath(projectDir, "rag/rag_batch_context.json")
+	if cfg.RAGContextPath != "" {
+		ragContextPath = cfg.RAGContextPath
+	}
+	ragCtx, err := ragcontext.LoadBatchContext(ragContextPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "v2pipeline RAG context load warning: %v (continuing without RAG)\n", err)
+		ragCtx, _ = ragcontext.LoadBatchContext("")
 	}
 
 	// Create metrics collector.
@@ -176,7 +188,7 @@ func Run(cfg Config) int {
 			wID := fmt.Sprintf("%s-t%d", cfg.WorkerID, i)
 			go func(workerID string) {
 				defer wg.Done()
-				if err := TranslateWorker(ctx, cfg, store, translateLLM, glossarySet, translateProfile, highProfile, workerID); err != nil {
+				if err := TranslateWorker(ctx, cfg, store, translateLLM, glossarySet, ragCtx, translateProfile, highProfile, workerID); err != nil {
 					if ctx.Err() == nil {
 						fmt.Fprintf(os.Stderr, "translate worker %s error: %v\n", workerID, err)
 					}
@@ -206,7 +218,7 @@ func Run(cfg Config) int {
 			wID := fmt.Sprintf("%s-s%d", cfg.WorkerID, i)
 			go func(workerID string) {
 				defer wg.Done()
-				if err := ScoreWorker(ctx, cfg, store, scoreLLM, scoreProfile, workerID); err != nil {
+				if err := ScoreWorker(ctx, cfg, store, scoreLLM, ragCtx, scoreProfile, workerID); err != nil {
 					if ctx.Err() == nil {
 						fmt.Fprintf(os.Stderr, "score worker %s error: %v\n", workerID, err)
 					}

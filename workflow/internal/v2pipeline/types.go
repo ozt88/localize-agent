@@ -64,4 +64,5 @@ type Config struct {
 	// Context enrichment (Phase 07)
 	VoiceCardsPath string            // path to voice_cards.json (optional)
 	VoiceCards     map[string]string // speaker -> formatted voice guide text (loaded at startup)
+	RAGContextPath string            // path to rag_batch_context.json (optional, Phase 07.1)
 }

@@ -11,6 +11,7 @@ import (
 	"localize-agent/workflow/internal/contracts"
 	"localize-agent/workflow/internal/glossary"
 	"localize-agent/workflow/internal/inkparse"
+	"localize-agent/workflow/internal/ragcontext"
 	"localize-agent/workflow/internal/scorellm"
 	"localize-agent/workflow/internal/tagformat"
 	"localize-agent/workflow/pkg/platform"
@@ -20,6 +21,7 @@ import (
 // Session key: "v2-translate-{workerID}" per Pitfall 3.
 func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
+	ragCtx *ragcontext.BatchContext,
 	translateProfile, highProfile platform.LLMProfile,
 	workerID string) error {
 
@@ -64,7 +66,7 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		for batchID, batchItems := range batches {
 			subBatches := splitByGateIfHuge(batchID, batchItems, 30)
 			for _, sub := range subBatches {
-				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
+				if err := translateBatch(ctx, cfg, store, llm, glossarySet, ragCtx, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
 					fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, sub.id, err)
 				}
 			}
@@ -79,6 +81,7 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 // translateBatch processes a single batch group of items through translation.
 func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
+	ragCtx *ragcontext.BatchContext,
 	translateProfile, highProfile platform.LLMProfile,
 	sessionKey, workerID, batchID string, items []contracts.V2PipelineItem) error {
 
@@ -138,6 +141,13 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		parentChoiceText = items[0].ParentChoiceText
 	}
 
+	// RAG world-building context (D-17, Phase 07.1)
+	var ragHints string
+	if ragCtx != nil {
+		hints := ragCtx.HintsForBatch(batchID)
+		ragHints = ragcontext.FormatHints(hints)
+	}
+
 	task := clustertranslate.ClusterTask{
 		Batch:            batch,
 		GlossaryJSON:     glossaryJSON,
@@ -147,6 +157,7 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		NextKO:           nextKO,
 		VoiceCards:       cfg.VoiceCards,
 		ParentChoiceText: parentChoiceText,
+		RAGHints:         ragHints,
 	}
 
 	prompt, meta := clustertranslate.BuildScriptPrompt(task)
@@ -365,6 +376,7 @@ func formatSubBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 // Session key: "v2-score-{workerID}" per Pitfall 3.
 func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient,
+	ragCtx *ragcontext.BatchContext,
 	scoreProfile platform.LLMProfile,
 	workerID string) error {
 
@@ -391,7 +403,7 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 		}
 
 		// Score items in batch (optimized from single-item scoring).
-		if err := scoreBatch(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, items); err != nil {
+		if err := scoreBatch(ctx, cfg, store, llm, ragCtx, scoreProfile, sessionKey, workerID, items); err != nil {
 			fmt.Fprintf(os.Stderr, "[score-%s] batch error: %v\n", workerID, err)
 		}
 
@@ -404,7 +416,9 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 // scoreBatch processes multiple items through a single Score LLM call.
 // Builds a numbered batch prompt, parses the JSON array response, and routes each item.
 func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
-	llm *platform.SessionLLMClient, scoreProfile platform.LLMProfile,
+	llm *platform.SessionLLMClient,
+	ragCtx *ragcontext.BatchContext,
+	scoreProfile platform.LLMProfile,
 	sessionKey, workerID string, items []contracts.V2PipelineItem) error {
 
 	// Build batch tasks.
@@ -422,7 +436,15 @@ func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore
 		}
 	}
 
-	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks)
+	// RAG context for score prompt (D-19, Phase 07.1)
+	var ragHintsForScore string
+	if ragCtx != nil && len(items) > 0 {
+		batchID := items[0].BatchID
+		hints := ragCtx.HintsForBatch(batchID)
+		ragHintsForScore = ragcontext.FormatHints(hints)
+	}
+
+	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks, ragHintsForScore)
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {
