@@ -324,8 +324,14 @@ func applyProjectDefaults(pc *shared.ProjectConfig, cfg *Config) {
 	}
 
 	if cfg.CheckpointBackend == "" {
-		cfg.CheckpointBackend = pc.Translation.CheckpointBackend
-		if cfg.CheckpointBackend == "" {
+		// v2pipeline defaults to postgres. The project-level translation.checkpoint_backend
+		// often defaults to "sqlite" (for v1 translation), which is wrong for v2pipeline.
+		// Only inherit from project config if it's explicitly set to a non-sqlite value,
+		// otherwise default to postgres.
+		projBackend := pc.Translation.CheckpointBackend
+		if projBackend != "" && projBackend != "sqlite" {
+			cfg.CheckpointBackend = projBackend
+		} else {
 			cfg.CheckpointBackend = "postgres"
 		}
 	}
