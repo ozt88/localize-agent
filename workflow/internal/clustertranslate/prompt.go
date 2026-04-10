@@ -151,9 +151,10 @@ func buildScriptPromptCore(task ClusterTask) (string, PromptMeta) {
 		translatableBlocks = append(translatableBlocks, block)
 	}
 
-	// --- [CONTEXT] block: PrevGateLines + ParentChoiceText + NextLines + PrevKO + NextKO ---
+	// --- [CONTEXT] block: PrevGateLines + ParentChoiceText + NextLines + PrevKO + NextKO + RAGHints ---
 	hasContext := len(task.PrevGateLines) > 0 || task.ParentChoiceText != "" ||
-		len(task.NextLines) > 0 || len(task.PrevKO) > 0 || len(task.NextKO) > 0
+		len(task.NextLines) > 0 || len(task.PrevKO) > 0 || len(task.NextKO) > 0 ||
+		task.RAGHints != ""
 
 	if hasContext {
 		// PrevGateLines (D-03)
@@ -195,6 +196,14 @@ func buildScriptPromptCore(task ClusterTask) (string, PromptMeta) {
 			for i, ko := range task.NextKO {
 				fmt.Fprintf(&prompt, "[NK%d] %q\n", i+1, ko)
 			}
+		}
+
+		// RAG world-building context (D-17)
+		if task.RAGHints != "" {
+			prompt.WriteString("[CONTEXT]\n")
+			prompt.WriteString("(세계관 정보 -- 번역 참고용)\n")
+			prompt.WriteString(task.RAGHints)
+			prompt.WriteString("\n")
 		}
 
 		prompt.WriteString("\n---\n\n")
@@ -275,7 +284,7 @@ func buildScriptPromptCore(task ClusterTask) (string, PromptMeta) {
 }
 
 // trimContextForBudget removes context elements when estimated tokens exceed budget.
-// Priority (D-08): voice card (last removed) > branch > continuity (first removed).
+// Priority (D-18): continuity (first removed) -> RAG -> glossary -> branch -> voice card (last removed).
 // maxTokens is the budget limit. Returns modified task.
 func trimContextForBudget(task ClusterTask, maxTokens int) ClusterTask {
 	// Estimate current prompt tokens
@@ -294,14 +303,28 @@ func trimContextForBudget(task ClusterTask, maxTokens int) ClusterTask {
 		return task
 	}
 
-	// Phase 2: Remove branch context
+	// Phase 2: Remove RAG hints (D-18)
+	task.RAGHints = ""
+	testPrompt, _ = buildScriptPromptCore(task)
+	if estimateTokens(testPrompt) <= maxTokens {
+		return task
+	}
+
+	// Phase 3: Remove glossary (D-18)
+	task.GlossaryJSON = ""
+	testPrompt, _ = buildScriptPromptCore(task)
+	if estimateTokens(testPrompt) <= maxTokens {
+		return task
+	}
+
+	// Phase 4: Remove branch context
 	task.ParentChoiceText = ""
 	testPrompt, _ = buildScriptPromptCore(task)
 	if estimateTokens(testPrompt) <= maxTokens {
 		return task
 	}
 
-	// Phase 3: Remove voice cards (last resort)
+	// Phase 5: Remove voice cards (last resort)
 	task.VoiceCards = nil
 	return task
 }

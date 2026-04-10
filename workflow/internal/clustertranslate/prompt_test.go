@@ -612,6 +612,112 @@ func TestBuildScriptPrompt_FullContextTokens(t *testing.T) {
 	}
 }
 
+func TestBuildScriptPrompt_RAGHints(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Welcome to Alfoz.", Speaker: "Braxo"},
+			},
+		},
+		RAGHints: "Alfoz: A small town in the countryside | Norvik: Your home city",
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if !strings.Contains(prompt, "세계관 정보") {
+		t.Errorf("prompt should contain '세계관 정보' when RAGHints is set, got:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "Alfoz: A small town") {
+		t.Errorf("prompt should contain RAG hint text, got:\n%s", prompt)
+	}
+	// RAG should appear in [CONTEXT] block before the --- separator
+	ragIdx := strings.Index(prompt, "세계관 정보")
+	sepIdx := strings.Index(prompt, "---")
+	if ragIdx > sepIdx {
+		t.Error("RAG hints should appear before --- separator")
+	}
+}
+
+func TestBuildScriptPrompt_EmptyRAGHints(t *testing.T) {
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello."},
+			},
+		},
+		RAGHints: "",
+	}
+
+	prompt, _ := BuildScriptPrompt(task)
+	if strings.Contains(prompt, "세계관 정보") {
+		t.Errorf("prompt should NOT contain '세계관 정보' when RAGHints is empty")
+	}
+}
+
+func TestTrimContextForBudget_RAGBeforeGlossary(t *testing.T) {
+	// Create a task with RAG, glossary, branch, and voice — all context types
+	task := ClusterTask{
+		Batch: inkparse.Batch{
+			ID:          "test/batch",
+			ContentType: inkparse.ContentDialogue,
+			Format:      inkparse.FormatScript,
+			Blocks: []inkparse.DialogueBlock{
+				{ID: "blk-0", Text: "Hello there.", Speaker: "Snell"},
+			},
+		},
+		NextLines:        []string{"Next 1", "Next 2", "Next 3"},
+		PrevKO:           []string{"이전 1", "이전 2"},
+		NextKO:           []string{"다음 1"},
+		RAGHints:         "Alfoz: A small town | Norvik: Your home city",
+		GlossaryJSON:     `[{"source":"Braxo","target":"Braxo","mode":"preserve"}]`,
+		ParentChoiceText: "Go to the tavern",
+		VoiceCards:       map[string]string{"Snell": "거친 말투, 반말, 전사"},
+	}
+
+	// With very low budget (50 tokens), everything should be stripped
+	trimmed := trimContextForBudget(task, 50)
+
+	// RAG should be removed (Phase 2, before glossary)
+	if trimmed.RAGHints != "" {
+		t.Error("RAGHints should be removed when budget is very low")
+	}
+	// Glossary should also be removed (Phase 3)
+	if trimmed.GlossaryJSON != "" {
+		t.Error("GlossaryJSON should be removed when budget is very low")
+	}
+
+	// With a moderate budget that allows voice+branch+glossary but not RAG+continuity,
+	// verify RAG is removed before glossary
+	taskNoCont := task
+	taskNoCont.NextLines = nil
+	taskNoCont.NextKO = nil
+	taskNoCont.PrevKO = nil
+	promptNoCont, _ := buildScriptPromptCore(taskNoCont)
+	tokensNoCont := estimateTokens(promptNoCont)
+
+	taskNoRAG := taskNoCont
+	taskNoRAG.RAGHints = ""
+	promptNoRAG, _ := buildScriptPromptCore(taskNoRAG)
+	tokensNoRAG := estimateTokens(promptNoRAG)
+
+	// Budget between tokensNoRAG and tokensNoCont means RAG gets trimmed but glossary stays
+	if tokensNoRAG < tokensNoCont {
+		budget := (tokensNoRAG + tokensNoCont) / 2
+		trimmed2 := trimContextForBudget(task, budget)
+		if trimmed2.RAGHints != "" {
+			t.Error("RAGHints should be removed before GlossaryJSON (D-18 priority)")
+		}
+		if trimmed2.GlossaryJSON == "" {
+			t.Error("GlossaryJSON should survive when budget allows (removed after RAG)")
+		}
+	}
+}
+
 func TestBuildScriptPrompt_WithGlossary(t *testing.T) {
 	task := ClusterTask{
 		Batch: inkparse.Batch{

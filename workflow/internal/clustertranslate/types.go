@@ -12,6 +12,7 @@ type ClusterTask struct {
 	NextKO           []string          // next 3 existing KO translations for retranslation (CONT-02)
 	VoiceCards       map[string]string // speaker -> voice guide text (TONE-02)
 	ParentChoiceText string            // parent choice display text (BRANCH-01)
+	RAGHints         string            // per-batch world-building RAG context (D-17)
 }
 
 // ClusterResult holds the parsed output from a cluster translation.
