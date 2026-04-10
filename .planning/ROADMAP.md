@@ -28,6 +28,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 - [x] **Phase 06: Foundation — 프롬프트 재구조화 + 화자 검증 + 재번역 CLI** (3/3 plans) — completed 2026-04-06
 - [x] **Phase 07: Context Enrichment — 톤 프로필 + 분기 맥락 + 연속성 윈도우** - 씬 단위 일관성 향상: 캐릭터 말투, 선택지 맥락, 주변 대사 윈도우 확장 (completed 2026-04-08)
+- [ ] **Phase 07.1: RAG 세계관 맥락 주입** - enriched termbank + 배치별 사전 매칭 + Go 파이프라인 통합 (4 plans)
 - [ ] **Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증** - 개선된 프롬프트로 저품질 항목 재번역하고 게임 패치 적용
 
 ## Phase Details
@@ -62,9 +63,27 @@ Plans:
 - [x] 07-02-PLAN.md — inkparse ParentChoiceText + store GetNextLines/GetAdjacentKO + ClusterTask 확장
 - [x] 07-03-PLAN.md — 프롬프트 통합 주입 + 토큰 예산 관리 + worker 조합 + A/B 테스트
 
+### Phase 07.1: RAG 세계관 맥락 주입 — enriched termbank + 배치별 사전 매칭 + Go 파이프라인 통합 (INSERTED)
+
+**Goal:** 위키 + glossary 데이터를 enriched termbank으로 통합하고, 배치별 세계관 힌트를 사전 매칭하여, 번역/평가 프롬프트의 [CONTEXT] 섹션에 동적 주입 -- 기존 lore.go 정적 매칭을 RAG 기반으로 대체
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13, D-14, D-15, D-17, D-18, D-19, D-20
+**Depends on:** Phase 07
+**Success Criteria** (what must be TRUE):
+  1. enriched_termbank.json이 wiki lore(254건) + glossary 설명부(~800건)를 통합하여 500건 이상 존재한다
+  2. rag_batch_context.json이 전체 배치에 대해 top-3 세계관 hint를 사전 매칭하여 존재한다
+  3. Go ragcontext 패키지가 JSON을 로드하고, translateBatch/scoreBatch 양쪽에서 [CONTEXT] 섹션에 RAG 힌트를 주입한다
+  4. trimContextForBudget이 D-18 우선순위(continuity > RAG > glossary > branch > voice)를 따른다
+  5. 10배치 A/B 테스트에서 RAG 주입 후 번역 스코어가 하락하지 않는다
+**Plans:** 4 plans
+Plans:
+- [ ] 07.1-01-PLAN.md — 위키 Markdown 변환 + enriched termbank 빌드 (wiki + glossary 통합)
+- [ ] 07.1-02-PLAN.md — 배치별 RAG 사전 매칭 빌더 (enriched termbank 기반 word-boundary matching)
+- [ ] 07.1-03-PLAN.md — Go ragcontext 패키지 + ClusterTask 확장 + 프롬프트 주입 + worker 통합
+- [ ] 07.1-04-PLAN.md — RAG A/B 테스트 실행 + 사용자 검증
+
 ### Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증
 **Goal**: 개선된 프롬프트와 컨텍스트로 저품질 항목을 실제 재번역하고, 게임에 적용하여 품질 향상을 확인
-**Depends on**: Phase 07
+**Depends on**: Phase 07.1
 **Requirements**: RETRANS-04, RETRANS-05
 **Success Criteria** (what must be TRUE):
   1. BuildV3Sidecar dedup 로직이 score-aware로 수정되어, 같은 source에 대해 최고 점수 번역이 entries[]에 선택된다
@@ -75,7 +94,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 6 -> 7 -> 8
+Phases execute in numeric order: 6 -> 7 -> 7.1 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -87,5 +106,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 04.2. 소스 정리 | v1.0 | 2/2 | Complete | 2026-03-29 |
 | 5. 미번역 커버리지 | v1.0 | 3/3 | Complete | 2026-03-29 |
 | 6. Foundation | v1.1 | 3/3 | Complete | 2026-04-06 |
-| 7. Context Enrichment | v1.1 | 0/3 | Not started | - |
+| 7. Context Enrichment | v1.1 | 3/3 | Complete | 2026-04-08 |
+| 7.1 RAG 세계관 맥락 | v1.1 | 0/4 | Planned | - |
 | 8. Retranslation Execution | v1.1 | 0/? | Not started | - |
