@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 번역 품질 개선 — 맥락 기반 재번역
 status: executing
-stopped_at: Phase 07.1 context gathered
-last_updated: "2026-04-10T14:33:25.780Z"
-last_activity: 2026-04-10 -- Phase 07.1 planning complete
+stopped_at: Phase 07.1 Plan 04 A/B 테스트 결과 분석 중
+last_updated: "2026-04-11T09:35:00.000Z"
+last_activity: 2026-04-11 -- Phase 07.1 Plan 04 A/B 테스트 재실행 완료, 결과 FAIL (avg delta -0.81)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 07 — context-enrichment
+**Current focus:** Phase 07.1 — rag-mcp-pageindex-mcp (Plan 04 결과 검토 중)
 
 ## Current Position
 
-Phase: 08
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-10 -- Phase 07.1 planning complete
+Phase: 07.1 (rag-mcp-pageindex-mcp) — EXECUTING
+Plan: 4 of 4 (A/B 테스트 완료, 결과 분석 필요)
+Status: Plan 04 A/B 테스트 FAIL — 원인 분석 및 다음 행동 결정 필요
+Last activity: 2026-04-11 -- A/B 테스트 클린 재실행 완료
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -69,16 +69,25 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Phase 07.1 Plan 04 A/B 테스트 결과 분석: RAG가 품질 하락 유발 (avg -0.81) 원인 파악
+- No RAG baseline을 현재 스코어러로 재측정하여 공정한 비교 필요 (기존 baseline은 구버전 스코어러)
+- RAG 프롬프트 주입 방식 또는 힌트 품질 재검토
+
+### Decisions (2026-04-11)
+
+- ab_test_rag.py 버그 수정: pending+working=0 완료 조건, stale cleanup 자동화, max_passes=30
+- knowledge compiler 패치 개선: Step 0 Write tool 명시 + completion gate 추가
+- A/B 테스트 공정성 이슈: No RAG baseline이 구버전 스코어러 측정값 → 재측정 필요
 
 ### Blockers/Concerns
 
-- Phase 06: 화자 커버리지 실제 규모 — `DISTINCT speaker` 쿼리 실행 전까지 오인식 규모 불확실
-- Phase 07: 브랜치 구조 실제 분포 — ink 브랜치 최대 depth 쿼리로 확인 필요
-- Phase 08: 재번역 후보 규모 — `score_final < 7.0` 항목 수 확인 필요 (LLM 시간 산정)
+- **[ACTIVE]** Phase 07.1 Plan 04: A/B 테스트 FAIL (avg delta -0.81) — RAG 품질 하락 원인 미확정
+- **[ACTIVE]** A/B 비교 공정성: No RAG baseline이 구버전 스코어러 값, With RAG가 현재 스코어러 값 — 동일 스코어러로 재비교 필요
+- Phase 08: 재번역 후보 규모 — `score_final < 7.0` 항목 수 확인 필요
 
 ## Session Continuity
 
-Last session: 2026-04-10T14:03:54.491Z
-Stopped at: Phase 07.1 context gathered
-Resume file: .planning/phases/07.1-rag-mcp-pageindex-mcp/07.1-CONTEXT.md
+Last session: 2026-04-11T09:35:00.000Z
+Stopped at: Phase 07.1 Plan 04 A/B 테스트 결과 FAIL, 원인 분석 중단
+Resume file: .planning/phases/07.1-rag-mcp-pageindex-mcp/07.1-04-PLAN.md
+Next action: A/B 테스트 공정 재실행 (No RAG도 현재 스코어러로 재측정) 또는 RAG 힌트 품질 분석

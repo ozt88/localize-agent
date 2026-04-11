@@ -74,11 +74,11 @@ Plans:
   3. Go ragcontext 패키지가 JSON을 로드하고, translateBatch/scoreBatch 양쪽에서 [CONTEXT] 섹션에 RAG 힌트를 주입한다
   4. trimContextForBudget이 D-18 우선순위(continuity > RAG > glossary > branch > voice)를 따른다
   5. 10배치 A/B 테스트에서 RAG 주입 후 번역 스코어가 하락하지 않는다
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 Plans:
-- [ ] 07.1-01-PLAN.md — 위키 Markdown 변환 + enriched termbank 빌드 (wiki + glossary 통합)
-- [ ] 07.1-02-PLAN.md — 배치별 RAG 사전 매칭 빌더 (enriched termbank 기반 word-boundary matching)
-- [ ] 07.1-03-PLAN.md — Go ragcontext 패키지 + ClusterTask 확장 + 프롬프트 주입 + worker 통합
+- [x] 07.1-01-PLAN.md — 위키 Markdown 변환 + enriched termbank 빌드 (wiki + glossary 통합)
+- [x] 07.1-02-PLAN.md — 배치별 RAG 사전 매칭 빌더 (enriched termbank 기반 word-boundary matching)
+- [x] 07.1-03-PLAN.md — Go ragcontext 패키지 + ClusterTask 확장 + 프롬프트 주입 + worker 통합
 - [ ] 07.1-04-PLAN.md — RAG A/B 테스트 실행 + 사용자 검증
 
 ### Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증

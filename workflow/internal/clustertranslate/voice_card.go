@@ -2,7 +2,6 @@ package clustertranslate
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -33,36 +32,3 @@ func LoadVoiceCards(path string) (map[string]VoiceCard, error) {
 	return m, nil
 }
 
-// BuildNamedVoiceSection creates a voice guide section for named characters
-// that appear in the current batch's speakers list.
-// Returns empty string if no named characters match.
-func BuildNamedVoiceSection(speakers []string, cards map[string]VoiceCard) string {
-	if len(cards) == 0 {
-		return ""
-	}
-
-	seen := make(map[string]bool)
-	var sb strings.Builder
-
-	for _, s := range speakers {
-		name := strings.TrimSpace(s)
-		if name == "" {
-			continue
-		}
-		// Skip if already seen (dedup)
-		if seen[name] {
-			continue
-		}
-		card, ok := cards[name]
-		if !ok {
-			continue
-		}
-		seen[name] = true
-		fmt.Fprintf(&sb, "- **%s**: %s, %s, %s\n", name, card.SpeechStyle, card.Honorific, card.Personality)
-	}
-
-	if sb.Len() == 0 {
-		return ""
-	}
-	return "\n## Named Character Voice Guide\n" + sb.String()
-}

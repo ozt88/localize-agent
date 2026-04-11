@@ -305,49 +305,6 @@ func (cs *postgresCheckpointStore) LoadDoneIDs(pipelineVersion string) (map[stri
 	return done, rows.Err()
 }
 
-func LoadDonePackItems(dbPath, pipelineVersion string) ([]contracts.EvalPackItem, error) {
-	db, err := openSQLite(dbPath, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	rows, err := db.Query("SELECT pack_json FROM items WHERE status='done' AND pack_json IS NOT NULL")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	out := []contracts.EvalPackItem{}
-	for rows.Next() {
-		var raw string
-		if err := rows.Scan(&raw); err != nil {
-			return nil, err
-		}
-		if raw == "" {
-			continue
-		}
-		var item contracts.EvalPackItem
-		if err := json.Unmarshal([]byte(raw), &item); err != nil {
-			continue
-		}
-		if pipelineVersion != "" {
-			var packObj map[string]any
-			if json.Unmarshal([]byte(raw), &packObj) != nil {
-				continue
-			}
-			if stringField(packObj, "pipeline_version") != pipelineVersion {
-				continue
-			}
-		}
-		if item.ID == "" {
-			continue
-		}
-		out = append(out, item)
-	}
-	return out, rows.Err()
-}
-
 func stringField(m map[string]any, key string) string {
 	if m == nil {
 		return ""

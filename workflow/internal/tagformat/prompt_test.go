@@ -6,21 +6,6 @@ import (
 	"testing"
 )
 
-func TestBuildFormatWarmup(t *testing.T) {
-	warmup := BuildFormatWarmup()
-	if warmup == "" {
-		t.Fatal("warmup should not be empty")
-	}
-	// Must mention tag restoration purpose.
-	if !strings.Contains(warmup, "tag") {
-		t.Error("warmup should mention tags")
-	}
-	// Must mention the JSON output format.
-	if !strings.Contains(warmup, "results") {
-		t.Error("warmup should mention results JSON format")
-	}
-}
-
 func TestBuildFormatPrompt_Single(t *testing.T) {
 	tasks := []FormatTask{
 		{BlockID: "blk-1", ENSource: "<b>Watch</b> your step.", KOPlain: "조심해."},

@@ -3,7 +3,6 @@ package clustertranslate
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -63,47 +62,3 @@ func TestLoadVoiceCards_InvalidPath(t *testing.T) {
 	}
 }
 
-func TestBuildNamedVoiceSection_Matching(t *testing.T) {
-	cards := map[string]VoiceCard{
-		"Snell": {SpeechStyle: "조용하고 신중한 어조", Honorific: "평어", Personality: "내성적"},
-	}
-	result := BuildNamedVoiceSection([]string{"Snell"}, cards)
-	if !strings.Contains(result, "## Named Character Voice Guide") {
-		t.Error("expected header '## Named Character Voice Guide'")
-	}
-	if !strings.Contains(result, "**Snell**") {
-		t.Error("expected Snell entry")
-	}
-}
-
-func TestBuildNamedVoiceSection_NoMatch(t *testing.T) {
-	cards := map[string]VoiceCard{
-		"Snell": {SpeechStyle: "조용하고 신중한 어조", Honorific: "평어", Personality: "내성적"},
-	}
-	result := BuildNamedVoiceSection([]string{"UnknownChar"}, cards)
-	if result != "" {
-		t.Errorf("expected empty string, got %q", result)
-	}
-}
-
-func TestBuildNamedVoiceSection_Dedup(t *testing.T) {
-	cards := map[string]VoiceCard{
-		"Snell": {SpeechStyle: "조용하고 신중한 어조", Honorific: "평어", Personality: "내성적"},
-	}
-	result := BuildNamedVoiceSection([]string{"Snell", "Snell", "Snell"}, cards)
-	count := strings.Count(result, "**Snell**")
-	if count != 1 {
-		t.Errorf("expected Snell to appear once, appeared %d times", count)
-	}
-}
-
-func TestBuildNamedVoiceSection_IgnoresAbilityScore(t *testing.T) {
-	cards := map[string]VoiceCard{
-		"Snell": {SpeechStyle: "조용하고 신중한 어조", Honorific: "평어", Personality: "내성적"},
-	}
-	// ability-score speakers should not match (they're not in cards anyway)
-	result := BuildNamedVoiceSection([]string{"wis", "str", "int", "cha", "dex", "con"}, cards)
-	if result != "" {
-		t.Errorf("expected empty string for ability-score speakers, got %q", result)
-	}
-}

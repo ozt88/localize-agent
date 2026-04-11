@@ -30,33 +30,6 @@ func TestExtractTags_AllTagTypes(t *testing.T) {
 	}
 }
 
-func TestHasRichTags_True(t *testing.T) {
-	if !HasRichTags("<b>text</b>") {
-		t.Error("expected HasRichTags to return true")
-	}
-}
-
-func TestHasRichTags_False(t *testing.T) {
-	if HasRichTags("plain text") {
-		t.Error("expected HasRichTags to return false")
-	}
-}
-
-func TestStripTags(t *testing.T) {
-	got := StripTags("<b>bold</b> text")
-	want := "bold text"
-	if got != want {
-		t.Errorf("StripTags: got %q, want %q", got, want)
-	}
-}
-
-func TestCountTags(t *testing.T) {
-	got := CountTags("<b>bold</b> and <i>italic</i>")
-	if got != 4 {
-		t.Errorf("CountTags: got %d, want 4", got)
-	}
-}
-
 func assertStringSlice(t *testing.T, want, got []string) {
 	t.Helper()
 	if len(want) != len(got) {

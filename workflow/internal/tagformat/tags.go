@@ -11,17 +11,3 @@ func ExtractTags(s string) []string {
 	return tagRe.FindAllString(s, -1)
 }
 
-// HasRichTags returns true if s contains any rich-text tags.
-func HasRichTags(s string) bool {
-	return tagRe.MatchString(s)
-}
-
-// StripTags removes all rich-text tags from s.
-func StripTags(s string) string {
-	return tagRe.ReplaceAllString(s, "")
-}
-
-// CountTags returns the number of tags in s.
-func CountTags(s string) int {
-	return len(ExtractTags(s))
-}
