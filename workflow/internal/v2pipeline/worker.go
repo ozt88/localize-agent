@@ -402,9 +402,20 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 			}
 		}
 
-		// Score items in batch (optimized from single-item scoring).
-		if err := scoreBatch(ctx, cfg, store, llm, ragCtx, scoreProfile, sessionKey, workerID, items); err != nil {
-			fmt.Fprintf(os.Stderr, "[score-%s] batch error: %v\n", workerID, err)
+		// Score items in sub-batches of 5 to avoid LLM timeout on large claims.
+		// Pattern mirrors FormatWorker sub-batching (D-06).
+		subBatchSize := 5
+		if subBatchSize > len(items) {
+			subBatchSize = len(items)
+		}
+		for i := 0; i < len(items); i += subBatchSize {
+			end := i + subBatchSize
+			if end > len(items) {
+				end = len(items)
+			}
+			if err := scoreBatch(ctx, cfg, store, llm, ragCtx, scoreProfile, sessionKey, workerID, items[i:end]); err != nil {
+				fmt.Fprintf(os.Stderr, "[score-%s] sub-batch error: %v\n", workerID, err)
+			}
 		}
 
 		if cfg.Once {
