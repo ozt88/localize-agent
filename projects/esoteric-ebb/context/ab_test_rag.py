@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-RAG Context Injection A/B Test (v2 - baseline from existing scores)
-====================================================================
-기존 DB의 done 상태 스코어를 baseline(A)으로 사용하고,
-RAG 포함 재번역(B)과 비교하여 품질 저하 여부를 검증.
+RAG Context Injection A/B Test (v3 - full rerun both conditions)
+================================================================
+A 조건(No RAG)과 B 조건(With RAG) 모두 현재 스코어러로 재번역+재측정하여
+공정하게 비교.
+
+기존 ab_test_rag_results.json에서 배치 ID를 읽어와 동일 10개 배치 재사용.
+(파일 없으면 DB에서 seed=42로 새로 선택)
 
 Phase 07.1 Plan 04: D-20 검증 — RAG 주입이 번역 품질을 저하시키지 않음을 확인.
 
@@ -45,12 +48,22 @@ def psql(query: str) -> str:
     return result.stdout.strip()
 
 
+def load_batch_ids_from_results() -> list[str] | None:
+    """ab_test_rag_results.json에서 배치 ID 목록 로드 (있으면)."""
+    if RESULTS_PATH.exists():
+        data = json.load(open(RESULTS_PATH, encoding="utf-8"))
+        ids = [b["batch_id"] for b in data.get("batches", [])]
+        if ids:
+            print(f"  Reusing {len(ids)} batch IDs from existing results file.")
+            return ids
+    return None
+
+
 def select_test_batches() -> list[str]:
-    """done 상태이면서 RAG hints가 있는 배치 중 10개 선택."""
+    """done 상태이면서 RAG hints가 있는 배치 중 10개 선택 (seed=42)."""
     rag = json.load(open(RAG_CONTEXT_PATH, encoding="utf-8"))
     hints_set = {k for k, v in rag.items() if v and k.strip()}
 
-    # DB에서 done 상태이고 스코어가 있는 배치 목록
     result = psql("""
         SELECT batch_id, AVG(score_final) as avg_score, count(*) as cnt
         FROM pipeline_items_v2
@@ -66,9 +79,8 @@ def select_test_batches() -> list[str]:
             continue
         parts = line.split("|")
         bid = parts[0].strip()
-        score = float(parts[1].strip())
         if bid in hints_set:
-            candidates.append((bid, score))
+            candidates.append(bid)
 
     random.seed(42)
     selected = random.sample(candidates, min(NUM_BATCHES, len(candidates)))
@@ -120,9 +132,6 @@ def run_pipeline_stage(stage: str, rag_path: str):
     """파이프라인 한 스테이지를 실행 (모든 pending+working 아이템 처리까지 반복)."""
     pipeline_exe = str(PROJECT_ROOT / "workflow" / ".bin" / "go-v2-pipeline.exe")
 
-    # lease-sec must be shorter than pass_timeout so that --cleanup-stale-claims
-    # can reclaim any working_* items that were stranded by a timeout kill.
-    # pass_timeout (180s) > lease-sec (150s) ensures leases expire before cleanup runs.
     lease_sec = 150
     pass_timeout = 180
 
@@ -153,7 +162,6 @@ def run_pipeline_stage(stage: str, rag_path: str):
             print(f"    {stage} pass {p+1}: timeout (expected when queue empties with --once)")
         time.sleep(1)
 
-        # Check both pending and working counts.
         pending_name = f"pending_{stage}"
         working_name = f"working_{stage}"
         rem_pending_raw = psql(f"SELECT count(*) FROM pipeline_items_v2 WHERE state = '{pending_name}'")
@@ -167,10 +175,6 @@ def run_pipeline_stage(stage: str, rag_path: str):
             print(f"    {stage}: all items processed")
             break
 
-        # If no pending but working items are stuck, run --cleanup-stale-claims once.
-        # CleanupStaleClaims uses lease_sec * 3 as the threshold, so we override
-        # --lease-sec to 1 (threshold = 3s) to force-reclaim all stranded items
-        # regardless of their original lease expiry.
         if rem_pending == 0 and rem_working > 0:
             print(f"    {stage}: {rem_working} working items stuck — running cleanup-stale-claims")
             cleanup_cmd = [
@@ -191,29 +195,8 @@ def run_pipeline_stage(stage: str, rag_path: str):
             time.sleep(2)
 
 
-def main():
-    print("=== RAG Context Injection A/B Test (v2) ===\n")
-
-    # 1. Select test batches (done + has RAG hints)
-    candidates = select_test_batches()
-    if len(candidates) < NUM_BATCHES:
-        print(f"WARNING: only {len(candidates)} eligible batches (need {NUM_BATCHES})")
-    batch_ids = [bid for bid, _ in candidates]
-    baseline_scores = {bid: score for bid, score in candidates}
-
-    print(f"Selected {len(batch_ids)} test batches:")
-    for bid, score in candidates:
-        print(f"  {score:5.1f}  {bid}")
-
-    # 2. Snapshot baseline (A = existing scores, no RAG)
-    print(f"\nBaseline (A): existing scores from DB (translated without RAG)")
-
-    # 3. Reset and retranslate with RAG (B)
-    print(f"\n--- Condition B: Retranslate with RAG ---")
-    count = reset_batches(batch_ids)
-    print(f"  Reset {count} items to pending_translate")
-
-    # Build
+def build_pipeline():
+    """파이프라인 빌드."""
     print("  Building pipeline...")
     build = subprocess.run(
         ["go", "build", "-o", ".bin/go-v2-pipeline.exe", "./cmd/go-v2-pipeline"],
@@ -222,21 +205,53 @@ def main():
     )
     if build.returncode != 0:
         print(f"  Build error: {build.stderr}", file=sys.stderr)
-        return
+        return False
+    return True
 
-    # Run translate -> format -> score
+
+def run_condition(label: str, batch_ids: list[str], rag_path: str) -> dict[str, float]:
+    """한 조건(A 또는 B)에 대해 reset → translate → format → score 실행 후 스코어 반환."""
+    print(f"\n--- Condition {label}: {'No RAG' if not rag_path else 'With RAG'} ---")
+    count = reset_batches(batch_ids)
+    print(f"  Reset {count} items to pending_translate")
+
     print("\n  Stage: translate")
-    run_pipeline_stage("translate", RAG_CONTEXT_PATH)
+    run_pipeline_stage("translate", rag_path)
 
     print("\n  Stage: format")
     run_pipeline_stage("format", "")
 
     print("\n  Stage: score")
-    run_pipeline_stage("score", RAG_CONTEXT_PATH)
+    run_pipeline_stage("score", rag_path)
 
-    # 4. Get B scores
-    rag_scores = get_scores(batch_ids)
-    print(f"\n  RAG scores collected: {len(rag_scores)} batches")
+    scores = get_scores(batch_ids)
+    print(f"  Scores collected: {len(scores)} batches")
+    return scores
+
+
+def main():
+    print("=== RAG Context Injection A/B Test (v3 - full rerun) ===\n")
+
+    # 1. Determine test batches
+    batch_ids = load_batch_ids_from_results()
+    if batch_ids is None:
+        batch_ids = select_test_batches()
+        if len(batch_ids) < NUM_BATCHES:
+            print(f"WARNING: only {len(batch_ids)} eligible batches (need {NUM_BATCHES})")
+
+    print(f"\nTest batches ({len(batch_ids)}):")
+    for bid in batch_ids:
+        print(f"  {bid}")
+
+    # 2. Build once
+    if not build_pipeline():
+        return
+
+    # 3. Condition A: No RAG (rerun with current scorer)
+    no_rag_scores = run_condition("A", batch_ids, "")
+
+    # 4. Condition B: With RAG
+    rag_scores = run_condition("B", batch_ids, RAG_CONTEXT_PATH)
 
     # 5. Compare
     print("\n\n=== Results ===\n")
@@ -245,7 +260,7 @@ def main():
 
     results = []
     for bid in batch_ids:
-        sa = baseline_scores.get(bid, 0)
+        sa = no_rag_scores.get(bid, 0)
         sb = rag_scores.get(bid, 0)
         delta = sb - sa
         results.append({
@@ -256,7 +271,7 @@ def main():
         })
         print(f"{bid:<80} | {sa:>7.1f} | {sb:>8.1f} | {delta:>+6.1f}")
 
-    scored = [r for r in results if r["score_with_rag"] > 0]
+    scored = [r for r in results if r["score_no_rag"] > 0 and r["score_with_rag"] > 0]
     avg_a = sum(r["score_no_rag"] for r in scored) / len(scored) if scored else 0
     avg_b = sum(r["score_with_rag"] for r in scored) / len(scored) if scored else 0
     avg_delta = avg_b - avg_a
@@ -275,7 +290,8 @@ def main():
         "verdict": "PASS" if avg_delta >= -0.5 else "FAIL",
         "scored_batches": len(scored),
         "total_batches": len(results),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "note": "v3: both conditions fully rerun with current scorer"
     }
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
