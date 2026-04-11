@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: 번역 품질 개선 — 맥락 기반 재번역
 status: executing
 stopped_at: Phase 07.1 Plan 04 A/B 테스트 No RAG 조건 스코어링 진행 중
-last_updated: "2026-04-11T19:50:00.000Z"
-last_activity: 2026-04-11 -- score-worker sub-batch 수정, dead code 8개 삭제, No RAG 스코어링 백그라운드 진행 중
+last_updated: "2026-04-12T01:30:00.000Z"
+last_activity: 2026-04-12 -- v2pipeline 성능/안정성 수정 커밋(b22f492), score worker 재가동
 progress:
   total_phases: 4
   completed_phases: 2
@@ -41,57 +41,45 @@ Progress: [█████████░] 90%
 - pending_format: 2
 
 **진행 중인 백그라운드 프로세스:**
-- `go-v2-pipeline --role score --score-concurrency 2 --score-timeout-sec 180 --lease-sec 400` (PID 불명, 백그라운드)
+- `go-v2-pipeline --role score --lease-sec 400` (PID 1372, 백그라운드, 2026-04-12 01:30 기준)
+- pending_score=55, working_score=20 처리 중
 
 ## 다음 세션에서 할 일
 
-### Step 1: 스코어링 완료 확인
+### Step 0: 스코어링 진행 확인 (working_score가 0이 될 때까지)
 ```sql
 SELECT state, count(*) FROM pipeline_items_v2
-WHERE batch_id IN (...10개 배치 ID...)
-GROUP BY state;
+WHERE batch_id IN (
+  'Snell_Companion/Snell_Companion/g-17+g-21+afterSleep+g-2/batch-1084',
+  'CB_Lake/CB_Lake/g-4+offer+g-6+hub/batch-170',
+  'AR_Viira_Ivcx/AR_Viira_Ivcx/gift+g-1/batch-51',
+  'TS_Nearly/Nearly_TS/bardHub/batch-1210',
+  'Enc_Final/MASKED/Ragn_Round_3_Hub+g-29+Masked_Round_4+Ragn_Round_4+g-43+endingChoice+g-15+Ragn_Round_2/batch-564',
+  'DS_Olzis/Olzis/hub+g-12+g-19/batch-347',
+  'DN_Darrow/Darrow/QuestionsHub/batch-303',
+  'CB_Moongore/CB_Moongore/g-12+g-17+g-24+HWBTHub+g-29+g-32+caught_end/batch-191',
+  'TS_Kull/Kull/intro+g-23+Snell_Round_2+Kull_Round_2+round_3_intro+g-28+g-29+Snell_Round_3+Kull_Round_3+g-35+g-36/batch-1195',
+  'CB_Kraaid/CB_Kraaid/g-1+kraaidInfoHub+g-33+yesIam/batch-152'
+) GROUP BY state;
 ```
-모두 `done` 또는 `pending_translate`(재번역 실패)이면 완료.
 
-### Step 2: No RAG 스코어 수집
-```python
-# ab_test_rag.py의 get_scores() 함수 참조
-# 또는 직접 psql:
-SELECT batch_id, AVG(score_final)
-FROM pipeline_items_v2
-WHERE batch_id IN (...) AND score_final > 0
-GROUP BY batch_id;
-```
+### Step 1: No RAG 점수 수집 후 With RAG 재실행
+- `pending_translate` 항목 처리 방침 결정 필요 (세션 중 미결 — 이전 논의 참조)
+- With RAG: `python projects/esoteric-ebb/context/ab_test_rag.py` (B 조건만 실행 필요)
 
-### Step 3: With RAG 재실행
-No RAG 스코어 확보 후 동일 10개 배치를 RAG로 재번역+스코어링.
-`python projects/esoteric-ebb/context/ab_test_rag.py` 실행 시
-기존 results.json에서 batch_id 읽어 With RAG만 실행하도록 수정 필요
-(현재 v3 스크립트는 A/B 양쪽 모두 재실행 — No RAG는 이미 있으므로 B만 필요)
+### Step 2: 비교 및 Plan 04 SUMMARY 작성
 
-### Step 4: 비교 및 Plan 04 SUMMARY 작성
+## 이번 세션 완료 작업 (2026-04-12)
 
-## 이번 세션 완료 작업 (2026-04-11)
-
-### 버그 수정
-- `score-worker`: 20개 단일 LLM 호출 → 5개씩 sub-batch 분리 (lease 만료 문제 해결)
-- `ab_test_rag.py v3`: cwd=PROJECT_ROOT 추가 (project.json 탐색 실패 수정)
-- `ab_test_rag.py v3`: A/B 양쪽 모두 현재 스코어러로 재번역 (공정성 확보)
-
-### Dead code 삭제 (커밋 e8ac2f2)
-- `scorellm.BuildScoreWarmup` — warmup이 .md 파일에서 로드됨
-- `tagformat.BuildFormatWarmup` — 동일
-- `tagformat.HasRichTags`, `StripTags`, `CountTags` — 테스트 전용
-- `clustertranslate.BuildNamedVoiceSection` — 테스트 전용
-- `platform.LoadDonePackItems` — 호출처 없음
-- `shared.StripCodeFence` — 테스트 전용
+### v2pipeline 성능/안정성 수정 (커밋 b22f492)
+- **버그**: translate/format/score warmup 실패 시 items 미해제 → 5시간 stuck 원인
+- **수정**: EnsureContext 에러 핸들러에 retry 로직 추가 (3곳)
+- **watchdog**: 감지 6분→2분, 재시작 후 stale 자동 reclaim
+- **deepProbe**: LLM ping 제거 (gpt-5.4 느려서 false positive → 멀쩡한 서버 kill 반복)
+- **score**: sub-batch 5→10, timeout 120→180s
 
 ### 커밋 목록
-- `e5c3ff3` fix(ab-test): v3 full A/B rerun
-- `a72e03c` fix(ab-test): subprocess cwd=PROJECT_ROOT
-- `113cb6f` fix(score-worker): sub-batch 5개씩 처리
-- `c0dc317` refactor(score): scoreItem/BuildScorePrompt dead code 삭제
-- `e8ac2f2` refactor: dead code 전량 삭제
+- `b22f492` fix(v2pipeline): watchdog 안정화 + warmup 실패 시 items 즉시 release
 
 ## Accumulated Context
 
