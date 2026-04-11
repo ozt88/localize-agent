@@ -1,3 +1,0 @@
-# Goblin
-
-#REDIRECT Goblins

@@ -24,8 +24,7 @@ type DialogueBlock struct {
 	Tags          []string `json:"tags"`           // DC_check, OBJ, XPGain, etc.
 	BlockIndex    int      `json:"block_index"`    // sequential index within container
 	ContentType   string   `json:"content_type"`   // dialogue, spell, ui, item, system
-	IsPassthrough    bool     `json:"is_passthrough"`              // true if block should skip translation
-	ParentChoiceText string   `json:"parent_choice_text,omitempty"` // parent choice display text for branch context (D-04)
+	IsPassthrough bool     `json:"is_passthrough"` // true if block should skip translation
 }
 
 // ParseResult holds all blocks extracted from one TextAsset file.

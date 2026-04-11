@@ -254,6 +254,96 @@ func TestExportBuildV3Sidecar_HasContextualEntries(t *testing.T) {
 	}
 }
 
+func TestBuildV3Sidecar_HighestGenWins(t *testing.T) {
+	// D-02: same SourceRaw with different RetranslationGen -> highest gen wins in entries[]
+	items := []contracts.V2PipelineItem{
+		{
+			ID:               "k1/g-0/blk-0",
+			SortIndex:        0,
+			SourceRaw:        "Hello, traveler.",
+			KOFormatted:      "구 번역",
+			ContentType:      "dialogue",
+			RetranslationGen: 0,
+		},
+		{
+			ID:               "k1/g-0/blk-0-gen1",
+			SortIndex:        1,
+			SourceRaw:        "Hello, traveler.",
+			KOFormatted:      "신 번역",
+			ContentType:      "dialogue",
+			RetranslationGen: 1,
+		},
+		{
+			ID:               "k2/g-0/blk-0",
+			SortIndex:        2,
+			SourceRaw:        "Goodbye.",
+			KOFormatted:      "잘가.",
+			ContentType:      "dialogue",
+			RetranslationGen: 0,
+		},
+	}
+
+	sidecar := BuildV3Sidecar(items)
+
+	// entries[] should have 2 items (deduped by source_raw, highest gen wins)
+	if len(sidecar.Entries) != 2 {
+		t.Fatalf("entries count: got %d, want 2", len(sidecar.Entries))
+	}
+	// "Hello, traveler." entry should be gen=1 item (highest gen wins)
+	if sidecar.Entries[0].Target != "신 번역" {
+		t.Errorf("entries[0].Target: got %q, want %q (highest gen wins)", sidecar.Entries[0].Target, "신 번역")
+	}
+	if sidecar.Entries[0].ID != "k1/g-0/blk-0-gen1" {
+		t.Errorf("entries[0].ID: got %q, want %q", sidecar.Entries[0].ID, "k1/g-0/blk-0-gen1")
+	}
+	// "Goodbye." entry should remain as-is
+	if sidecar.Entries[1].Target != "잘가." {
+		t.Errorf("entries[1].Target: got %q, want %q", sidecar.Entries[1].Target, "잘가.")
+	}
+
+	// contextual_entries[] should have ALL 3 items
+	if len(sidecar.ContextualEntries) != 3 {
+		t.Fatalf("contextual_entries count: got %d, want 3", len(sidecar.ContextualEntries))
+	}
+}
+
+func TestBuildV3Sidecar_AllGen0LegacyBehavior(t *testing.T) {
+	// When all items have RetranslationGen=0 (legacy), first-seen-wins still applies
+	items := []contracts.V2PipelineItem{
+		{ID: "k1/g-0/blk-0", SortIndex: 0, SourceRaw: "Same", KOFormatted: "첫번째", RetranslationGen: 0},
+		{ID: "k2/g-0/blk-0", SortIndex: 1, SourceRaw: "Same", KOFormatted: "두번째", RetranslationGen: 0},
+	}
+
+	sidecar := BuildV3Sidecar(items)
+	if len(sidecar.Entries) != 1 {
+		t.Fatalf("entries count: got %d, want 1", len(sidecar.Entries))
+	}
+	// first-seen-wins when gen is the same
+	if sidecar.Entries[0].ID != "k1/g-0/blk-0" {
+		t.Errorf("entries[0].ID: got %q, want %q (first-seen-wins for same gen)", sidecar.Entries[0].ID, "k1/g-0/blk-0")
+	}
+}
+
+func TestBuildV3Sidecar_ExplodeAfterGenDedup(t *testing.T) {
+	// Multi-line entries still work after gen-aware dedup
+	items := []contracts.V2PipelineItem{
+		{
+			ID:               "k1/g-0/blk-0",
+			SortIndex:        0,
+			SourceRaw:        "Line one.\nLine two.",
+			KOFormatted:      "줄 하나.\n줄 둘.",
+			ContentType:      "dialogue",
+			RetranslationGen: 1,
+		},
+	}
+
+	sidecar := BuildV3Sidecar(items)
+	// 1 block entry + 2 exploded line entries = 3
+	if len(sidecar.Entries) != 3 {
+		t.Fatalf("entries count: got %d, want 3 (1 block + 2 exploded)", len(sidecar.Entries))
+	}
+}
+
 func TestExportWriteTranslationsJSON(t *testing.T) {
 	items := []contracts.V2PipelineItem{
 		{

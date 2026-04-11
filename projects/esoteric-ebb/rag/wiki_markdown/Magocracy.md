@@ -1,3 +1,0 @@
-# Magocracy
-
-#REDIRECT Arcanists

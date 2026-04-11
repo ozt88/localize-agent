@@ -6,6 +6,15 @@ import "regexp"
 // Used by tagformat and scorellm to strip LLM response formatting.
 var CodeFenceRe = regexp.MustCompile("(?s)```(?:json)?\\s*(.+?)\\s*```")
 
+// StripCodeFence extracts content from markdown code fences if present.
+// Returns the original string if no code fence is found.
+func StripCodeFence(s string) string {
+	if m := CodeFenceRe.FindStringSubmatch(s); len(m) > 1 {
+		return m[1]
+	}
+	return s
+}
+
 func ExtractJSONObjectChunks(raw string) []string {
 	out := []string{}
 	depth := 0

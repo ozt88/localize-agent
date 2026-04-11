@@ -1,3 +1,0 @@
-# The Alligator
-
-#REDIRECT Kraaid

@@ -1,6 +1,0 @@
-# Esoteric Ebb Wiki/pages
-
-*
-*
-*
-*

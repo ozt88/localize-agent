@@ -1,3 +1,0 @@
-# Appledent
-
-#REDIRECT Snurre Appledent

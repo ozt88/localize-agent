@@ -1,3 +1,0 @@
-# Nes'Wikkala
-
-#REDIRECT Nessan

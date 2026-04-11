@@ -1,3 +1,0 @@
-# Freestriders
-
-#REDIRECT Revolutionary Freestriders

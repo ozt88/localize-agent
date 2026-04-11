@@ -46,6 +46,20 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 		Entries:           make([]V3Entry, 0),
 		ContextualEntries: make([]V3Entry, 0, len(items)),
 	}
+
+	// Pass 1: find highest-gen item for each source_raw (D-02 highest-gen dedup)
+	type bestRecord struct {
+		gen int
+		id  string
+	}
+	best := make(map[string]bestRecord)
+	for _, item := range items {
+		if rec, ok := best[item.SourceRaw]; !ok || item.RetranslationGen > rec.gen {
+			best[item.SourceRaw] = bestRecord{gen: item.RetranslationGen, id: item.ID}
+		}
+	}
+
+	// Pass 2: build entries (highest-gen-wins dedup) and contextual_entries (all)
 	seen := make(map[string]bool)
 	for _, item := range items {
 		target := item.KOFormatted
@@ -65,7 +79,9 @@ func BuildV3Sidecar(items []contracts.V2PipelineItem) V3Sidecar {
 			SpeakerHint: item.Speaker,
 		}
 		sidecar.ContextualEntries = append(sidecar.ContextualEntries, entry)
-		if !seen[item.SourceRaw] {
+
+		// Only add to entries if this item is the best (highest-gen) for its source_raw
+		if rec := best[item.SourceRaw]; rec.id == item.ID && !seen[item.SourceRaw] {
 			seen[item.SourceRaw] = true
 			sidecar.Entries = append(sidecar.Entries, entry)
 		}

@@ -1,3 +1,0 @@
-# Askan
-
-#REDIRECT Askanii

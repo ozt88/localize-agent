@@ -1,3 +1,0 @@
-# Brimmarks
-
-#REDIRECT Bloodcity Bay

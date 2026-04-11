@@ -1,3 +1,0 @@
-# Diminor
-
-#REDIRECT Reeds

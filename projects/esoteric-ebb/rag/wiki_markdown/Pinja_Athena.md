@@ -1,3 +1,0 @@
-# Pinja'Athena
-
-#REDIRECT Pinja

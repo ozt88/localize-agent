@@ -11,7 +11,6 @@ import (
 	"localize-agent/workflow/internal/contracts"
 	"localize-agent/workflow/internal/glossary"
 	"localize-agent/workflow/internal/inkparse"
-	"localize-agent/workflow/internal/ragcontext"
 	"localize-agent/workflow/internal/scorellm"
 	"localize-agent/workflow/internal/tagformat"
 	"localize-agent/workflow/pkg/platform"
@@ -21,22 +20,8 @@ import (
 // Session key: "v2-translate-{workerID}" per Pitfall 3.
 func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
-	ragCtx *ragcontext.BatchContext,
 	translateProfile, highProfile platform.LLMProfile,
 	workerID string) error {
-
-	// Load voice cards at startup (Phase 07, TONE-02)
-	if cfg.VoiceCardsPath != "" && cfg.VoiceCards == nil {
-		cards, err := clustertranslate.LoadVoiceCards(cfg.VoiceCardsPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "warning: voice cards load failed: %v\n", err)
-		} else if cards != nil {
-			cfg.VoiceCards = make(map[string]string)
-			for name, card := range cards {
-				cfg.VoiceCards[name] = fmt.Sprintf("%s, %s, %s", card.SpeechStyle, card.Honorific, card.Personality)
-			}
-		}
-	}
 
 	sessionKey := "v2-translate-" + workerID
 
@@ -66,7 +51,7 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		for batchID, batchItems := range batches {
 			subBatches := splitByGateIfHuge(batchID, batchItems, 30)
 			for _, sub := range subBatches {
-				if err := translateBatch(ctx, cfg, store, llm, glossarySet, ragCtx, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
+				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
 					fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, sub.id, err)
 				}
 			}
@@ -81,7 +66,6 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 // translateBatch processes a single batch group of items through translation.
 func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
-	ragCtx *ragcontext.BatchContext,
 	translateProfile, highProfile platform.LLMProfile,
 	sessionKey, workerID, batchID string, items []contracts.V2PipelineItem) error {
 
@@ -121,43 +105,10 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		prevGateLines, _ = store.GetPrevGateLines(items[0].Knot, items[0].Gate, 3)
 	}
 
-	// Next lines context (CONT-01, D-06)
-	var nextLines []string
-	if items[0].Gate != "" {
-		nextLines, _ = store.GetNextLines(items[0].Knot, items[0].Gate, 3)
-	}
-
-	// PrevKO/NextKO for retranslation context (CONT-02, D-07)
-	var prevKO, nextKO []string
-	if items[0].RetranslationGen > 0 && len(items) > 0 {
-		minSort := items[0].SortIndex
-		maxSort := items[len(items)-1].SortIndex
-		prevKO, nextKO, _ = store.GetAdjacentKO(items[0].Knot, minSort, maxSort, 3)
-	}
-
-	// ParentChoiceText from first item (BRANCH-01, D-04)
-	parentChoiceText := ""
-	if len(items) > 0 && items[0].Choice != "" {
-		parentChoiceText = items[0].ParentChoiceText
-	}
-
-	// RAG world-building context (D-17, Phase 07.1)
-	var ragHints string
-	if ragCtx != nil {
-		hints := ragCtx.HintsForBatch(batchID)
-		ragHints = ragcontext.FormatHints(hints)
-	}
-
 	task := clustertranslate.ClusterTask{
-		Batch:            batch,
-		GlossaryJSON:     glossaryJSON,
-		PrevGateLines:    prevGateLines,
-		NextLines:        nextLines,
-		PrevKO:           prevKO,
-		NextKO:           nextKO,
-		VoiceCards:       cfg.VoiceCards,
-		ParentChoiceText: parentChoiceText,
-		RAGHints:         ragHints,
+		Batch:         batch,
+		GlossaryJSON:  glossaryJSON,
+		PrevGateLines: prevGateLines,
 	}
 
 	prompt, meta := clustertranslate.BuildScriptPrompt(task)
@@ -171,10 +122,6 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, profile); err != nil {
-		// Server down during warmup — release items so they can be reclaimed immediately.
-		for _, item := range items {
-			handleRetry(store, item, "translate", cfg.MaxRetries, err.Error())
-		}
 		return fmt.Errorf("translate warmup: %w", err)
 	}
 	rawOutput, err := llm.SendPrompt(sessionKey, profile, prompt)
@@ -333,10 +280,6 @@ func formatSubBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, profile); err != nil {
-		// Server down during warmup — release items so they can be reclaimed immediately.
-		for _, item := range items {
-			handleRetry(store, item, "format", cfg.MaxRetries, err.Error())
-		}
 		return fmt.Errorf("format warmup: %w", err)
 	}
 	prompt := tagformat.BuildFormatPrompt(tasks)
@@ -384,7 +327,6 @@ func formatSubBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 // Session key: "v2-score-{workerID}" per Pitfall 3.
 func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient,
-	ragCtx *ragcontext.BatchContext,
 	scoreProfile platform.LLMProfile,
 	workerID string) error {
 
@@ -410,20 +352,9 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 			}
 		}
 
-		// Score items in sub-batches of 10. Timeout is 180s which is sufficient;
-		// larger sub-batches halve the number of LLM round trips.
-		subBatchSize := 10
-		if subBatchSize > len(items) {
-			subBatchSize = len(items)
-		}
-		for i := 0; i < len(items); i += subBatchSize {
-			end := i + subBatchSize
-			if end > len(items) {
-				end = len(items)
-			}
-			if err := scoreBatch(ctx, cfg, store, llm, ragCtx, scoreProfile, sessionKey, workerID, items[i:end]); err != nil {
-				fmt.Fprintf(os.Stderr, "[score-%s] sub-batch error: %v\n", workerID, err)
-			}
+		// Score items in batch (optimized from single-item scoring).
+		if err := scoreBatch(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, items); err != nil {
+			fmt.Fprintf(os.Stderr, "[score-%s] batch error: %v\n", workerID, err)
 		}
 
 		if cfg.Once {
@@ -435,9 +366,7 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 // scoreBatch processes multiple items through a single Score LLM call.
 // Builds a numbered batch prompt, parses the JSON array response, and routes each item.
 func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
-	llm *platform.SessionLLMClient,
-	ragCtx *ragcontext.BatchContext,
-	scoreProfile platform.LLMProfile,
+	llm *platform.SessionLLMClient, scoreProfile platform.LLMProfile,
 	sessionKey, workerID string, items []contracts.V2PipelineItem) error {
 
 	// Build batch tasks.
@@ -455,22 +384,10 @@ func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore
 		}
 	}
 
-	// RAG context for score prompt (D-19, Phase 07.1)
-	var ragHintsForScore string
-	if ragCtx != nil && len(items) > 0 {
-		batchID := items[0].BatchID
-		hints := ragCtx.HintsForBatch(batchID)
-		ragHintsForScore = ragcontext.FormatHints(hints)
-	}
-
-	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks, ragHintsForScore)
+	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks)
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {
-		// Server down during warmup — release items so they can be reclaimed immediately.
-		for _, item := range items {
-			_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
-		}
 		return fmt.Errorf("score warmup: %w", err)
 	}
 	rawOutput, err := llm.SendPrompt(sessionKey, scoreProfile, prompt)
@@ -504,6 +421,56 @@ func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore
 		}
 		logAttempt(store, id, "score", scoreProfile.ModelID, result.FailureType, result.Reason, scoreFinal, 0, 0)
 	}
+
+	return nil
+}
+
+// scoreItem processes a single item through the Score LLM.
+func scoreItem(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
+	llm *platform.SessionLLMClient, scoreProfile platform.LLMProfile,
+	sessionKey, workerID string, item contracts.V2PipelineItem) error {
+
+	// Build ScoreTask. Use KOFormatted if available, otherwise KORaw.
+	koText := item.KOFormatted
+	if koText == "" {
+		koText = item.KORaw
+	}
+	task := scorellm.ScoreTask{
+		BlockID:     item.ID,
+		ENSource:    item.SourceRaw,
+		KOFormatted: koText,
+		HasTags:     item.HasTags,
+	}
+
+	// Warmup and send.
+	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {
+		return fmt.Errorf("score warmup: %w", err)
+	}
+	prompt := scorellm.BuildScorePrompt(task)
+	rawOutput, err := llm.SendPrompt(sessionKey, scoreProfile, prompt)
+	if err != nil {
+		logAttempt(store, item.ID, "score", scoreProfile.ModelID, "", err.Error(), -1, item.ScoreAttempts+1, cfg.MaxRetries)
+		// Score LLM error -> retry score, not translation failure.
+		_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
+		return fmt.Errorf("score send: %w", err)
+	}
+
+	// Parse response (Pitfall 5: handle invalid JSON).
+	result, parseErr := scorellm.ParseScoreResponse(rawOutput)
+	if parseErr != nil {
+		reason := fmt.Sprintf("parse: %v", parseErr)
+		logAttempt(store, item.ID, "score", scoreProfile.ModelID, "", reason, -1, item.ScoreAttempts+1, cfg.MaxRetries)
+		_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
+		return nil // not fatal; will retry
+	}
+
+	// Mark scored -- this auto-routes per D-14.
+	scoreFinal := result.ScoreFinal()
+	if err := store.MarkScored(item.ID, scoreFinal, result.FailureType, result.Reason); err != nil {
+		return fmt.Errorf("mark scored %s: %w", item.ID, err)
+	}
+
+	logAttempt(store, item.ID, "score", scoreProfile.ModelID, result.FailureType, result.Reason, scoreFinal, 0, 0)
 
 	return nil
 }

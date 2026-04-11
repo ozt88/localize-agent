@@ -1,3 +1,0 @@
-# Cleric
-
-#REDIRECT The Cleric
