@@ -29,7 +29,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 06: Foundation — 프롬프트 재구조화 + 화자 검증 + 재번역 CLI** (3/3 plans) — completed 2026-04-06
 - [x] **Phase 07: Context Enrichment — 톤 프로필 + 분기 맥락 + 연속성 윈도우** - 씬 단위 일관성 향상: 캐릭터 말투, 선택지 맥락, 주변 대사 윈도우 확장 (completed 2026-04-08)
 - [ ] **Phase 07.1: RAG 세계관 맥락 주입** - enriched termbank + 배치별 사전 매칭 + Go 파이프라인 통합 (4 plans)
-- [ ] **Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증** - 개선된 프롬프트로 저품질 항목 재번역하고 게임 패치 적용
+- [ ] **Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증** - 개선된 프롬프트로 저품질 항목 재번역하고 게임 패치 적용 (2 plans)
 
 ## Phase Details
 
@@ -82,14 +82,17 @@ Plans:
 - [ ] 07.1-04-PLAN.md — RAG A/B 테스트 실행 + 사용자 검증
 
 ### Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증
-**Goal**: 개선된 프롬프트와 컨텍스트로 저품질 항목을 실제 재번역하고, 게임에 적용하여 품질 향상을 확인
+**Goal**: 전체 35,009건을 개선된 프롬프트(voice card + branch context + continuity window + RAG)로 재번역하고, highest-gen dedup으로 export하여 게임에 적용
 **Depends on**: Phase 07.1
 **Requirements**: RETRANS-04, RETRANS-05
 **Success Criteria** (what must be TRUE):
-  1. BuildV3Sidecar dedup 로직이 score-aware로 수정되어, 같은 source에 대해 최고 점수 번역이 entries[]에 선택된다
-  2. 재번역된 항목이 batch_id 단위로 실행되어 새 translations.json이 생성되고, 게임에서 태그 깨짐 없이 렌더링된다
+  1. BuildV3Sidecar dedup 로직이 highest-gen-wins로 수정되어, 같은 source에 대해 최신 retranslation_gen 번역이 entries[]에 선택된다
+  2. 재번역된 항목이 전량 실행되어 새 translations.json이 생성되고, 게임에서 태그 깨짐 없이 렌더링된다
   3. 재번역 전후 인게임 비교에서 대사 흐름이 자연스러워진 것이 확인된다
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — BuildV3Sidecar highest-gen dedup + ResetAllForRetranslation + go-v2-reset-all CLI + 전체 리셋
+- [ ] 08-02-PLAN.md — 파이프라인 완료 후 export + before/after diff + 인게임 회귀 검증
 
 ## Progress
 
@@ -108,4 +111,4 @@ Phases execute in numeric order: 6 -> 7 -> 7.1 -> 8
 | 6. Foundation | v1.1 | 3/3 | Complete | 2026-04-06 |
 | 7. Context Enrichment | v1.1 | 3/3 | Complete | 2026-04-08 |
 | 7.1 RAG 세계관 맥락 | v1.1 | 0/4 | Planned | - |
-| 8. Retranslation Execution | v1.1 | 0/? | Not started | - |
+| 8. Retranslation Execution | v1.1 | 0/2 | Planned | - |
