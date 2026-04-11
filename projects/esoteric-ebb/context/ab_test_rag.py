@@ -152,7 +152,8 @@ def run_pipeline_stage(stage: str, rag_path: str):
     max_passes = 30
     for p in range(max_passes):
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=pass_timeout)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=pass_timeout,
+                                    cwd=str(PROJECT_ROOT))
             print(f"    {stage} pass {p+1}: exit={result.returncode}")
             if result.stdout:
                 for line in result.stdout.split("\n"):
@@ -189,7 +190,8 @@ def run_pipeline_stage(stage: str, rag_path: str):
                 f"--{stage}-timeout-sec", "5",
             ]
             try:
-                subprocess.run(cleanup_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30)
+                subprocess.run(cleanup_cmd, capture_output=True, text=True, encoding="utf-8", timeout=30,
+                               cwd=str(PROJECT_ROOT))
             except subprocess.TimeoutExpired:
                 pass
             time.sleep(2)
