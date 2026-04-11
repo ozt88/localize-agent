@@ -801,6 +801,7 @@ func (s *Store) MarkDonePassthrough(id, koFormatted string) error {
 // then resets them to pending_translate with the given nextGen. Returns affected row count.
 func (s *Store) ResetAllForRetranslation(nextGen int) (int, error) {
 	now := s.nowValue()
+	nowText := time.Now().UTC().Format(time.RFC3339)
 
 	// Ensure retranslation_snapshots table exists
 	createSnapshotTable := `
@@ -817,14 +818,23 @@ func (s *Store) ResetAllForRetranslation(nextGen int) (int, error) {
 		return 0, fmt.Errorf("create retranslation_snapshots: %w", err)
 	}
 
-	// SQL 1: snapshot current translations before reset
+	// Ensure retranslation_gen column exists on pipeline_items_v2
+	addColSQL := `ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS retranslation_gen INTEGER NOT NULL DEFAULT 0`
+	if _, err := s.db.Exec(addColSQL); err != nil {
+		// SQLite doesn't support IF NOT EXISTS for ALTER TABLE; ignore error if column already exists
+		if s.backend == platform.DBBackendPostgres {
+			return 0, fmt.Errorf("add retranslation_gen column: %w", err)
+		}
+	}
+
+	// SQL 1: snapshot current translations before reset (snapshot_at is TEXT)
 	snapshotSQL := s.rebind(`
 		INSERT INTO retranslation_snapshots (id, gen, ko_raw, ko_formatted, score_final, snapshot_at)
 		SELECT id, ?, ko_raw, ko_formatted, score_final, ?
 		FROM pipeline_items_v2
 		WHERE state IN ('done', 'failed')
 		ON CONFLICT (id, gen) DO NOTHING`)
-	if _, err := s.db.Exec(snapshotSQL, nextGen, now); err != nil {
+	if _, err := s.db.Exec(snapshotSQL, nextGen, nowText); err != nil {
 		return 0, fmt.Errorf("snapshot: %w", err)
 	}
 
