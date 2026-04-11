@@ -29,11 +29,6 @@ Rules:
 Reply with: OK`
 }
 
-// BuildScorePrompt builds a single-item scoring prompt.
-func BuildScorePrompt(task ScoreTask) string {
-	return fmt.Sprintf("EN: %s\nKO: %s\nHas tags: %v", task.ENSource, task.KOFormatted, task.HasTags)
-}
-
 // BuildBatchScorePrompt builds a numbered batch scoring prompt.
 // Returns the prompt and the ordered list of block IDs for result mapping.
 // ragContext is optional world-building context for evaluation (D-19).
