@@ -171,6 +171,10 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, profile); err != nil {
+		// Server down during warmup — release items so they can be reclaimed immediately.
+		for _, item := range items {
+			handleRetry(store, item, "translate", cfg.MaxRetries, err.Error())
+		}
 		return fmt.Errorf("translate warmup: %w", err)
 	}
 	rawOutput, err := llm.SendPrompt(sessionKey, profile, prompt)
@@ -329,6 +333,10 @@ func formatSubBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, profile); err != nil {
+		// Server down during warmup — release items so they can be reclaimed immediately.
+		for _, item := range items {
+			handleRetry(store, item, "format", cfg.MaxRetries, err.Error())
+		}
 		return fmt.Errorf("format warmup: %w", err)
 	}
 	prompt := tagformat.BuildFormatPrompt(tasks)
@@ -402,9 +410,9 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 			}
 		}
 
-		// Score items in sub-batches of 5 to avoid LLM timeout on large claims.
-		// Pattern mirrors FormatWorker sub-batching (D-06).
-		subBatchSize := 5
+		// Score items in sub-batches of 10. Timeout is 180s which is sufficient;
+		// larger sub-batches halve the number of LLM round trips.
+		subBatchSize := 10
 		if subBatchSize > len(items) {
 			subBatchSize = len(items)
 		}
@@ -459,6 +467,10 @@ func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {
+		// Server down during warmup — release items so they can be reclaimed immediately.
+		for _, item := range items {
+			_ = store.UpdateRetryState(item.ID, StatePendingScore, "score_attempts")
+		}
 		return fmt.Errorf("score warmup: %w", err)
 	}
 	rawOutput, err := llm.SendPrompt(sessionKey, scoreProfile, prompt)
