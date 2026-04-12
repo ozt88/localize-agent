@@ -103,7 +103,7 @@ Plans:
   3. 35,009건 전량 재번역이 완료되어 translations.json이 생성된다
   4. 게임에서 태그 깨짐 없이 한국어가 렌더링된다
 **Plans:**
-- [ ] 09-01-PLAN.md — voice cards + RAG go-v2-pipeline 재통합 + voice_cards.json 생성 + 샘플 검증
+- [x] 09-01-PLAN.md — voice cards + RAG go-v2-pipeline 재통합 + voice_cards.json 생성 + 샘플 검증
 - [ ] 09-02-PLAN.md — 전량 재번역 실행 (35,009건)
 - [ ] 09-03-PLAN.md — export + before/after diff + 인게임 검증
 
@@ -125,4 +125,4 @@ Phases execute in numeric order: 6 -> 7 -> 7.1 -> 8
 | 7. Context Enrichment | v1.1 | 3/3 | Complete | 2026-04-08 |
 | 7.1 RAG 세계관 맥락 | v1.1 | 4/4 | Complete | 2026-04-12 |
 | 8. Retranslation Infrastructure | v1.1 | 2/2 | Closed (인프라만 완료) | 2026-04-12 |
-| 9. Retranslation Execution | v1.1 | 0/3 | Planned | - |
+| 9. Retranslation Execution | v1.1 | 1/3 | In Progress|  |
