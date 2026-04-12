@@ -11,6 +11,7 @@ import (
 	"localize-agent/workflow/internal/contracts"
 	"localize-agent/workflow/internal/glossary"
 	"localize-agent/workflow/internal/inkparse"
+	"localize-agent/workflow/internal/ragcontext"
 	"localize-agent/workflow/internal/scorellm"
 	"localize-agent/workflow/internal/tagformat"
 	"localize-agent/workflow/pkg/platform"
@@ -21,6 +22,7 @@ import (
 func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
 	translateProfile, highProfile platform.LLMProfile,
+	ragCtx *ragcontext.BatchContext,
 	workerID string) error {
 
 	sessionKey := "v2-translate-" + workerID
@@ -51,7 +53,7 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 		for batchID, batchItems := range batches {
 			subBatches := splitByGateIfHuge(batchID, batchItems, 30)
 			for _, sub := range subBatches {
-				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items); err != nil {
+				if err := translateBatch(ctx, cfg, store, llm, glossarySet, translateProfile, highProfile, sessionKey, workerID, sub.id, sub.items, ragCtx); err != nil {
 					fmt.Fprintf(os.Stderr, "[translate-%s] batch %s error: %v\n", workerID, sub.id, err)
 				}
 			}
@@ -67,7 +69,8 @@ func TranslateWorker(ctx context.Context, cfg Config, store contracts.V2Pipeline
 func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, glossarySet *glossary.GlossarySet,
 	translateProfile, highProfile platform.LLMProfile,
-	sessionKey, workerID, batchID string, items []contracts.V2PipelineItem) error {
+	sessionKey, workerID, batchID string, items []contracts.V2PipelineItem,
+	ragCtx *ragcontext.BatchContext) error {
 
 	// Build ClusterTask from items.
 	blocks := make([]inkparse.DialogueBlock, len(items))
@@ -105,10 +108,93 @@ func translateBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 		prevGateLines, _ = store.GetPrevGateLines(items[0].Knot, items[0].Gate, 3)
 	}
 
+	// CONT-01: look-ahead next lines.
+	var nextLines []string
+	if items[0].Gate != "" {
+		nextLines, _ = store.GetNextLines(items[0].Knot, items[0].Gate, 3)
+	}
+
+	// CONT-02: adjacent Korean translations for continuity (only on retranslation).
+	var prevKO, nextKO []string
+	if items[0].RetranslationGen > 0 {
+		minSort := items[0].SortIndex
+		maxSort := items[0].SortIndex
+		for _, it := range items {
+			if it.SortIndex < minSort {
+				minSort = it.SortIndex
+			}
+			if it.SortIndex > maxSort {
+				maxSort = it.SortIndex
+			}
+		}
+		prevKO, nextKO, _ = store.GetAdjacentKO(items[0].Knot, minSort, maxSort, 3)
+	}
+
+	// BRANCH-01: parent choice text from first item.
+	parentChoiceText := items[0].ParentChoiceText
+
+	// D-17: RAG hints for this batch.
+	var ragHints string
+	if ragCtx != nil {
+		hints := ragCtx.HintsForBatch(batchID)
+		ragHints = ragcontext.FormatHints(hints)
+	}
+
+	// TONE-02: voice cards — lazy load and format for speakers in batch.
+	var voiceCards map[string]string
+	if cfg.VoiceCardsPath != "" {
+		if cfg.VoiceCards == nil {
+			// Load voice cards on first use.
+			cards, err := clustertranslate.LoadVoiceCards(cfg.VoiceCardsPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[translate-%s] voice cards load warning: %v\n", workerID, err)
+			} else if cards != nil {
+				formatted := make(map[string]string, len(cards))
+				for speaker, card := range cards {
+					var parts []string
+					if card.SpeechStyle != "" {
+						parts = append(parts, card.SpeechStyle)
+					}
+					if card.Honorific != "" {
+						parts = append(parts, "존댓말: "+card.Honorific)
+					}
+					if card.Personality != "" {
+						parts = append(parts, "성격: "+card.Personality)
+					}
+					// Include relationships for speakers appearing in this batch.
+					if len(card.Relationships) > 0 {
+						var relParts []string
+						for other, rel := range card.Relationships {
+							// Only include relationships with speakers present in batch.
+							for _, it := range items {
+								if it.Speaker == other {
+									relParts = append(relParts, other+"에게: "+rel)
+									break
+								}
+							}
+						}
+						if len(relParts) > 0 {
+							parts = append(parts, strings.Join(relParts, ", "))
+						}
+					}
+					formatted[speaker] = strings.Join(parts, ". ")
+				}
+				cfg.VoiceCards = formatted
+			}
+		}
+		voiceCards = cfg.VoiceCards
+	}
+
 	task := clustertranslate.ClusterTask{
-		Batch:         batch,
-		GlossaryJSON:  glossaryJSON,
-		PrevGateLines: prevGateLines,
+		Batch:            batch,
+		GlossaryJSON:     glossaryJSON,
+		PrevGateLines:    prevGateLines,
+		NextLines:        nextLines,
+		PrevKO:           prevKO,
+		NextKO:           nextKO,
+		VoiceCards:       voiceCards,
+		ParentChoiceText: parentChoiceText,
+		RAGHints:         ragHints,
 	}
 
 	prompt, meta := clustertranslate.BuildScriptPrompt(task)
@@ -328,6 +414,7 @@ func formatSubBatch(ctx context.Context, cfg Config, store contracts.V2PipelineS
 func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient,
 	scoreProfile platform.LLMProfile,
+	ragCtx *ragcontext.BatchContext,
 	workerID string) error {
 
 	sessionKey := "v2-score-" + workerID
@@ -353,7 +440,7 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 		}
 
 		// Score items in batch (optimized from single-item scoring).
-		if err := scoreBatch(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, items); err != nil {
+		if err := scoreBatch(ctx, cfg, store, llm, scoreProfile, sessionKey, workerID, items, ragCtx); err != nil {
 			fmt.Fprintf(os.Stderr, "[score-%s] batch error: %v\n", workerID, err)
 		}
 
@@ -367,7 +454,8 @@ func ScoreWorker(ctx context.Context, cfg Config, store contracts.V2PipelineStor
 // Builds a numbered batch prompt, parses the JSON array response, and routes each item.
 func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore,
 	llm *platform.SessionLLMClient, scoreProfile platform.LLMProfile,
-	sessionKey, workerID string, items []contracts.V2PipelineItem) error {
+	sessionKey, workerID string, items []contracts.V2PipelineItem,
+	ragCtx *ragcontext.BatchContext) error {
 
 	// Build batch tasks.
 	tasks := make([]scorellm.ScoreTask, len(items))
@@ -384,7 +472,14 @@ func scoreBatch(ctx context.Context, cfg Config, store contracts.V2PipelineStore
 		}
 	}
 
-	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks)
+	// D-17: RAG hints for score context.
+	var ragHints string
+	if ragCtx != nil && len(items) > 0 {
+		hints := ragCtx.HintsForBatch(items[0].BatchID)
+		ragHints = ragcontext.FormatHints(hints)
+	}
+
+	prompt, blockIDs := scorellm.BuildBatchScorePrompt(tasks, ragHints)
 
 	// Warmup and send.
 	if err := llm.EnsureContext(sessionKey, scoreProfile); err != nil {

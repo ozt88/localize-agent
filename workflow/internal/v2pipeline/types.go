@@ -66,4 +66,9 @@ type Config struct {
 	TraceOutDir        string
 	CleanupStaleClaims bool
 	Once               bool
+
+	// Context injection
+	VoiceCardsPath string            // path to voice_cards.json (optional)
+	VoiceCards     map[string]string // speaker -> formatted voice guide text (loaded at startup)
+	RAGContextPath string            // path to rag_batch_context.json (optional)
 }

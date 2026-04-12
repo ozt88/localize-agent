@@ -35,10 +35,15 @@ func BuildScorePrompt(task ScoreTask) string {
 }
 
 // BuildBatchScorePrompt builds a numbered batch scoring prompt.
+// ragContext is optional world-building context injected as a [CONTEXT] section.
 // Returns the prompt and the ordered list of block IDs for result mapping.
-func BuildBatchScorePrompt(tasks []ScoreTask) (string, []string) {
+func BuildBatchScorePrompt(tasks []ScoreTask, ragContext string) (string, []string) {
 	var b strings.Builder
 	ids := make([]string, len(tasks))
+
+	if ragContext != "" {
+		fmt.Fprintf(&b, "[CONTEXT]\n%s\n\n---\n\n", ragContext)
+	}
 
 	fmt.Fprintf(&b, "Score these %d translations. Return a JSON array with %d results in order.\n\n", len(tasks), len(tasks))
 	for i, t := range tasks {
