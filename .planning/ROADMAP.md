@@ -81,18 +81,31 @@ Plans:
 - [x] 07.1-03-PLAN.md — Go ragcontext 패키지 + ClusterTask 확장 + 프롬프트 주입 + worker 통합
 - [ ] 07.1-04-PLAN.md — RAG A/B 테스트 실행 + 사용자 검증
 
-### Phase 08: Retranslation Execution — 재번역 실행 + 사이드카 수정 + 검증
-**Goal**: 전체 35,009건을 개선된 프롬프트(voice card + branch context + continuity window + RAG)로 재번역하고, highest-gen dedup으로 export하여 게임에 적용
+### Phase 08: Retranslation Infrastructure — dedup + reset 인프라 구축 ✅ CLOSED
+**Goal (재정의)**: highest-gen dedup + 전체 리셋 인프라 확립. 실번역은 Phase 09로 이월.
 **Depends on**: Phase 07.1
-**Requirements**: RETRANS-04, RETRANS-05
-**Success Criteria** (what must be TRUE):
-  1. BuildV3Sidecar dedup 로직이 highest-gen-wins로 수정되어, 같은 source에 대해 최신 retranslation_gen 번역이 entries[]에 선택된다
-  2. 재번역된 항목이 전량 실행되어 새 translations.json이 생성되고, 게임에서 태그 깨짐 없이 렌더링된다
-  3. 재번역 전후 인게임 비교에서 대사 흐름이 자연스러워진 것이 확인된다
-**Plans:** 1/2 plans executed
-Plans:
+**Closed reason**: 파이프라인 실행 시도했으나 voice cards/RAG 플래그 누락(worktree 버그 후 미복원)으로 품질 목표 미달. 인프라만 완료로 인정.
+**Plans:**
 - [x] 08-01-PLAN.md — BuildV3Sidecar highest-gen dedup + ResetAllForRetranslation + go-v2-reset-all CLI + 전체 리셋
-- [ ] 08-02-PLAN.md — 파이프라인 완료 후 export + before/after diff + 인게임 회귀 검증
+- [x] 08-02-PLAN.md — 파이프라인 실행 시도 + 품질 gap 발견 + watchdog 수정 (CLOSED_INCOMPLETE → Phase 09 이월)
+
+### Phase 09: Retranslation Execution — 품질 복원 + 전량 재번역 + 게임 검증
+**Goal**: voice cards + RAG를 go-v2-pipeline에 재통합하고, 35,009건 전량을 개선된 프롬프트로 재번역하여 게임에 적용
+**Depends on**: Phase 08
+**Requirements**: RETRANS-04, RETRANS-05
+**Lessons from Phase 08** (반드시 준수):
+  - 실행 전 `--voice-cards`, `--rag-context` 플래그 존재 확인
+  - 10건 샘플 번역 후 특수 말투 캐릭터(Kattegatt 등) 육안 검토
+  - voice_cards.json, rag_batch_context.json 존재 확인
+**Success Criteria** (what must be TRUE):
+  1. go-v2-pipeline worker가 voice card(캐릭터 말투)와 RAG context(세계관 힌트)를 프롬프트에 주입한다
+  2. Kattegatt 등 고어체 캐릭터의 말투가 `그대/~도다` 체로 번역된다
+  3. 35,009건 전량 재번역이 완료되어 translations.json이 생성된다
+  4. 게임에서 태그 깨짐 없이 한국어가 렌더링된다
+**Plans:**
+- [ ] 09-01-PLAN.md — voice cards + RAG go-v2-pipeline 재통합 + voice_cards.json 생성 + 샘플 검증
+- [ ] 09-02-PLAN.md — 전량 재번역 실행 (35,009건)
+- [ ] 09-03-PLAN.md — export + before/after diff + 인게임 검증
 
 ## Progress
 
@@ -110,5 +123,6 @@ Phases execute in numeric order: 6 -> 7 -> 7.1 -> 8
 | 5. 미번역 커버리지 | v1.0 | 3/3 | Complete | 2026-03-29 |
 | 6. Foundation | v1.1 | 3/3 | Complete | 2026-04-06 |
 | 7. Context Enrichment | v1.1 | 3/3 | Complete | 2026-04-08 |
-| 7.1 RAG 세계관 맥락 | v1.1 | 0/4 | Planned | - |
-| 8. Retranslation Execution | v1.1 | 0/2 | Planned | - |
+| 7.1 RAG 세계관 맥락 | v1.1 | 4/4 | Complete | 2026-04-12 |
+| 8. Retranslation Infrastructure | v1.1 | 2/2 | Closed (인프라만 완료) | 2026-04-12 |
+| 9. Retranslation Execution | v1.1 | 0/3 | Planned | - |

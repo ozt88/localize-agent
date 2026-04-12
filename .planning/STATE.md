@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 번역 품질 개선 — 맥락 기반 재번역
 status: phase_complete
-stopped_at: Phase 07.1 Plan 04 SUMMARY 작성 완료 — Phase 07.1 전체 완료
-last_updated: "2026-04-12T11:00:00.000Z"
-last_activity: 2026-04-12 -- No RAG baseline 스코어링 완료(avg 8.431), Plan 04 SUMMARY 작성
+stopped_at: Phase 08 CLOSED (인프라 완료, 품질 미달 — Phase 09로 이월)
+last_updated: "2026-04-12T18:00:00.000Z"
+last_activity: 2026-04-12 -- Phase 08 전량 종료. watchdog 수정, retranslate.go 구현. voice card/RAG 누락으로 번역 품질 미달 판정 → Phase 09로 이월.
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -21,51 +21,42 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 게임이 실제로 렌더링하는 대사 블록 단위로 소스를 생성하여, 태그 깨짐 없이 한국어 패치가 동작해야 한다.
-**Current focus:** Phase 07.1 완료 → Phase 08 (재번역) 준비
+**Current focus:** Phase 08 CLOSED → Phase 09 (voice cards + RAG 재통합 + 전량 재번역)
 
 ## Current Position
 
-Phase: 07.1 (rag-mcp-pageindex-mcp) — COMPLETE
-Plan: 4 of 4 — COMPLETE
-Status: 전체 완료
+Phase: 08 (retranslation-infrastructure) — CLOSED
+Status: 인프라 완료, 품질 전제조건 미충족으로 실번역 Phase 09로 이월
 
-Progress: [██████████] 100% (milestone v1.1 완료)
+## Phase 08 종료 사유
 
-## Phase 07.1 최종 결과
+**판정: 파이프라인 번역물 전량 폐기**
 
-**No RAG baseline (현재 v2 scorer): avg 8.431** — 10배치, 216 items
+worktree 버그(08-01) 이후 복원된 코드에서 `go-v2-pipeline/main.go`의 `--voice-cards`, `--rag-context` 플래그가 누락된 채 3,412건이 번역됨.
 
-| 배치 | avg |
-|------|-----|
-| Snell_Companion | 9.313 |
-| TS_Nearly | 9.143 |
-| CB_Kraaid | 9.036 |
-| AR_Viira_Ivcx | 9.000 |
-| DN_Darrow | 8.655 |
-| TS_Kull | 8.614 |
-| DS_Olzis | 8.432 |
-| Enc_Final | 8.273 |
-| CB_Lake | 7.940 |
-| CB_Moongore | 6.053 |
+AR_Kattegatt 씬 비교에서 확인:
+- gen=0 (구버전): `그대/~도다/~노라` 고어체 → 캐릭터 정체성 유지
+- gen=1 (신버전): `너/~다` 현대 반말로 평탄화 → 캐릭터 고유 말투 소실
 
-## Phase 08 인계 사항
+Phase 08 목표("voice card + RAG 포함 프롬프트로 재번역")가 실제로는 달성되지 않음.
 
-- **재번역 우선 대상:** CB_Moongore (avg 6.053), CB_Lake (avg 7.940)
-- **No RAG baseline:** avg 8.431 (Phase 08 재번역 후 비교 기준)
-- **pending_translate 75건, failed 16건** — 처리 방침 결정 필요
+## Phase 08 완료된 인프라 (유효)
 
-## Accumulated Context
+- `BuildV3Sidecar` highest-gen dedup — 동일 source_raw에서 최신 gen 항목만 export
+- `ResetAllForRetranslation` — 전체 pending_translate 리셋 CLI
+- `watchdog` false-kill 수정 — deepProbe → probeServer (단순 HTTP GET)
+- `retranslate.go` 구현 — SelectRetranslationBatches, ScoreHistogram, ResetForRetranslation
+- `retranslation_snapshots` 테이블 — 리셋 전 이전 번역 보존
 
-### Roadmap Evolution
-- Phase 07.1 inserted after Phase 07: RAG+MCP 세계관 맥락 주입
+## Phase 09 진입 전 필수 체크리스트
 
-### Blockers/Concerns
-- Phase 08: 재번역 후보 규모 확인 필요 (전체 40,067건 중 score < 8.0 항목)
+- [ ] `go-v2-pipeline --help`에서 `--voice-cards`, `--rag-context` 플래그 확인
+- [ ] `voice_cards.json` 존재 확인
+- [ ] `rag_batch_context.json` 존재 확인
+- [ ] 10건 샘플 번역 후 Kattegatt 등 고어체 캐릭터 육안 검토
 
 ## Session Continuity
 
-Last session: 2026-04-12T11:00:00.000Z
-Stopped at: Phase 07.1 완료, Plan 04 SUMMARY 작성
-Next action: Phase 08 discuss/plan — 재번역 대상 선정 및 파이프라인 설계
-</content>
-</invoke>
+Last session: 2026-04-12T18:00:00.000Z
+Stopped at: Phase 08 CLOSED, ROADMAP + STATE 업데이트 완료
+Next action: Phase 09 Plan 01 — voice cards + RAG go-v2-pipeline 재통합, voice_cards.json 생성, 샘플 검증
