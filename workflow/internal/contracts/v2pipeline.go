@@ -103,3 +103,11 @@ type V2PipelineStore interface {
 	// Close releases database resources.
 	Close() error
 }
+
+// RetranslationCandidate represents a batch selected for re-translation based on score threshold.
+type RetranslationCandidate struct {
+	BatchID   string
+	ItemCount int
+	MinScore  float64
+	AvgScore  float64
+}

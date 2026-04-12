@@ -896,3 +896,112 @@ func nullableText(s string) interface{} {
 	}
 	return s
 }
+
+// ScoreHistogram returns a score distribution histogram with the given bucket width.
+// Only done items with score_final >= 0 are included.
+func (s *Store) ScoreHistogram(bucketSize float64) ([]ScoreHistogramBucket, error) {
+	rows, err := s.db.Query(s.rebind(`
+		SELECT CAST(score_final / ? AS INTEGER) * ? AS lower_bound, COUNT(*) AS cnt
+		FROM pipeline_items_v2
+		WHERE state = 'done' AND score_final >= 0
+		GROUP BY lower_bound
+		ORDER BY lower_bound`),
+		bucketSize, bucketSize,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var buckets []ScoreHistogramBucket
+	for rows.Next() {
+		var b ScoreHistogramBucket
+		if err := rows.Scan(&b.LowerBound, &b.Count); err != nil {
+			return nil, err
+		}
+		buckets = append(buckets, b)
+	}
+	return buckets, rows.Err()
+}
+
+// SelectRetranslationBatches returns batches that contain at least one done item
+// with score_final below the given threshold. Optionally filtered by content_type.
+func (s *Store) SelectRetranslationBatches(threshold float64, contentType string) ([]contracts.RetranslationCandidate, error) {
+	var rows *sql.Rows
+	var err error
+
+	if contentType != "" {
+		rows, err = s.db.Query(s.rebind(`
+			SELECT batch_id, COUNT(*) AS item_count, MIN(score_final) AS min_score, AVG(score_final) AS avg_score
+			FROM pipeline_items_v2
+			WHERE state = 'done' AND score_final >= 0 AND content_type = ?
+			  AND batch_id IN (
+			    SELECT DISTINCT batch_id FROM pipeline_items_v2
+			    WHERE state = 'done' AND score_final >= 0 AND score_final < ? AND content_type = ?
+			  )
+			GROUP BY batch_id
+			ORDER BY avg_score ASC`),
+			contentType, threshold, contentType,
+		)
+	} else {
+		rows, err = s.db.Query(s.rebind(`
+			SELECT batch_id, COUNT(*) AS item_count, MIN(score_final) AS min_score, AVG(score_final) AS avg_score
+			FROM pipeline_items_v2
+			WHERE state = 'done' AND score_final >= 0
+			  AND batch_id IN (
+			    SELECT DISTINCT batch_id FROM pipeline_items_v2
+			    WHERE state = 'done' AND score_final >= 0 AND score_final < ?
+			  )
+			GROUP BY batch_id
+			ORDER BY avg_score ASC`),
+			threshold,
+		)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var candidates []contracts.RetranslationCandidate
+	for rows.Next() {
+		var c contracts.RetranslationCandidate
+		if err := rows.Scan(&c.BatchID, &c.ItemCount, &c.MinScore, &c.AvgScore); err != nil {
+			return nil, err
+		}
+		candidates = append(candidates, c)
+	}
+	return candidates, rows.Err()
+}
+
+// ResetForRetranslation snapshots the current done items in a batch into retranslation_snapshots,
+// then resets all items in the batch to pending_translate with the given nextGen.
+func (s *Store) ResetForRetranslation(batchID string, nextGen int) (int, error) {
+	now := s.nowValue()
+	nowText := time.Now().UTC().Format(time.RFC3339)
+
+	// Snapshot current done items for this batch.
+	snapshotSQL := s.rebind(`
+		INSERT INTO retranslation_snapshots (id, gen, ko_raw, ko_formatted, score_final, snapshot_at)
+		SELECT id, ?, ko_raw, ko_formatted, score_final, ?
+		FROM pipeline_items_v2
+		WHERE batch_id = ? AND state = 'done'
+		ON CONFLICT (id, gen) DO NOTHING`)
+	if _, err := s.db.Exec(snapshotSQL, nextGen, nowText, batchID); err != nil {
+		return 0, fmt.Errorf("snapshot batch %s: %w", batchID, err)
+	}
+
+	// Reset all items in the batch to pending_translate.
+	resetSQL := s.rebind(`
+		UPDATE pipeline_items_v2
+		SET state = ?, ko_raw = NULL, ko_formatted = NULL, score_final = -1,
+		    failure_type = '', last_error = '', claimed_by = '',
+		    claimed_at = NULL, lease_until = NULL,
+		    retranslation_gen = ?, updated_at = ?
+		WHERE batch_id = ?`)
+	result, err := s.db.Exec(resetSQL, contracts.StatePendingTranslate, nextGen, now, batchID)
+	if err != nil {
+		return 0, fmt.Errorf("reset batch %s: %w", batchID, err)
+	}
+	affected, _ := result.RowsAffected()
+	return int(affected), nil
+}

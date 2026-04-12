@@ -461,8 +461,10 @@ func openCodeWatchdog(ctx context.Context, serverURL string, clients []*platform
 		case <-time.After(checkInterval):
 		}
 
-		// Deep probe: create session + send message, not just TCP connect.
-		if deepProbe(serverURL, probeTimeout) {
+		// Shallow probe: check HTTP reachability only.
+		// deepProbe is avoided here because it sends a real LLM request and can false-trigger
+		// when the server is legitimately busy with translation work.
+		if probeServer(serverURL) {
 			if consecutiveFails > 0 {
 				fmt.Printf("v2pipeline watchdog: server recovered (was failing for %d checks)\n", consecutiveFails)
 			}

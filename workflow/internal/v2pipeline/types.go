@@ -17,6 +17,12 @@ const (
 	StateFailed           = contracts.StateFailed
 )
 
+// ScoreHistogramBucket represents a single bucket in a score distribution histogram.
+type ScoreHistogramBucket struct {
+	LowerBound float64
+	Count      int
+}
+
 // Config for v2 pipeline orchestration.
 type Config struct {
 	Project    string
