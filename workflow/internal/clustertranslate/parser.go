@@ -7,8 +7,13 @@ import (
 	"strings"
 )
 
-// numberedLineRe matches lines starting with [NN] marker.
+// numberedLineRe matches lines starting with [NN] marker at line start.
 var numberedLineRe = regexp.MustCompile(`^\[(\d+)\]\s*(.*)$`)
+
+// blockSplitRe splits raw LLM output into chunks, one per [NN] marker.
+// Each chunk starts at a [NN] marker and ends just before the next one.
+// This allows multiline text inside a single numbered entry.
+var blockSplitRe = regexp.MustCompile(`(?m)^(\[\d+\])`)
 
 // speakerRe matches "SpeakerName: text" patterns in LLM output.
 // Requires uppercase first letter to prevent false positives on Korean text
@@ -17,20 +22,46 @@ var numberedLineRe = regexp.MustCompile(`^\[(\d+)\]\s*(.*)$`)
 var speakerRe = regexp.MustCompile(`^([A-Z][A-Za-z0-9_' ]*?):\s*(.*)$`)
 
 // ParseNumberedOutput parses LLM output into TranslatedLine slice.
-// Expects lines in format: [NN] optional-speaker: "translated text"
+// Expects entries in format: [NN] optional-speaker: "translated text"
+// Supports multiline text within a single numbered entry — the text may span
+// multiple real newlines as produced by quoteForPrompt (no \n escaping).
 func ParseNumberedOutput(raw string) ([]TranslatedLine, error) {
-	rawLines := strings.Split(raw, "\n")
+	// Split on [NN] markers to get one chunk per numbered entry.
+	// indices[i] is the byte offset of the i-th [NN] marker in raw.
+	indices := blockSplitRe.FindAllStringIndex(raw, -1)
+	if len(indices) == 0 {
+		return nil, nil
+	}
+
+	// Extract each chunk: from marker start to next marker start (or end of string).
+	chunks := make([]string, len(indices))
+	for i, loc := range indices {
+		start := loc[0]
+		var end int
+		if i+1 < len(indices) {
+			end = indices[i+1][0]
+		} else {
+			end = len(raw)
+		}
+		chunks[i] = strings.TrimRight(raw[start:end], "\n\r ")
+	}
+
 	var result []TranslatedLine
 
-	for _, line := range rawLines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
+	for _, chunk := range chunks {
+		// First line of the chunk is "[NN] <remainder>".
+		nlIdx := strings.IndexByte(chunk, '\n')
+		var firstLine, restLines string
+		if nlIdx >= 0 {
+			firstLine = chunk[:nlIdx]
+			restLines = chunk[nlIdx+1:] // continuation lines (multiline text)
+		} else {
+			firstLine = chunk
 		}
 
-		match := numberedLineRe.FindStringSubmatch(line)
+		match := numberedLineRe.FindStringSubmatch(firstLine)
 		if match == nil {
-			continue // skip non-numbered lines
+			continue
 		}
 
 		num, err := strconv.Atoi(match[1])
@@ -39,6 +70,15 @@ func ParseNumberedOutput(raw string) ([]TranslatedLine, error) {
 		}
 
 		remainder := strings.TrimSpace(match[2])
+
+		// Append any continuation lines to remainder (multiline block).
+		if restLines != "" {
+			restTrimmed := strings.TrimSpace(restLines)
+			if restTrimmed != "" {
+				remainder = remainder + "\n" + restTrimmed
+			}
+		}
+
 		tl := TranslatedLine{Number: num}
 
 		// Check for [CHOICE] marker
@@ -47,15 +87,44 @@ func ParseNumberedOutput(raw string) ([]TranslatedLine, error) {
 			remainder = strings.TrimSpace(strings.TrimPrefix(remainder, "[CHOICE]"))
 		}
 
-		// Strip surrounding quotes
-		remainder = stripQuotes(remainder)
+		// Check for speaker pattern before stripping quotes.
+		// Speaker label (e.g. "Braxo:") is always unquoted, appearing before the text.
+		// We match against the full remainder so multiline text after the speaker label
+		// is captured in speakerMatch[2] + any continuation joined via afterSpeaker.
+		//
+		// Strategy:
+		//   1. Try speaker match on the first line of remainder (before any \n or \\n).
+		//   2. If matched, recombine speaker text with continuation and stripQuotes on
+		//      the combined text value.
+		//   3. If no speaker, stripQuotes on the full remainder.
 
-		// Check for speaker pattern
-		if speakerMatch := speakerRe.FindStringSubmatch(remainder); speakerMatch != nil {
-			tl.Speaker = strings.TrimSpace(speakerMatch[1])
-			tl.Text = stripQuotes(strings.TrimSpace(speakerMatch[2]))
+		// Split remainder into first-line and continuation at the earliest newline
+		// (real or escaped).  We handle both real \n (from quoteForPrompt) and
+		// literal \n sequences (from old %q prompts that the LLM echoed back).
+		splitAt := -1
+		if idx := strings.Index(remainder, `\n`); idx >= 0 {
+			splitAt = idx
+		}
+		if idx := strings.IndexByte(remainder, '\n'); idx >= 0 && (splitAt < 0 || idx < splitAt) {
+			splitAt = idx
+		}
+
+		var firstSeg, afterFirst string
+		if splitAt >= 0 {
+			firstSeg = remainder[:splitAt]
+			afterFirst = remainder[splitAt:]
 		} else {
-			tl.Text = remainder
+			firstSeg = remainder
+		}
+
+		if speakerMatch := speakerRe.FindStringSubmatch(firstSeg); speakerMatch != nil {
+			tl.Speaker = strings.TrimSpace(speakerMatch[1])
+			// Combine speaker's text segment with any continuation, then stripQuotes.
+			rawText := strings.TrimSpace(speakerMatch[2]) + afterFirst
+			tl.Text = stripQuotes(rawText)
+		} else {
+			// No speaker — stripQuotes on full remainder.
+			tl.Text = stripQuotes(remainder)
 		}
 
 		result = append(result, tl)
@@ -78,10 +147,18 @@ func MapLinesToIDs(lines []TranslatedLine, meta PromptMeta) (map[string]string, 
 	return mapping, nil
 }
 
-// stripQuotes removes surrounding double quotes from a string.
+// stripQuotes removes surrounding double quotes from a string and unescapes
+// common Go escape sequences that the LLM may echo back when the prompt used %q.
+// Specifically, literal \n in the response is converted to a real newline so that
+// multiline dialogue blocks stored in the DB contain actual newlines.
 func stripQuotes(s string) string {
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		return s[1 : len(s)-1]
+		s = s[1 : len(s)-1]
 	}
+	// Unescape sequences the LLM may echo from a %q-formatted prompt.
+	s = strings.ReplaceAll(s, `\n`, "\n")
+	s = strings.ReplaceAll(s, `\t`, "\t")
+	s = strings.ReplaceAll(s, `\"`, `"`)
+	s = strings.ReplaceAll(s, `\\`, `\`)
 	return s
 }

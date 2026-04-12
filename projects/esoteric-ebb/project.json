@@ -41,7 +41,7 @@
     "max_retries": 3,
     "low_llm": {
       "llm_backend": "opencode",
-      "server_url": "http://127.0.0.1:4113",
+      "server_url": "http://127.0.0.1:4115",
       "model": "openai/gpt-5.2",
       "translator_response_mode": "plain",
       "ollama_baked_system": true,
@@ -55,7 +55,7 @@
     },
     "high_llm": {
       "llm_backend": "opencode",
-      "server_url": "http://127.0.0.1:4113",
+      "server_url": "http://127.0.0.1:4115",
       "model": "openai/gpt-5.4",
       "concurrency": 2,
       "batch_size": 10,
@@ -63,7 +63,7 @@
     },
     "score_llm": {
       "llm_backend": "opencode",
-      "server_url": "http://127.0.0.1:4113",
+      "server_url": "http://127.0.0.1:4115",
       "model": "openai/gpt-5.4",
       "concurrency": 4,
       "batch_size": 20,

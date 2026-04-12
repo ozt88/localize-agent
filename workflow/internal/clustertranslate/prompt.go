@@ -147,15 +147,19 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 		num := fmt.Sprintf("%0*d", padWidth, i+1)
 		meta.BlockIDOrder = append(meta.BlockIDOrder, block.ID)
 
+		// Use quoteForPrompt instead of %q to preserve real newlines in multiline blocks.
+		// %q escapes \n to \\n, which causes LLM responses to contain literal backslash-n
+		// that the parser would store verbatim rather than as real newlines.
+		quoted := quoteForPrompt(block.Text)
 		if block.Choice != "" {
 			// Choice marker (D-02)
-			fmt.Fprintf(&prompt, "[%s] [CHOICE] %q\n", num, block.Text)
+			fmt.Fprintf(&prompt, "[%s] [CHOICE] %s\n", num, quoted)
 		} else if block.Speaker != "" {
 			// Speaker label (D-01)
-			fmt.Fprintf(&prompt, "[%s] %s: %q\n", num, block.Speaker, block.Text)
+			fmt.Fprintf(&prompt, "[%s] %s: %s\n", num, block.Speaker, quoted)
 		} else {
 			// Plain line
-			fmt.Fprintf(&prompt, "[%s] %q\n", num, block.Text)
+			fmt.Fprintf(&prompt, "[%s] %s\n", num, quoted)
 		}
 	}
 
@@ -255,6 +259,15 @@ func BuildContentSuffix(contentType string) string {
 	default:
 		return ""
 	}
+}
+
+// quoteForPrompt wraps text in double quotes without escaping internal newlines.
+// Unlike %q (strconv.Quote), this preserves real newlines so multiline dialogue
+// blocks are shown as-is to the LLM rather than as literal \n sequences.
+// Internal double quotes are escaped as \" to avoid breaking the line format.
+func quoteForPrompt(s string) string {
+	s = strings.ReplaceAll(s, `"`, `\"`)
+	return `"` + s + `"`
 }
 
 // isPunctuationOnly checks if text contains only punctuation and whitespace (D-13).

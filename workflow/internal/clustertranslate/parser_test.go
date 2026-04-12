@@ -131,3 +131,61 @@ func TestMapLinesToIDs_Mismatch(t *testing.T) {
 		t.Error("expected error for line count mismatch")
 	}
 }
+
+// TestParseNumberedOutput_MultilineEscaped verifies that literal \n sequences
+// echoed by the LLM (from a %q-formatted prompt) are converted to real newlines.
+func TestParseNumberedOutput_MultilineEscaped(t *testing.T) {
+	// LLM echoes back the \n as a literal two-character sequence.
+	raw := `[01] Braxo: "첫 번째 줄\n두 번째 줄"`
+
+	lines, err := ParseNumberedOutput(raw)
+	if err != nil {
+		t.Fatalf("ParseNumberedOutput error: %v", err)
+	}
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 line, got %d", len(lines))
+	}
+	want := "첫 번째 줄\n두 번째 줄"
+	if lines[0].Text != want {
+		t.Errorf("Text = %q, want %q", lines[0].Text, want)
+	}
+}
+
+// TestParseNumberedOutput_MultilineReal verifies that real newlines in the text
+// (from quoteForPrompt) are preserved as-is after parsing.
+func TestParseNumberedOutput_MultilineReal(t *testing.T) {
+	// LLM returns text with an actual embedded newline (quoteForPrompt output).
+	raw := "[01] Braxo: \"첫 번째 줄\n두 번째 줄\""
+
+	lines, err := ParseNumberedOutput(raw)
+	if err != nil {
+		t.Fatalf("ParseNumberedOutput error: %v", err)
+	}
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 line, got %d (multiline text must stay as one item)", len(lines))
+	}
+	want := "첫 번째 줄\n두 번째 줄"
+	if lines[0].Text != want {
+		t.Errorf("Text = %q, want %q", lines[0].Text, want)
+	}
+}
+
+// TestQuoteForPrompt verifies that quoteForPrompt preserves real newlines.
+func TestQuoteForPrompt(t *testing.T) {
+	input := "line one\nline two"
+	got := quoteForPrompt(input)
+	want := "\"line one\nline two\""
+	if got != want {
+		t.Errorf("quoteForPrompt(%q) = %q, want %q", input, got, want)
+	}
+}
+
+// TestQuoteForPrompt_InternalQuotes verifies internal double quotes are escaped.
+func TestQuoteForPrompt_InternalQuotes(t *testing.T) {
+	input := `say "hello"`
+	got := quoteForPrompt(input)
+	want := `"say \"hello\""`
+	if got != want {
+		t.Errorf("quoteForPrompt(%q) = %q, want %q", input, got, want)
+	}
+}
