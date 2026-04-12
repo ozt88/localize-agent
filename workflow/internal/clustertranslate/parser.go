@@ -149,16 +149,35 @@ func MapLinesToIDs(lines []TranslatedLine, meta PromptMeta) (map[string]string, 
 
 // stripQuotes removes surrounding double quotes from a string and unescapes
 // common Go escape sequences that the LLM may echo back when the prompt used %q.
-// Specifically, literal \n in the response is converted to a real newline so that
-// multiline dialogue blocks stored in the DB contain actual newlines.
+//
+// Multiline handling: when a block spans multiple real lines, the LLM may return
+// the closing quote on a later line, or omit it entirely. We therefore strip a
+// leading quote that has no matching trailing quote (unbalanced open quote).
+//
+// Unescape order: \\ must be last so we don't double-unescape already unescaped chars.
 func stripQuotes(s string) string {
-	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		s = s[1 : len(s)-1]
-	}
-	// Unescape sequences the LLM may echo from a %q-formatted prompt.
+	// First, unescape escape sequences the LLM may echo from a %q-formatted prompt.
+	// Note: \\ must be unescaped last to avoid double-processing.
 	s = strings.ReplaceAll(s, `\n`, "\n")
 	s = strings.ReplaceAll(s, `\t`, "\t")
 	s = strings.ReplaceAll(s, `\"`, `"`)
 	s = strings.ReplaceAll(s, `\\`, `\`)
+
+	// Remove balanced surrounding quotes.
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	}
+
+	// Remove unbalanced leading quote (multiline block: closing quote may be on
+	// a later line that the LLM omitted or the parser didn't join).
+	if len(s) >= 1 && s[0] == '"' {
+		return s[1:]
+	}
+
+	// Remove unbalanced trailing quote.
+	if len(s) >= 1 && s[len(s)-1] == '"' {
+		return s[:len(s)-1]
+	}
+
 	return s
 }
