@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"localize-agent/workflow/internal/clustertranslate"
 	"localize-agent/workflow/pkg/platform"
@@ -34,6 +38,16 @@ type speakerAllowList struct {
 	Speakers []speakerEntry `json:"speakers"`
 }
 
+// kattegatCard is the hardcoded voice card for Kattegatt (ancient entity, archaic speech).
+var kattegatCard = clustertranslate.VoiceCard{
+	SpeechStyle: "고어체. 어미: ~도다, ~노라, ~옵니다. thou/thy → 그대/당신. 장중하고 느린 리듬",
+	Honorific:   "존대 (모든 대상에게 고어 격식체)",
+	Personality: "위엄 있는 고대 존재, 신탁적, 신비로운",
+	Relationships: map[string]string{
+		"*": "초월적 거리감 — 모두에게 고어체",
+	},
+}
+
 func main() {
 	os.Exit(run())
 }
@@ -43,6 +57,7 @@ func run() int {
 		projectPath  string
 		outputPath   string
 		speakersPath string
+		wikiDir      string
 		sampleCount  int
 		minFrequency int
 		dsn          string
@@ -53,6 +68,7 @@ func run() int {
 	flag.StringVar(&projectPath, "project", "projects/esoteric-ebb/project.json", "project.json path")
 	flag.StringVar(&outputPath, "output", "projects/esoteric-ebb/context/voice_cards.json", "output voice_cards.json path")
 	flag.StringVar(&speakersPath, "speakers", "projects/esoteric-ebb/context/speaker_allow_list.json", "speaker_allow_list.json path")
+	flag.StringVar(&wikiDir, "wiki-dir", "", "wiki_markdown directory path for character background context")
 	flag.IntVar(&sampleCount, "sample-count", 20, "dialogue samples per character")
 	flag.IntVar(&minFrequency, "min-frequency", 100, "minimum frequency for voice card generation")
 	flag.StringVar(&dsn, "dsn", "", "PostgreSQL DSN (overrides project config)")
@@ -79,7 +95,7 @@ func run() int {
 		if abilityScoreSpeakers[lower] {
 			continue
 		}
-		if s.Frequency >= minFrequency {
+		if s.Frequency >= minFrequency || s.Name == "Kattegatt" {
 			targetSpeakers = append(targetSpeakers, s.Name)
 		}
 	}
@@ -93,9 +109,16 @@ func run() int {
 		}
 	}
 
-	// Filter out already-generated speakers
+	// Always inject/update Kattegatt with hardcoded archaic profile.
+	existing["Kattegatt"] = kattegatCard
+	fmt.Fprintf(os.Stderr, "generate-voice-cards: injected hardcoded Kattegatt voice card\n")
+
+	// Filter out already-generated speakers (except Kattegatt which is hardcoded above)
 	var needGeneration []string
 	for _, name := range targetSpeakers {
+		if name == "Kattegatt" {
+			continue // already handled
+		}
 		if _, ok := existing[name]; !ok {
 			needGeneration = append(needGeneration, name)
 		}
@@ -181,13 +204,39 @@ func run() int {
 			continue
 		}
 
-		// Build LLM prompt
-		prompt := buildVoiceCardPrompt(name, samples)
+		// Load co-occurring speakers from DB for relationship context.
+		coSpeakers, _ := coOccurringSpeakers(db, name, 5)
 
-		// Call LLM
-		resp, err := llmClient.SendPrompt("voice-card-"+name, profile, prompt)
+		// Load wiki text if wiki-dir provided.
+		wikiText := loadWikiText(wikiDir, name)
+
+		// Build LLM prompt
+		prompt := buildVoiceCardPrompt(name, samples, coSpeakers, wikiText)
+
+		// Call LLM with server-restart retry (OpenCode may exit after each request).
+		var resp string
+		const maxLLMRetries = 3
+		for attempt := 0; attempt < maxLLMRetries; attempt++ {
+			// Ensure server is alive before each request.
+			if !probeServer(llmProfile.ServerURL) {
+				fmt.Fprintf(os.Stderr, "generate-voice-cards: server not reachable at %s, restarting...\n", llmProfile.ServerURL)
+				if restartErr := restartOpenCode(llmProfile.ServerURL); restartErr != nil {
+					fmt.Fprintf(os.Stderr, "generate-voice-cards: restart failed: %v\n", restartErr)
+					break
+				}
+				llmClient.ResetAllSessions()
+			}
+
+			resp, err = llmClient.SendPrompt("voice-card-"+name, profile, prompt)
+			if err == nil {
+				break
+			}
+			fmt.Fprintf(os.Stderr, "generate-voice-cards: LLM attempt %d/%d for %s failed: %v\n", attempt+1, maxLLMRetries, name, err)
+			llmClient.ResetAllSessions()
+			time.Sleep(500 * time.Millisecond)
+		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "generate-voice-cards: LLM error for %s: %v (skipping)\n", name, err)
+			fmt.Fprintf(os.Stderr, "generate-voice-cards: LLM error for %s after %d attempts: %v (skipping)\n", name, maxLLMRetries, err)
 			continue
 		}
 
@@ -208,10 +257,14 @@ func run() int {
 
 // sampleDialogues fetches random dialogue samples for a speaker from the v2 pipeline DB.
 func sampleDialogues(db *sql.DB, speaker string, limit int) ([]string, error) {
-	query := `SELECT source_raw FROM pipeline_items_v2 WHERE speaker = ? AND state = 'done' ORDER BY RANDOM() LIMIT ?`
+	query := `SELECT source_raw FROM pipeline_items_v2 WHERE speaker = $1 AND state = 'done' ORDER BY RANDOM() LIMIT $2`
 	rows, err := db.Query(query, speaker, limit)
 	if err != nil {
-		return nil, err
+		// Fallback to ? placeholder for SQLite
+		rows, err = db.Query(`SELECT source_raw FROM pipeline_items_v2 WHERE speaker = ? AND state = 'done' ORDER BY RANDOM() LIMIT ?`, speaker, limit)
+		if err != nil {
+			return nil, err
+		}
 	}
 	defer rows.Close()
 
@@ -226,19 +279,96 @@ func sampleDialogues(db *sql.DB, speaker string, limit int) ([]string, error) {
 	return samples, rows.Err()
 }
 
+// coOccurringSpeakers returns the top N speakers who appear most often in the same knot as the given speaker.
+func coOccurringSpeakers(db *sql.DB, speaker string, limit int) ([]string, error) {
+	query := `
+		SELECT other.speaker, COUNT(*) as cnt
+		FROM pipeline_items_v2 self
+		JOIN pipeline_items_v2 other ON self.knot = other.knot AND other.speaker != self.speaker AND other.speaker != ''
+		WHERE self.speaker = $1
+		GROUP BY other.speaker
+		ORDER BY cnt DESC
+		LIMIT $2`
+	rows, err := db.Query(query, speaker, limit)
+	if err != nil {
+		// Fallback for SQLite
+		rows, err = db.Query(strings.ReplaceAll(strings.ReplaceAll(query, "$1", "?"), "$2", "?"), speaker, limit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	var speakers []string
+	for rows.Next() {
+		var s string
+		var cnt int
+		if err := rows.Scan(&s, &cnt); err != nil {
+			return nil, err
+		}
+		speakers = append(speakers, s)
+	}
+	return speakers, rows.Err()
+}
+
+// loadWikiText searches wiki_markdown directory for a file matching the speaker name (case-insensitive contains).
+// Returns empty string if wiki-dir is empty or no match found.
+func loadWikiText(wikiDir, speakerName string) string {
+	if wikiDir == "" {
+		return ""
+	}
+	entries, err := os.ReadDir(wikiDir)
+	if err != nil {
+		return ""
+	}
+	lowerName := strings.ToLower(speakerName)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		fileName := strings.ToLower(strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name())))
+		if strings.Contains(fileName, lowerName) {
+			data, err := os.ReadFile(filepath.Join(wikiDir, entry.Name()))
+			if err != nil {
+				continue
+			}
+			text := string(data)
+			// Truncate to ~2000 chars to avoid oversized prompts.
+			if len(text) > 2000 {
+				text = text[:2000] + "\n[truncated]"
+			}
+			return text
+		}
+	}
+	return ""
+}
+
 // buildVoiceCardPrompt creates the LLM prompt for voice card generation.
-func buildVoiceCardPrompt(name string, samples []string) string {
+// Includes wiki background, co-occurring speakers for relationship analysis.
+func buildVoiceCardPrompt(name string, samples []string, coSpeakers []string, wikiText string) string {
 	var sb strings.Builder
+
+	if wikiText != "" {
+		fmt.Fprintf(&sb, "## %s — 캐릭터 배경 (위키)\n\n%s\n\n", name, wikiText)
+	}
+
 	sb.WriteString(fmt.Sprintf("다음은 게임 캐릭터 \"%s\"의 영어 대사 샘플입니다:\n\n", name))
 	for i, s := range samples {
 		fmt.Fprintf(&sb, "%d. %s\n", i+1, s)
 	}
 	sb.WriteString("\n")
 	sb.WriteString("이 캐릭터의 기본 모드(baseline tone)를 분석하여 한국어 번역 시 적용할 voice profile을 JSON으로 작성하세요:\n")
-	sb.WriteString("- speech_style: 이 캐릭터의 화법 스타일 (예: \"조용하고 신중한 어조, 짧은 문장 선호\")\n")
+	sb.WriteString("- speech_style: 이 캐릭터의 화법 스타일. 구체적인 어미 패턴 포함 필수 (예: \"어미: ~야, ~잖아, ~거든. 짧고 직접적인 문장\")\n")
 	sb.WriteString("- honorific: 존댓말 레벨 (\"반말\", \"평어\", 또는 \"존대\" 중 하나)\n")
 	sb.WriteString("- personality: 성격 키워드 2-3개 (예: \"내성적, 관찰력 있음, 가끔 날카로운 유머\")\n")
-	sb.WriteString("\nJSON만 출력하세요: {\"speech_style\":\"...\", \"honorific\":\"...\", \"personality\":\"...\"}\n")
+
+	if len(coSpeakers) > 0 {
+		sb.WriteString(fmt.Sprintf("- relationships: 이 캐릭터가 다른 캐릭터(%s)와 대화할 때 어조/존댓말 변화를 JSON 객체로 작성. 예: {\"Braxo\": \"격식체 → 반말로 전환\", \"Snell\": \"항상 존대\"}\n", strings.Join(coSpeakers, ", ")))
+	} else {
+		sb.WriteString("- relationships: 빈 객체 {} 가능\n")
+	}
+
+	sb.WriteString("\nJSON만 출력하세요: {\"speech_style\":\"...\", \"honorific\":\"...\", \"personality\":\"...\", \"relationships\":{...}}\n")
 	return sb.String()
 }
 
@@ -280,6 +410,68 @@ func parseVoiceCardResponse(resp string) (clustertranslate.VoiceCard, error) {
 		return clustertranslate.VoiceCard{}, fmt.Errorf("incomplete voice card: missing required fields")
 	}
 	return card, nil
+}
+
+// probeServer checks if a server URL is reachable with a short timeout.
+func probeServer(serverURL string) bool {
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(serverURL)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return true
+}
+
+// restartOpenCode starts a fresh OpenCode server on the port extracted from serverURL.
+// It spawns the process detached and waits up to 20s for readiness.
+func restartOpenCode(serverURL string) error {
+	// Extract port from URL (e.g. "http://127.0.0.1:4113" -> "4113")
+	port := "4112"
+	if idx := strings.LastIndex(serverURL, ":"); idx >= 0 {
+		candidate := serverURL[idx+1:]
+		// Strip path if any
+		if slash := strings.Index(candidate, "/"); slash >= 0 {
+			candidate = candidate[:slash]
+		}
+		if candidate != "" {
+			port = candidate
+		}
+	}
+
+	// Find OpenCode executable via Scoop path.
+	opencodeExe := `C:\Users\DELL\scoop\apps\opencode\current\opencode.exe`
+	if _, err := os.Stat(opencodeExe); err != nil {
+		return fmt.Errorf("opencode executable not found: %s", opencodeExe)
+	}
+
+	// Use an isolated working directory so OpenCode doesn't scan project files.
+	isolatedDir := filepath.Join(os.TempDir(), "opencode-serve-isolated")
+	_ = os.MkdirAll(isolatedDir, 0755)
+
+	// Launch detached — we don't wait for it since it runs as a server.
+	cmd := exec.Command("powershell.exe",
+		"-NoProfile", "-ExecutionPolicy", "Bypass",
+		"-Command",
+		fmt.Sprintf("Start-Process -FilePath '%s' -ArgumentList 'serve','--port','%s' -WindowStyle Hidden -WorkingDirectory '%s'",
+			opencodeExe, port, isolatedDir),
+	)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("launch opencode: %w", err)
+	}
+	// Don't wait for the powershell wrapper; let it spawn the server.
+	go cmd.Wait() //nolint:errcheck
+
+	// Wait up to 20s for server to become reachable.
+	deadline := time.Now().Add(20 * time.Second)
+	for time.Now().Before(deadline) {
+		time.Sleep(1 * time.Second)
+		if probeServer(serverURL) {
+			fmt.Fprintf(os.Stderr, "generate-voice-cards: server ready at %s\n", serverURL)
+			return nil
+		}
+	}
+	return fmt.Errorf("server did not become reachable at %s within 20s", serverURL)
 }
 
 // writeOutput writes voice cards to JSON file.

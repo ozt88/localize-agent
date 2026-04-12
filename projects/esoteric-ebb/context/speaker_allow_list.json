@@ -1,0 +1,33 @@
+{
+  "speakers": [
+    {"name": "Snell", "frequency": 2663, "verified": true},
+    {"name": "Viira", "frequency": 502, "verified": true},
+    {"name": "Ettir", "frequency": 398, "verified": true},
+    {"name": "Snurre", "frequency": 367, "verified": true},
+    {"name": "Visken", "frequency": 341, "verified": true},
+    {"name": "Rollo", "frequency": 295, "verified": true},
+    {"name": "Lisa", "frequency": 294, "verified": true},
+    {"name": "Alfoz", "frequency": 275, "verified": true},
+    {"name": "Modissa", "frequency": 236, "verified": true},
+    {"name": "Olzis", "frequency": 234, "verified": true},
+    {"name": "Meri", "frequency": 220, "verified": true},
+    {"name": "Darrow", "frequency": 215, "verified": true},
+    {"name": "Alt", "frequency": 206, "verified": true},
+    {"name": "Rix", "frequency": 202, "verified": true},
+    {"name": "Arn", "frequency": 184, "verified": true},
+    {"name": "Bond", "frequency": 174, "verified": true},
+    {"name": "Meek", "frequency": 171, "verified": true},
+    {"name": "Ever", "frequency": 168, "verified": true},
+    {"name": "Miska", "frequency": 167, "verified": true},
+    {"name": "Nessan", "frequency": 164, "verified": true},
+    {"name": "Braxo", "frequency": 161, "verified": true},
+    {"name": "Urth", "frequency": 159, "verified": true},
+    {"name": "Nearly", "frequency": 147, "verified": true},
+    {"name": "Moongore", "frequency": 141, "verified": true},
+    {"name": "Oyu", "frequency": 134, "verified": true},
+    {"name": "Ost", "frequency": 134, "verified": true},
+    {"name": "Isk", "frequency": 129, "verified": true},
+    {"name": "Thal", "frequency": 100, "verified": true},
+    {"name": "Kattegatt", "frequency": 1, "verified": true}
+  ]
+}
