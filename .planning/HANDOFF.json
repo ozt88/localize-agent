@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-12T04:07:06.590Z",
+  "phase": "08",
+  "phase_name": "retranslation-execution",
+  "phase_dir": ".planning/phases/08-retranslation-execution",
+  "plan": 2,
+  "task": 1,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": "08-01-T1", "name": "BuildV3Sidecar highest-gen dedup + ResetAllForRetranslation store method", "status": "done", "commit": "56fa1ea"},
+    {"id": "08-01-T2", "name": "go-v2-reset-all CLI + execute full reset to pending_translate", "status": "done", "commit": "524c20d"},
+    {"id": "08-02-T1-partial", "name": "diff_translations.py 작성", "status": "done", "commit": "94e1b11"}
+  ],
+  "remaining_tasks": [
+    {"id": "08-02-T1-remaining", "name": "파이프라인 완료 확인 + before 백업 + go-v2-export 실행 + diff 실행", "status": "blocked_on_pipeline"},
+    {"id": "08-02-T2", "name": "인게임 회귀 검증 (checkpoint:human-verify)", "status": "not_started"}
+  ],
+  "blockers": [
+    {
+      "description": "파이프라인 재번역 진행 중 — 완료 전 export 불가",
+      "type": "external",
+      "workaround": "파이프라인 완료(done 98%+) 확인 후 Plan 02 나머지 진행"
+    }
+  ],
+  "human_actions_pending": [
+    {
+      "action": "파이프라인 실행 완료 대기 후 Claude에게 알림",
+      "context": "현재 done=3100/35028 (9%). 완료되면 /gsd-resume-work 후 export+diff+인게임검증 진행",
+      "blocking": true
+    },
+    {
+      "action": "인게임 검증: 게임 실행 후 초반 씬 한국어 렌더링 확인",
+      "context": "Task 2 체크포인트 — export 완료 후 Claude가 안내",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {"decision": "workflow.use_worktrees = false 설정", "rationale": "Windows에서 worktree 브랜치가 잘못된 베이스로 생성되어 325개 파일 삭제 버그 발생 → 순차 실행으로 전환", "phase": "08"},
+    {"decision": "permissions.defaultMode = bypassPermissions 설정", "rationale": "사용자 요청 — 권한 확인 팝업 비활성화", "phase": "08"},
+    {"decision": "D-02: BuildV3Sidecar 2-pass highest-gen dedup 적용", "rationale": "재번역 후 export 시 최신 gen(gen=1) 번역이 entries[]에 선택되어야 함", "phase": "08"},
+    {"decision": "retranslation_gen 컬럼 ALTER TABLE IF NOT EXISTS로 런타임 추가", "rationale": "기존 스키마 DDL에 없어서 실행 시 동적으로 추가", "phase": "08"}
+  ],
+  "uncommitted_files": [
+    ".knowledge/raw/2026-04-12.md",
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    ".planning/config.json"
+  ],
+  "next_action": "파이프라인 완료 확인: psql -c 'SELECT state, COUNT(*) FROM pipeline_items_v2 GROUP BY state' → done >= 34000이면 before 백업 후 go-v2-export 실행",
+  "context_notes": "Wave 1 완료(35028건 리셋+dedup코드), Wave 2 파이프라인 완료 대기 중. bypassPermissions 세션 재시작 필요. worktrees 비활성화 완료."
+}
