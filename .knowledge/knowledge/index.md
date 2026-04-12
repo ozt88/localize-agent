@@ -1,7 +1,7 @@
 # Knowledge Index
 
 Last compiled: 2026-04-12
-Total entries: 16
+Total entries: 18
 
 ## Quick Reference
 
@@ -17,6 +17,7 @@ Total entries: 16
 | warmup 실패 처리 | guardrails.md | UpdateRetryState 필수 (3개 워커 모두) |
 | 대량 실행 전 샘플 검증 | guardrails.md | 10건 샘플로 voice/RAG 주입 확인 + 특수 말투 육안 검토 |
 | main.go 플래그 회귀 | guardrails.md | Phase 완료 커밋 전 git diff 확인 |
+| v2pipeline 복원 순서 | guardrails.md | contracts→store→clustertranslate→scorellm→v2pipeline→main (9계층) |
 | total=0 버그 | troubleshooting.md | SQLite 연결 오인식 |
 | A/B 테스트 미완료 | troubleshooting.md | max_passes=15, concurrency=2 부족 |
 | psql NULL 에러 | troubleshooting.md | score_final NOT NULL 제약 |
@@ -33,7 +34,7 @@ Phase 07.1(RAG 통합)~Phase 08(재번역 인프라) 실행 중 축적된 지식
 2. **watchdog false-kill**: deepProbe(LLM 요청)는 서버 바쁠 때 timeout → probeServer(HTTP GET)로 교체
 3. **voice/RAG 플래그 누락**: worktree 버그 후 main.go 미복원 → 35K건 번역 품질 실패 (Phase 08 핵심 교훈)
 
-Phase 09 방향: voice card에 wiki/RAG 기반 생성 + relationships 필드 추가, 샘플 검증 씬은 VL_Visken.
+Phase 09 plans 완성 (2026-04-12): 09-01(코드 복원+voice card 재생성+샘플 검증) → 09-02(35,009건 전량 재번역) → 09-03(export+인게임 검증). checker PASS. rag_batch_context.json Phase 07.1에서 이미 존재 확인.
 
 ## Keywords
 

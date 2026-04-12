@@ -19,3 +19,8 @@ voice cards + RAG context가 실제로 프롬프트에 주입되는지 10건 샘
 
 ## main.go CLI 플래그 회귀 확인
 Phase 완료 커밋 전 `git diff HEAD~1 -- **/main.go`로 CLI 플래그 누락 여부 확인. 코드 복원 후 main.go 플래그가 빠지는 사례 있음 (Phase 08-01 교훈).
+
+## v2pipeline 다계층 코드 복원 순서
+worktree 버그 후 v2pipeline 코드 복원 시 컴파일 의존 순서 준수:
+`contracts → store → clustertranslate/types → clustertranslate/prompt → scorellm → v2pipeline/types → worker → run → main.go`
+중간 계층 미완성 상태에서 `go build ./...` 실행 시 컴파일 에러. 각 계층 완료 후 단계적으로 빌드 확인 필수.
