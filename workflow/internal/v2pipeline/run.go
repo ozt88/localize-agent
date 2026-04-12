@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -531,31 +532,51 @@ func deepProbe(serverURL string, timeout time.Duration) bool {
 	return len(data) > 0
 }
 
-// restartOpenCode kills all OpenCode processes and starts a fresh instance.
+// restartOpenCode kills all OpenCode processes and starts a fresh instance on the
+// port extracted from serverURL (e.g. "http://127.0.0.1:4115" → port "4115").
 func restartOpenCode(serverURL string) error {
-	// Kill existing.
+	// Kill existing opencode processes.
 	killCmd := exec.Command("taskkill", "/F", "/IM", "opencode.exe")
-	killCmd.CombinedOutput() // ignore errors if no process
+	killCmd.CombinedOutput() // ignore errors — process may already be gone
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(2 * time.Second)
 
-	// Start via manage script.
-	repoRoot := findRepoRoot()
-	if repoRoot == "" {
-		return fmt.Errorf("cannot find repo root")
+	// Extract port from serverURL.
+	port := "4112" // fallback
+	if u, err := url.Parse(serverURL); err == nil && u.Port() != "" {
+		port = u.Port()
 	}
-	script := filepath.Join(repoRoot, "scripts", "manage-opencode-serve.ps1")
+
+	// Locate opencode binary via Scoop or PATH.
+	opencodeExe := `C:\Users\DELL\scoop\apps\opencode\current\opencode.exe`
+	if _, statErr := os.Stat(opencodeExe); statErr != nil {
+		// Try PATH fallback.
+		if path, lookErr := exec.LookPath("opencode"); lookErr == nil {
+			opencodeExe = path
+		} else {
+			return fmt.Errorf("opencode binary not found at %s and not in PATH", opencodeExe)
+		}
+	}
+
+	// Determine working directory for OpenCode state.
+	repoRoot := findRepoRoot()
+	workDir := "."
+	if repoRoot != "" {
+		workDir = filepath.Join(repoRoot, "workflow", "output", "opencode")
+		_ = os.MkdirAll(workDir, 0o755)
+	}
+
 	cmd := exec.Command("powershell.exe",
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
-		"-File", script,
-		"-Action", "start",
+		"-Command",
+		fmt.Sprintf(`Start-Process '%s' -ArgumentList 'serve','--port','%s' -WorkingDirectory '%s' -WindowStyle Hidden`,
+			opencodeExe, port, workDir),
 	)
-	cmd.Dir = repoRoot
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("start failed: %v\n%s", err, string(out))
 	}
-	fmt.Printf("v2pipeline watchdog: start output: %s\n", strings.TrimSpace(string(out)))
+	fmt.Printf("v2pipeline watchdog: started OpenCode on port %s\n", port)
 
 	// Wait for readiness.
 	deadline := time.Now().Add(30 * time.Second)
