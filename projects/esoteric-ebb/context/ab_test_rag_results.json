@@ -1,0 +1,72 @@
+{
+  "batches": [
+    {
+      "batch_id": "Snell_Companion/Snell_Companion/g-17+g-21+afterSleep+g-2/batch-1084",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "CB_Lake/CB_Lake/g-4+offer+g-6+hub/batch-170",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "AR_Viira_Ivcx/AR_Viira_Ivcx/gift+g-1/batch-51",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "TS_Nearly/Nearly_TS/bardHub/batch-1210",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "Enc_Final/MASKED/Ragn_Round_3_Hub+g-29+Masked_Round_4+Ragn_Round_4+g-43+endingChoice+g-15+Ragn_Round_2/batch-564",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "DS_Olzis/Olzis/hub+g-12+g-19/batch-347",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "DN_Darrow/Darrow/QuestionsHub/batch-303",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "CB_Moongore/CB_Moongore/g-12+g-17+g-24+HWBTHub+g-29+g-32+caught_end/batch-191",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "TS_Kull/Kull/intro+g-23+Snell_Round_2+Kull_Round_2+round_3_intro+g-28+g-29+Snell_Round_3+Kull_Round_3+g-35+g-36/batch-1195",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    },
+    {
+      "batch_id": "CB_Kraaid/CB_Kraaid/g-1+kraaidInfoHub+g-33+yesIam/batch-152",
+      "score_no_rag": 0,
+      "score_with_rag": 0,
+      "delta": 0
+    }
+  ],
+  "avg_no_rag": 0,
+  "avg_with_rag": 0,
+  "avg_delta": 0,
+  "verdict": "PASS",
+  "scored_batches": 0,
+  "total_batches": 10,
+  "timestamp": "2026-04-11T18:34:04",
+  "note": "v3: both conditions fully rerun with current scorer"
+}

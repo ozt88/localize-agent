@@ -1,0 +1,121 @@
+===== [1] Snell (score: 1 -> 9.5) =====
+
+[EN] "<shake>CLERIC</shake>!" 
+You feel nothing in the end. 
+Nothing but a feminine sigh. 
+
+
+[BEFORE KO]
+<shake>CLERIC</shake>!
+
+[AFTER KO]
+\"<shake>CLERIC</shake>!\" 
+결국 아무 느낌도 들지 않는다. 
+여자의 한숨 소리 말고는. 
+
+
+
+===== [2] Iom (score: 1 -> 8.5) =====
+
+[EN] "It is already done. Do not fret. Instead, listen." 
+"I see clearly the magnificent non-impact of your death. That is why you are being watched." 
+"You are one in a magnitude, most likely. A simple mo
+
+[BEFORE KO]
+"이미 끝난 일이다. 두려워하지 마라. 대신 들어라.
+
+[AFTER KO]
+"이미 끝난 일이다. 걱정하지 마라. 대신, 잘 들어라." 
+"네 죽음이 얼마나 눈부시게 아무 영향도 남기지 않을지, 나는 또렷이 본다. 그래서 네가 감시받는 거다." 
+"아마 너는 거대한 척도 속 하나쯤 되는 존재겠지. Esoteric에 희미한 성향을 가진 평범한 필멸자. 그런데 somehow 네 Strings가 그 궁극의 분기와 맞물려 버린 거다." 
+"<i>그 FIFTY-FIFTY.</i>" 
+
+
+
+===== [3] str (score: 1 -> 8.5) =====
+
+[EN] I swear to uphold the truth, justice, and holy realm of his conquest. 
+A lich's conquest... something to behold. 
+For this... horrid creature. Your soul is <i>rotting</i>. 
+
+
+[BEFORE KO]
+"나는 그의 정복이 다스리는 진실과 정의와 성역을 지키겠다고 맹세한다.
+
+[AFTER KO]
+나는 그의 정복이 세운 진실과 정의, 그리고 성스러운 왕국을 수호할 것을 맹세한다. 
+Lich의 정복이라... 볼 만하군. 
+이런... 흉악한 것에게. 네 영혼은 <i>썩어가고</i> 있다. 
+
+
+
+===== [4] int (score: 1 -> 8.5) =====
+
+[EN] <i>I am Caelum of Diminorii. My Words shape worlds. Myself, Jor, is what I am become.</i> 
+The book ends with instructions on various draconic magical theory. Most of which you already know. 
+Elementa
+
+[BEFORE KO]
+"<i>나는 Diminorii의 Caelum. 내 Words가 세계를 빚는다. 나 자신이, Jor가 되어버렸다.</i>
+
+[AFTER KO]
+<i>나는 Diminorii의 Caelum. 내 Words는 세계를 빚는다. 나는, 곧 Jor가 되었다.</i> 
+책은 다양한 draconic 마법 이론에 대한 지침으로 끝맺는다. 그 대부분은 이미 네가 아는 내용이다. 
+기초적이다. 
+대부분은 기억하고 있다. 
+하지만... 페이지 맨 끝의 저 마지막 cantrip를 봐라. 
+저 <i>Mage Hand</i>를. 
+
+
+
+===== [5] Visken (score: 1 -> 8.5) =====
+
+[EN] You take it, moving through the motions as if in a dream. 
+Horrendous power... 
+Strength surges through the iron. 
+Whatever curse is placed upon it, is not attuned to <i>you</i>. 
+It is incredibly hea
+
+[BEFORE KO]
+"너는 꿈속처럼 멍한 채로 그걸 받아 든다.
+
+[AFTER KO]
+너는 그것을 받아 들고, 마치 꿈속에서 움직이듯 그 절차를 따라간다. 
+끔찍한 힘이 깃들어 있다... 
+철 속으로 힘이 치밀어 오른다. 
+여기에 걸린 저주가 무엇이든, <i>너</i>에게 맞춰진 건 아니다. 
+엄청나게 무겁다. 
+근육질인 너라도, 체급 차이 때문에 이걸 제대로 휘두를 수는 없다. 
+이건 네가 다룰 수 없다. 그냥 너무 무겁다. 
+하지만 장신구로는 훌륭하지. 아주 남자답군. 
+\"Caretaker는 두고두고 볼 만한 힘이다.\" 
+\"그게 네 투구 안까지 들어가게 두진 마라.\" 
+그가 손가락으로 한 번 톡 친다. 
+허. Visken이 농담을 하다니. 
+Lich 기준으로는 거의 재주를 부린 거나 다름없다. 
+\"가 봐라.\" 
+
+
+
+===== [6] Modissa (score: 8 -> 9) =====
+
+[EN] She clicks her tongue and mumbles out a poem. 
+"<i>Only bad folk live to see their likeness set in stone</i>." 
+True honor lies in silent toil. 
+"And also, the Azgal movement's close to being branded 
+
+[BEFORE KO]
+그녀가 혀를 차고는 시 한 구절을 중얼거린다.
+\"<i>Only bad folk live to see their likeness set in stone</i>.\"
+진짜 명예는 말없는 노역에 있다.
+\"그리고 Azgal 운동은 지금 '이단적 질병' 딱지 붙기 직전이거든.\"
+\"조용히 가야 해.\"
+
+
+[AFTER KO]
+그녀가 혀를 차고는 시 한 구절을 중얼거린다. 
+"<i>돌에 제 얼굴 새겨진 걸 보는 놈들은 죄다 못된 것들뿐</i>." 
+진짜 명예는 말없는 수고 속에 있지. 
+"그리고 Azgal 운동도 이제 거의 이단성 질병 딱지 붙기 직전이야." 
+"우린 몸 낮추고 가는 중이고."
+
