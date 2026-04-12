@@ -42,6 +42,7 @@ type V2PipelineItem struct {
 	ClaimedBy         string  // worker ID holding the lease
 	BatchID           string  // which Batch this block belongs to
 	RetranslationGen  int     // retranslation generation counter (0=original, 1+=retranslated)
+	ParentChoiceText  string  // text of the choice that led to this knot (BRANCH-01)
 }
 
 // V2PipelineStore defines the persistence interface for the v2 pipeline state machine.
@@ -93,6 +94,15 @@ type V2PipelineStore interface {
 	// GetPrevGateLines returns the last N source_raw texts from the previous gate
 	// in the same knot, ordered by sort_index descending. Used for D-03 context injection.
 	GetPrevGateLines(knot, currentGate string, limit int) ([]string, error)
+
+	// GetNextLines returns the first N source_raw texts after the current gate in the same knot.
+	// Used for CONT-01 look-ahead context injection.
+	GetNextLines(knot, currentGate string, limit int) ([]string, error)
+
+	// GetAdjacentKO returns up to limit completed Korean translations immediately before (prevKO)
+	// and after (nextKO) the given sort range in the same knot. Used for CONT-02 continuity context.
+	// Items with empty ko_formatted are excluded.
+	GetAdjacentKO(knot string, minSort, maxSort int, limit int) (prevKO []string, nextKO []string, err error)
 
 	// QueryDone returns all items in state=done, ordered by sort_index.
 	QueryDone() ([]V2PipelineItem, error)

@@ -24,9 +24,15 @@ CREATE TABLE IF NOT EXISTS pipeline_items_v2 (
     claimed_at TIMESTAMPTZ,
     lease_until TIMESTAMPTZ,
     batch_id TEXT NOT NULL DEFAULT '',
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    retranslation_gen INTEGER NOT NULL DEFAULT 0,
+    parent_choice_text TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_pv2_state ON pipeline_items_v2(state);
 CREATE INDEX IF NOT EXISTS idx_pv2_state_lease ON pipeline_items_v2(state, lease_until);
 CREATE INDEX IF NOT EXISTS idx_pv2_source_hash ON pipeline_items_v2(source_hash);
 CREATE INDEX IF NOT EXISTS idx_pv2_batch ON pipeline_items_v2(batch_id);
+CREATE INDEX IF NOT EXISTS idx_pv2_knot ON pipeline_items_v2(knot);
+-- Migrate: add columns if they don't exist (idempotent)
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS retranslation_gen INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE pipeline_items_v2 ADD COLUMN IF NOT EXISTS parent_choice_text TEXT NOT NULL DEFAULT '';

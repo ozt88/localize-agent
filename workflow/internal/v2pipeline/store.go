@@ -889,6 +889,98 @@ func (s *Store) GetPrevGateLines(knot, currentGate string, limit int) ([]string,
 	return lines, rows.Err()
 }
 
+// GetNextLines returns the first N source_raw texts after the current gate in the same knot.
+// Used for CONT-01 look-ahead context injection.
+func (s *Store) GetNextLines(knot, currentGate string, limit int) ([]string, error) {
+	if knot == "" || currentGate == "" {
+		return nil, nil
+	}
+
+	rows, err := s.db.Query(s.rebind(`
+		SELECT source_raw FROM pipeline_items_v2
+		WHERE knot = ? AND gate != ? AND gate != ''
+		  AND sort_index > (SELECT MAX(sort_index) FROM pipeline_items_v2 WHERE knot = ? AND gate = ?)
+		ORDER BY sort_index
+		LIMIT ?`),
+		knot, currentGate, knot, currentGate, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lines []string
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			return nil, err
+		}
+		lines = append(lines, line)
+	}
+	return lines, rows.Err()
+}
+
+// GetAdjacentKO returns up to limit completed Korean translations immediately before (prevKO)
+// and after (nextKO) the given sort range in the same knot. Items with empty ko_formatted are excluded.
+// Used for CONT-02 continuity context injection.
+func (s *Store) GetAdjacentKO(knot string, minSort, maxSort int, limit int) (prevKO []string, nextKO []string, err error) {
+	if knot == "" {
+		return nil, nil, nil
+	}
+
+	// prevKO: items before minSort, ordered descending, then reversed to chronological
+	prevRows, err := s.db.Query(s.rebind(`
+		SELECT ko_formatted FROM pipeline_items_v2
+		WHERE knot = ? AND sort_index < ? AND ko_formatted IS NOT NULL AND ko_formatted != ''
+		ORDER BY sort_index DESC
+		LIMIT ?`),
+		knot, minSort, limit,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer prevRows.Close()
+	for prevRows.Next() {
+		var ko string
+		if err := prevRows.Scan(&ko); err != nil {
+			return nil, nil, err
+		}
+		prevKO = append(prevKO, ko)
+	}
+	if err := prevRows.Err(); err != nil {
+		return nil, nil, err
+	}
+	// Reverse to chronological order.
+	for i, j := 0, len(prevKO)-1; i < j; i, j = i+1, j-1 {
+		prevKO[i], prevKO[j] = prevKO[j], prevKO[i]
+	}
+
+	// nextKO: items after maxSort, ordered ascending
+	nextRows, err := s.db.Query(s.rebind(`
+		SELECT ko_formatted FROM pipeline_items_v2
+		WHERE knot = ? AND sort_index > ? AND ko_formatted IS NOT NULL AND ko_formatted != ''
+		ORDER BY sort_index
+		LIMIT ?`),
+		knot, maxSort, limit,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer nextRows.Close()
+	for nextRows.Next() {
+		var ko string
+		if err := nextRows.Scan(&ko); err != nil {
+			return nil, nil, err
+		}
+		nextKO = append(nextKO, ko)
+	}
+	if err := nextRows.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	return prevKO, nextKO, nil
+}
+
 // nullableText converts empty strings to NULL for ko_raw/ko_formatted.
 func nullableText(s string) interface{} {
 	if s == "" {

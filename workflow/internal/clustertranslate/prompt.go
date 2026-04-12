@@ -8,6 +8,10 @@ import (
 	"localize-agent/workflow/internal/inkparse"
 )
 
+// contextBudgetTokens is the approximate token budget for all injected context blocks (D-18).
+// Priority order (high to low): continuity > RAG > glossary > branch > voice.
+const contextBudgetTokens = 4000
+
 // v2StaticRules are the translation rules for v2 numbered-line script format.
 var v2StaticRules = []string{
 	"1. Translate the following scene into Korean.",
@@ -75,6 +79,64 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 		prompt.WriteString("\n---\n\n")
 	}
 
+	// CONT-01: look-ahead next lines context
+	if len(task.NextLines) > 0 {
+		prompt.WriteString("[NEXT LINES]\n")
+		prompt.WriteString("(다음 게이트 미리보기 -- 번역하지 마세요)\n")
+		for i, line := range task.NextLines {
+			fmt.Fprintf(&prompt, "[N%d] %q\n", i+1, line)
+		}
+		prompt.WriteString("\n---\n\n")
+	}
+
+	// CONT-02: previous/next Korean translations for continuity
+	if len(task.PrevKO) > 0 {
+		prompt.WriteString("[PREV KO]\n")
+		prompt.WriteString("(이전 한국어 번역 -- 어조 참고용, 번역하지 마세요)\n")
+		for i, ko := range task.PrevKO {
+			fmt.Fprintf(&prompt, "[P%d] %s\n", i+1, ko)
+		}
+		prompt.WriteString("\n---\n\n")
+	}
+	if len(task.NextKO) > 0 {
+		prompt.WriteString("[NEXT KO]\n")
+		prompt.WriteString("(다음 한국어 번역 -- 어조 참고용, 번역하지 마세요)\n")
+		for i, ko := range task.NextKO {
+			fmt.Fprintf(&prompt, "[FK%d] %s\n", i+1, ko)
+		}
+		prompt.WriteString("\n---\n\n")
+	}
+
+	// BRANCH-01: parent choice text
+	if task.ParentChoiceText != "" {
+		fmt.Fprintf(&prompt, "[BRANCH]\n(이 씬은 선택지 %q 이후 분기입니다 -- 참고용)\n\n---\n\n", task.ParentChoiceText)
+	}
+
+	// TONE-02: voice cards for speakers in this batch
+	if len(task.VoiceCards) > 0 {
+		prompt.WriteString("[VOICE CARDS]\n")
+		prompt.WriteString("(화자별 한국어 말투 가이드)\n")
+		// Collect unique speakers from batch
+		seenSpeakers := make(map[string]bool)
+		for _, block := range translatableBlocks {
+			if block.Speaker != "" && !seenSpeakers[block.Speaker] {
+				seenSpeakers[block.Speaker] = true
+				if guide, ok := task.VoiceCards[block.Speaker]; ok {
+					fmt.Fprintf(&prompt, "- %s: %s\n", block.Speaker, guide)
+				}
+			}
+		}
+		prompt.WriteString("\n---\n\n")
+	}
+
+	// D-17: RAG world-building context hints
+	if task.RAGHints != "" {
+		prompt.WriteString("[WORLD CONTEXT]\n")
+		prompt.WriteString("(세계관 맥락 -- 번역 참고용)\n")
+		prompt.WriteString(task.RAGHints)
+		prompt.WriteString("\n\n---\n\n")
+	}
+
 	// Format each translatable block as numbered lines
 	padWidth := 2
 	if len(translatableBlocks) >= 100 {
@@ -115,6 +177,66 @@ func BuildScriptPrompt(task ClusterTask) (string, PromptMeta) {
 	}
 
 	return prompt.String(), meta
+}
+
+// trimContextForBudget trims context fields from a ClusterTask to stay within the token budget.
+// Priority order (D-18): continuity (PrevKO/NextKO/NextLines) > RAG > glossary > branch > voice.
+// Approximation: 1 token ≈ 4 characters.
+func trimContextForBudget(task *ClusterTask) {
+	budget := contextBudgetTokens * 4 // convert to characters
+
+	estimate := func(t *ClusterTask) int {
+		total := 0
+		for _, s := range t.PrevKO {
+			total += len(s)
+		}
+		for _, s := range t.NextKO {
+			total += len(s)
+		}
+		for _, s := range t.NextLines {
+			total += len(s)
+		}
+		total += len(t.RAGHints)
+		total += len(t.GlossaryJSON)
+		total += len(t.ParentChoiceText)
+		for _, v := range t.VoiceCards {
+			total += len(v)
+		}
+		return total
+	}
+
+	if estimate(task) <= budget {
+		return
+	}
+
+	// Remove voice cards first (lowest priority)
+	task.VoiceCards = nil
+	if estimate(task) <= budget {
+		return
+	}
+
+	// Remove branch context
+	task.ParentChoiceText = ""
+	if estimate(task) <= budget {
+		return
+	}
+
+	// Remove glossary
+	task.GlossaryJSON = ""
+	if estimate(task) <= budget {
+		return
+	}
+
+	// Remove RAG hints
+	task.RAGHints = ""
+	if estimate(task) <= budget {
+		return
+	}
+
+	// Remove continuity (last resort)
+	task.PrevKO = nil
+	task.NextKO = nil
+	task.NextLines = nil
 }
 
 // BuildContentSuffix returns type-specific translation instructions per D-04.

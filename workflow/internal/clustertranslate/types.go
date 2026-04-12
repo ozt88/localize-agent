@@ -4,9 +4,15 @@ import "localize-agent/workflow/internal/inkparse"
 
 // ClusterTask represents a batch of blocks to translate as a scene script.
 type ClusterTask struct {
-	Batch         inkparse.Batch
-	PrevGateLines []string // last 3 lines of previous gate for [CONTEXT] per D-03
-	GlossaryJSON  string   // per-batch glossary terms (excluding warmup)
+	Batch            inkparse.Batch
+	PrevGateLines    []string          // last 3 lines of previous gate for [CONTEXT] per D-03
+	GlossaryJSON     string            // per-batch glossary terms (excluding warmup)
+	NextLines        []string          // next gate source lines for look-ahead context (CONT-01)
+	PrevKO           []string          // previous Korean translations for continuity (CONT-02)
+	NextKO           []string          // next Korean translations for continuity (CONT-02)
+	VoiceCards       map[string]string // speaker -> formatted voice guide text (TONE-02)
+	ParentChoiceText string            // text of the choice that led to this scene (BRANCH-01)
+	RAGHints         string            // formatted world-building context from RAG (D-17)
 }
 
 // ClusterResult holds the parsed output from a cluster translation.

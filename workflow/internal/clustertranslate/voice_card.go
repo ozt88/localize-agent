@@ -8,9 +8,10 @@ import (
 
 // VoiceCard describes a named character's speaking style for Korean translation.
 type VoiceCard struct {
-	SpeechStyle string `json:"speech_style"` // 말투
-	Honorific   string `json:"honorific"`    // 반말/평어/존대
-	Personality string `json:"personality"`  // 성격 키워드
+	SpeechStyle   string            `json:"speech_style"`             // 말투
+	Honorific     string            `json:"honorific"`                // 반말/평어/존대
+	Personality   string            `json:"personality"`              // 성격 키워드
+	Relationships map[string]string `json:"relationships,omitempty"`  // other_speaker -> 어조 변화
 }
 
 // LoadVoiceCards loads voice card data from a JSON file.
