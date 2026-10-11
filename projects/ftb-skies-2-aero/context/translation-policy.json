@@ -1,0 +1,20 @@
+{
+  "project": "ftb-skies-2-aero",
+  "source_locale": "en_us",
+  "target_locale": "ko_kr",
+  "worker_model": "gpt-6-sol",
+  "reasoning_effort": "medium",
+  "review": "one integrated source-aware meaning/readability/context/terminology review with necessary corrections and item-specific issue dispositions",
+  "admission_module": "workflow.pkg.input_optimization.admission",
+  "admission": "Final source and target hashes, complete review scopes, valid evidence, no unresolved structural failures, holds, warnings or conflicts",
+  "priority": ["pack quests", "pack language resources and messages", "guides and script literals after format validation", "missing mod translations after effective-resource resolution"],
+  "preserve": ["localization keys", "quest/task/reward IDs", "dependencies", "resource identifiers", "commands", "URLs", "formatting and interpolation controls", "list structure and empty paragraphs"],
+  "reference_policy": "Historical translations may supply individually validated terminology only. Do not include old quest sentences, descriptions, rewards, progression claims or sentence mappings in translation/review prompts or admission candidates, even when keys or English text match. Use current English and current installed-pack context as factual authority.",
+  "historical_sentence_reuse_allowed": false,
+  "historical_prompt_references_allowed": false,
+  "terminology_policy": "Keep term-level source/version/provenance, current item or concept identity, ambiguity and approval status. Only explicitly approved terms may enter prompts. Short labels and quest titles are not automatically glossary terms. No approved historical terms yet.",
+  "quality_loop": "Record actual per-call usage, input composition, first-pass admission, correction and hold reasons. Fix recurring causes with regression tests; recheck only affected items. Do not add blanket audits without failure evidence.",
+  "preflight": "Inventory is provisional until installation completion and source hash revalidation. Never translate a mutable installation snapshot.",
+  "production_ready": false,
+  "live_state_changes": 0
+}

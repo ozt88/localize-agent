@@ -1,0 +1,360 @@
+{
+  "version": 1,
+  "terms": [
+    {
+      "source_term": "Talisman",
+      "korean_term": "부적",
+      "current_concept_identity": "item.fargostalismans.*_talisman",
+      "evidence": [
+        {
+          "path": "mods/fargostalismans-1.21.1-2.3.1.jar",
+          "sha256": "a4273185372c73d57c37b74ef2a6b06d121d0a443fa14fd19d46d73d69d025e2",
+          "entry": "assets/fargostalismans/lang/en_us.json",
+          "root": "current_installed_instance"
+        }
+      ],
+      "source_version": "fargostalismans 2.3.1 / FTB Skies 2 Aero 1.13.0",
+      "status": "approved",
+      "scope": "Fargo talisman item names and descriptions only; mod title unchanged",
+      "korean_authority": "Project editorial choice, not claimed official Korean; 85 existing consistent instances preferred over 65 variants"
+    },
+    {
+      "source_term": "Salvaging Table",
+      "korean_term": "분해 작업대",
+      "aliases": [
+        "분해대"
+      ],
+      "current_concept_identity": "block.apotheosis.salvaging_table",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Apotheosis-1.21.1-8.9.0.jar",
+          "sha256": "23a8b4a21d0d8744f097c77c8a96fcba14c4b95f3b1bb542412f40dab272872e",
+          "english_entry": "assets/apotheosis/lang/en_us.json",
+          "korean_entry": "assets/apotheosis/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Inscriber",
+      "korean_term": "회로 인쇄기",
+      "aliases": [
+        "인스크라이버",
+        "각인기"
+      ],
+      "current_concept_identity": "block.ae2.inscriber",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/appliedenergistics2-19.2.18.jar",
+          "sha256": "df15a07f86ca1ca93aa66373f9d5d84dd3d4586631fceb38f4fbc85dad591e39",
+          "english_entry": "assets/ae2/lang/en_us.json",
+          "korean_entry": "assets/ae2/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Source Jar",
+      "korean_term": "마나 단지",
+      "aliases": [
+        "소스 항아리",
+        "소스 단지"
+      ],
+      "current_concept_identity": "block.ars_nouveau.source_jar",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/ars_nouveau-1.21.1-5.13.2.jar",
+          "sha256": "787b5e2ed6b0e5004285b27ab6c51f8b43edab6cb44c6eccf09452c4b3870dce",
+          "english_entry": "assets/ars_nouveau/lang/en_us.json",
+          "korean_entry": "assets/ars_nouveau/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Heart Amulet",
+      "korean_term": "하트 목걸이",
+      "aliases": [
+        "하트 아뮬렛",
+        "하트 부적"
+      ],
+      "current_concept_identity": "item.bhc.heart_amulet",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/baubley-heart-canisters-1.21.1-1.4.2.jar",
+          "sha256": "f36958d837b19d36f3b32b6dfd16817dd2407a64e01d85567ea7f326e545a3d1",
+          "english_entry": "assets/bhc/lang/en_us.json",
+          "korean_entry": "assets/bhc/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Depot",
+      "korean_term": "아이템 거치대",
+      "aliases": [
+        "디포",
+        "데포"
+      ],
+      "current_concept_identity": "block.create.depot",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/create-1.21.1-6.0.10.jar",
+          "sha256": "ef87fe5709f1ba1f5b8bb20a2925b5afb4669e178fd6d8bf10c167759eefe37a",
+          "english_entry": "assets/create/lang/en_us.json",
+          "korean_entry": "assets/create/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Drying Basin",
+      "korean_term": "건조대",
+      "aliases": [
+        "건조 수조",
+        "건조 대야"
+      ],
+      "current_concept_identity": "block.integrateddynamics.drying_basin",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/integrateddynamics-1.21.1-neoforge-1.37.1-2215.jar",
+          "sha256": "298933d5bfb454e35bf19e1be6dcee9358412cd33b0ec4d2ab594b822ca6728e",
+          "english_entry": "assets/integrateddynamics/lang/en_us.json",
+          "korean_entry": "assets/integrateddynamics/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Logic Programmer",
+      "korean_term": "논리 프로그래머",
+      "aliases": [
+        "로직 프로그래머"
+      ],
+      "current_concept_identity": "block.integrateddynamics.logic_programmer",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/integrateddynamics-1.21.1-neoforge-1.37.1-2215.jar",
+          "sha256": "298933d5bfb454e35bf19e1be6dcee9358412cd33b0ec4d2ab594b822ca6728e",
+          "english_entry": "assets/integrateddynamics/lang/en_us.json",
+          "korean_entry": "assets/integrateddynamics/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Arcane Anvil",
+      "korean_term": "신비한 모루",
+      "aliases": [
+        "비전 모루"
+      ],
+      "current_concept_identity": "block.irons_spellbooks.arcane_anvil",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/irons_spellbooks-1.21.1-3.16.3.jar",
+          "sha256": "13d644474ddba4f8478b4ce68294687fd509c994b3f344a224142b102dbe6f73",
+          "english_entry": "assets/irons_spellbooks/lang/en_us.json",
+          "korean_entry": "assets/irons_spellbooks/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Enrichment Chamber",
+      "korean_term": "농축기",
+      "aliases": [
+        "농축실",
+        "농축 챔버"
+      ],
+      "current_concept_identity": "block.mekanism.enrichment_chamber",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Mekanism-1.21.1-10.7.19.85.jar",
+          "sha256": "004dbc9f3106f4d192aeaa1ee1190dd16ec9ca8059ed3d093b80034f4c574f43",
+          "english_entry": "assets/mekanism/lang/en_us.json",
+          "korean_entry": "assets/mekanism/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Rotary Condensentrator",
+      "korean_term": "회전 콘덴서",
+      "aliases": [
+        "회전식 응축기"
+      ],
+      "current_concept_identity": "block.mekanism.rotary_condensentrator",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Mekanism-1.21.1-10.7.19.85.jar",
+          "sha256": "004dbc9f3106f4d192aeaa1ee1190dd16ec9ca8059ed3d093b80034f4c574f43",
+          "english_entry": "assets/mekanism/lang/en_us.json",
+          "korean_entry": "assets/mekanism/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Heat Exchanger",
+      "korean_term": "열 교환기",
+      "aliases": [
+        "열교환기"
+      ],
+      "current_concept_identity": "block.modern_industrialization.heat_exchanger",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Styrene",
+      "korean_term": "스티렌",
+      "aliases": [
+        "스타이렌"
+      ],
+      "current_concept_identity": "block.modern_industrialization.styrene",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Vacuum Freezer",
+      "korean_term": "진공 냉각기",
+      "aliases": [
+        "진공 냉동기"
+      ],
+      "current_concept_identity": "block.modern_industrialization.vacuum_freezer",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Helium Plasma",
+      "korean_term": "헬륨 플라즈마",
+      "aliases": [
+        "헬륨 플라스마"
+      ],
+      "current_concept_identity": "block.modern_industrialization.helium_plasma",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Diethyl Ether",
+      "korean_term": "디에틸에테르",
+      "aliases": [
+        "다이에틸 에터",
+        "다이에틸 에테르"
+      ],
+      "current_concept_identity": "block.modern_industrialization.diethyl_ether",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    },
+    {
+      "source_term": "Distillery",
+      "korean_term": "증류소",
+      "aliases": [
+        "증류탑",
+        "증류기"
+      ],
+      "current_concept_identity": "block.modern_industrialization.distillery",
+      "status": "approved",
+      "scope": "Exact current installed item concept only",
+      "korean_authority": "Bundled Korean UI of current installed mod; not a claim of official linguistic authority",
+      "evidence": [
+        {
+          "path": "mods/Modern-Industrialization-2.5.8.jar",
+          "sha256": "95c910c40f6f34dfcf398272303a666e3ccf54dc71650c7d8c5662b10b1b95b1",
+          "english_entry": "assets/modern_industrialization/lang/en_us.json",
+          "korean_entry": "assets/modern_industrialization/lang/ko_kr.json",
+          "root": "current_installed_instance"
+        }
+      ]
+    }
+  ],
+  "historical_sentence_reuse_allowed": false,
+  "required_term_fields": [
+    "source_term",
+    "korean_term",
+    "current_concept_identity",
+    "evidence",
+    "source_version",
+    "status"
+  ],
+  "prompt_eligibility": "explicitly approved term-level entries only"
+}
