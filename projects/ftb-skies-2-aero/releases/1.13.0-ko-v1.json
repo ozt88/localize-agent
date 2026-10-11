@@ -1,0 +1,66 @@
+{
+  "tag": "ftb-skies-2-aero-1.13.0-ko-v1",
+  "url": "https://github.com/ozt88/localize-agent/releases/tag/ftb-skies-2-aero-1.13.0-ko-v1",
+  "published_at": "2026-10-11T12:49:57Z",
+  "prerelease": true,
+  "assets": [
+    {
+      "name": "ftb-skies-2-aero-1.13.0-ko-v1-client.zip",
+      "url": "https://github.com/ozt88/localize-agent/releases/download/ftb-skies-2-aero-1.13.0-ko-v1/ftb-skies-2-aero-1.13.0-ko-v1-client.zip",
+      "size": 313279,
+      "digest": "sha256:8cdc08a0302a85477373aed706ed34c3412d78b9b77710a73db00384d3e9bf88"
+    },
+    {
+      "name": "ftb-skies-2-aero-1.13.0-ko-v1-server.zip",
+      "url": "https://github.com/ozt88/localize-agent/releases/download/ftb-skies-2-aero-1.13.0-ko-v1/ftb-skies-2-aero-1.13.0-ko-v1-server.zip",
+      "size": 268922,
+      "digest": "sha256:4dabcb8feb1b4f44b016593e38f0a50b4b51183ec21efb0a47d7d5baa103dc82"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "url": "https://github.com/ozt88/localize-agent/releases/download/ftb-skies-2-aero-1.13.0-ko-v1/SHA256SUMS.txt",
+      "size": 216,
+      "digest": "sha256:04ed0e762a203241c2208cc3860c5af4c4f55bb1df656ac9249ff37358e8047f"
+    }
+  ],
+  "coverage": {
+    "admitted": 8218,
+    "quest_admitted": 5732,
+    "language_admitted": 2459,
+    "script_admitted": 27,
+    "technical_preserved": 45
+  },
+  "worker_usage": {
+    "input": 3332048,
+    "cached_input": 123392,
+    "output": 506330,
+    "reasoning_output": 207853,
+    "total": 3838378,
+    "uncached_input": 3208656
+  },
+  "worker_calls": 245,
+  "measurement_scope": "Measured Sol worker calls including pilot, script translation, repair and terminology alignment; controller session usage is separate",
+  "quality": {
+    "first_pass_structural_failures": 268,
+    "review_corrected_items": 530,
+    "final_structural_failures": 0,
+    "held_items": 0,
+    "targeted_term_corrections": 65,
+    "current_ui_term_review": {
+      "reviewed": 78,
+      "corrected": 78,
+      "translation_calls": 0,
+      "holds": 0
+    },
+    "observed_parallel_factor": 2.2791183734599056
+  },
+  "known_source_warnings": [
+    {
+      "id": "quest:quest.2617A856093F36AB.quest_desc:14",
+      "issue": "Source image directive has a malformed closing delimiter; preserved unchanged by the technical-data policy"
+    }
+  ],
+  "in_game_validation": "not performed",
+  "dedicated_server_validation": "not performed",
+  "local_client_installation": "installed and 23 file hashes verified; original 12 files backed up locally"
+}

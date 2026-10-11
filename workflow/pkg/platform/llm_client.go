@@ -15,6 +15,7 @@ import (
 )
 
 type LLMProfile struct {
+	ReasoningEffort string
 	ProviderID     string
 	ModelID        string
 	Agent          string

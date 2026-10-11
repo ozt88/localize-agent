@@ -1,0 +1,34 @@
+{
+  "name": "ftb-skies-2-aero",
+  "display_name": "FTB Skies 2: Aero",
+  "pack_version": "1.13.0",
+  "source_locale": "en_us",
+  "target_locale": "ko_kr",
+  "status": "core_translation_released_prerelease",
+  "workflow": {
+    "adapter": "python-document-batches",
+    "entrypoint": "tools/run_pack_translation.py",
+    "prepare_entrypoint": "tools/prepare_inventory.py",
+    "runner_build": "go build -o projects/ftb-skies-2-aero/.bin/structured-job.exe ./workflow/cmd/structured-job",
+    "model": "gpt-6-sol",
+    "reasoning_effort": "medium",
+    "max_workers": 3,
+    "review": "one_independent_integrated_source_aware_review",
+    "state_backend": "immutable_json_evidence_and_admission",
+    "legacy_database_pipeline_supported": false,
+    "instance_environment_variable": "FTB_AERO_INSTANCE",
+    "policy": "context/translation-policy.json",
+    "terminology": "context/approved-terminology.json",
+    "admission_pointer": "output/admission-current.json",
+    "release_record": "releases/1.13.0-ko-v1.json"
+  },
+  "scope": ["quests", "pack_language_resources", "active_script_ui"],
+  "deferred_scope": ["full_guides", "all_individual_mod_translations"],
+  "validation": {
+    "offline": "passed",
+    "in_game": "not_performed",
+    "dedicated_server": "not_performed",
+    "production_ready": false
+  },
+  "release_url": "https://github.com/ozt88/localize-agent/releases/tag/ftb-skies-2-aero-1.13.0-ko-v1"
+}

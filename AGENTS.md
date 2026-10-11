@@ -26,6 +26,7 @@
 
 ## Current Projects
 
+- ftb-skies-2-aero — FTB Skies 2: Aero 1.13.0 Korean core translation; released as a prerelease. Use its project-specific Python adapter and projects/ftb-skies-2-aero/AGENTS.md, not the legacy database pipeline.
 - `esoteric-ebb` — active, primary project
 - `rogue-trader` — secondary project
 
